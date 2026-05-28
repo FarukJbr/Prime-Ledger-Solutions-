@@ -3,491 +3,612 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>פרוביז | פורטל לקוחות</title>
+<title>Prime Ledger Solutions | פורטל לקוחות</title>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root {
-  --navy:#0A1628; --navy-mid:#112240; --navy-light:#1E3A5F;
-  --gold:#C9A84C; --gold-light:#E8C870;
-  --white:#fff; --gray-100:#F8F9FA; --gray-200:#E9ECEF;
-  --gray-400:#9CA3AF; --gray-600:#6B7280;
-  --green:#10B981; --red:#EF4444; --amber:#F59E0B;
-  --shadow:0 4px 24px rgba(10,22,40,.12);
-}
+:root{--navy:#0A1628;--navy-mid:#112240;--navy-light:#1E3A5F;--gold:#C9A84C;--gold-light:#E8C870;--white:#fff;--gray-100:#F8F9FA;--gray-200:#E9ECEF;--gray-400:#9CA3AF;--gray-600:#6B7280;--green:#10B981;--red:#EF4444;--amber:#F59E0B;--blue:#3B82F6;--purple:#8B5CF6;--brand:#1e5fa8;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Assistant',sans-serif;background:var(--gray-100);color:var(--navy);}
-
-/* AUTH SCREEN */
-.auth-screen{min-height:100vh;background:var(--navy);display:flex;align-items:center;justify-content:center;padding:24px;}
-.auth-card{background:var(--white);border-radius:20px;padding:48px 40px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
-.auth-logo{text-align:center;margin-bottom:32px;}
-.auth-logo-icon{width:56px;height:56px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-family:'Heebo';font-size:26px;font-weight:900;color:var(--navy);margin-bottom:12px;}
-.auth-title{font-family:'Heebo';font-size:26px;font-weight:900;color:var(--navy);text-align:center;margin-bottom:6px;}
-.auth-sub{font-size:14px;color:var(--gray-400);text-align:center;margin-bottom:32px;}
-.auth-tabs{display:flex;background:var(--gray-100);border-radius:10px;padding:4px;margin-bottom:28px;}
-.auth-tab{flex:1;padding:10px;text-align:center;border-radius:7px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:'Assistant';}
+body{font-family:'Assistant',sans-serif;background:var(--gray-100);color:var(--navy);direction:rtl;}
+/* AUTH */
+.auth-wrap{min-height:100vh;background:radial-gradient(ellipse 80% 60% at 20% 50%,rgba(201,168,76,.08) 0%,transparent 60%),var(--navy);display:flex;align-items:center;justify-content:center;padding:20px;}
+.auth-card{background:var(--white);border-radius:20px;padding:44px 40px;width:100%;max-width:440px;box-shadow:0 25px 60px rgba(0,0,0,.35);}
+.auth-logo{text-align:center;margin-bottom:28px;}
+.auth-logo-icon{width:56px;height:56px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-family:'Heebo';font-size:18px;font-weight:900;color:var(--navy);margin-bottom:10px;}
+.auth-brand{font-family:'Heebo';font-size:17px;font-weight:900;color:var(--navy);display:block;}
+.auth-brand span{color:var(--gold);}
+.auth-sub{font-size:11px;color:var(--gray-400);margin-top:3px;display:block;}
+.auth-tabs{display:flex;background:var(--gray-100);padding:4px;border-radius:10px;margin-bottom:22px;}
+.auth-tab{flex:1;padding:8px;border:none;background:transparent;font-size:13px;font-weight:600;cursor:pointer;border-radius:7px;transition:all .2s;font-family:'Assistant';color:var(--gray-600);}
 .auth-tab.active{background:var(--white);color:var(--navy);box-shadow:0 2px 8px rgba(0,0,0,.08);}
-.form-group{margin-bottom:18px;}
-.form-label{display:block;font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px;}
-.form-input{width:100%;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:15px;font-family:'Assistant';outline:none;transition:border-color .2s;}
-.form-input:focus{border-color:var(--gold);}
-.btn-auth{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Assistant';transition:all .2s;margin-top:4px;}
+.fg{margin-bottom:13px;}
+.fl{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:5px;}
+.fi{width:100%;padding:10px 13px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:13px;font-family:'Assistant';outline:none;transition:border-color .2s;}
+.fi:focus{border-color:var(--gold);}
+.btn-auth{width:100%;padding:12px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Assistant';transition:all .2s;}
 .btn-auth:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(201,168,76,.4);}
 .btn-auth:disabled{opacity:.6;cursor:not-allowed;transform:none;}
-.auth-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:12px;font-size:13px;color:var(--red);margin-bottom:16px;display:none;}
-.auth-success{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:8px;padding:12px;font-size:13px;color:var(--green);margin-bottom:16px;display:none;}
-.forgot-link{text-align:center;font-size:13px;color:var(--gray-400);margin-top:16px;cursor:pointer;transition:color .2s;}
-.forgot-link:hover{color:var(--gold);}
-.back-to-site{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:20px;font-size:13px;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:none;}
-.back-to-site:hover{color:var(--gold);}
-
-/* APP LAYOUT */
+.auth-err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:9px 13px;font-size:12px;color:var(--red);margin-bottom:12px;display:none;}
+.auth-ok{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:8px;padding:9px 13px;font-size:12px;color:var(--green);margin-bottom:12px;display:none;}
+.fl-link{text-align:center;font-size:12px;color:var(--gray-400);margin-top:12px;cursor:pointer;}
+.fl-link:hover{color:var(--gold);}
+/* APP */
 .app{display:none;min-height:100vh;}
-
 /* TOPBAR */
-.topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:64px;background:var(--navy);border-bottom:1px solid rgba(201,168,76,.15);display:flex;align-items:center;justify-content:space-between;padding:0 24px;}
-.topbar-logo{display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none;}
-.tl-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Heebo';font-size:17px;font-weight:900;color:var(--navy);}
-.tl-text{font-family:'Heebo';font-size:18px;font-weight:800;color:var(--white);}
-.tl-text span{color:var(--gold);}
-.topbar-right{display:flex;align-items:center;gap:16px;}
-.notif-btn{position:relative;width:36px;height:36px;background:rgba(255,255,255,.06);border-radius:9px;border:none;color:var(--white);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
-.notif-btn:hover{background:rgba(201,168,76,.15);}
-.notif-badge{position:absolute;top:4px;right:4px;width:16px;height:16px;background:var(--red);border-radius:50%;font-size:9px;color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:700;}
-.user-menu{display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 12px;border-radius:10px;transition:background .2s;}
-.user-menu:hover{background:rgba(255,255,255,.06);}
-.user-avatar{width:32px;height:32px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--navy);}
-.user-name{font-size:13px;font-weight:600;color:var(--white);}
-.logout-btn{padding:6px 14px;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:7px;color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;font-family:'Assistant';transition:all .2s;}
-.logout-btn:hover{border-color:rgba(239,68,68,.5);color:var(--red);}
-
-/* SIDEBAR */
-.layout{display:flex;padding-top:64px;min-height:100vh;}
-.sidebar{width:240px;background:var(--white);border-left:1px solid var(--gray-200);position:fixed;top:64px;right:0;bottom:0;overflow-y:auto;z-index:50;padding:20px 12px;}
-.sidebar-section{margin-bottom:24px;}
-.sidebar-label{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);padding:0 8px;margin-bottom:8px;}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:all .2s;font-size:14px;font-weight:500;color:var(--gray-600);margin-bottom:2px;border:none;background:transparent;font-family:'Assistant';width:100%;text-align:right;}
-.nav-item:hover{background:var(--gray-100);color:var(--navy);}
-.nav-item.active{background:rgba(201,168,76,.1);color:var(--gold);font-weight:700;}
-.nav-item .ni-icon{width:32px;height:32px;border-radius:8px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
-.nav-item.active .ni-icon{background:rgba(201,168,76,.15);}
-.nav-badge{margin-right:auto;background:var(--red);color:var(--white);font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;}
-
-/* MAIN CONTENT */
-.main{flex:1;margin-right:240px;padding:28px;max-width:calc(100% - 240px);}
-.page-header{margin-bottom:28px;}
-.page-title{font-family:'Heebo';font-size:26px;font-weight:900;color:var(--navy);}
-.page-sub{font-size:14px;color:var(--gray-400);margin-top:4px;}
-
+.topbar{position:fixed;top:0;left:0;right:0;z-index:200;height:62px;background:var(--navy);border-bottom:1px solid rgba(201,168,76,.15);display:flex;align-items:center;justify-content:space-between;padding:0 20px;}
+.tl{display:flex;align-items:center;gap:9px;}
+.tl-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Heebo';font-size:13px;font-weight:900;color:var(--navy);}
+.tl-name{font-family:'Heebo';font-size:14px;font-weight:900;color:var(--white);}
+.tl-name span{color:var(--gold);}
+.tl-sub{font-size:9px;color:rgba(255,255,255,.35);display:block;}
+.tb-right{display:flex;align-items:center;gap:9px;}
+.nb{position:relative;width:32px;height:32px;background:rgba(255,255,255,.06);border-radius:7px;border:none;color:var(--white);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.nb-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;background:var(--red);border-radius:50%;display:none;}
+.uc{display:flex;align-items:center;gap:7px;padding:4px 9px;border-radius:8px;cursor:pointer;}
+.uc:hover{background:rgba(255,255,255,.06);}
+.ua{width:28px;height:28px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--navy);}
+.un{font-size:12px;font-weight:600;color:var(--white);}
+.bl{padding:5px 12px;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:6px;color:rgba(255,255,255,.6);font-size:11px;cursor:pointer;font-family:'Assistant';transition:all .2s;}
+.bl:hover{border-color:rgba(239,68,68,.5);color:var(--red);}
+/* LAYOUT */
+.layout{display:flex;padding-top:62px;min-height:100vh;}
+.sidebar{width:226px;background:var(--white);border-left:1px solid var(--gray-200);position:fixed;top:62px;right:0;bottom:0;overflow-y:auto;padding:12px 8px;z-index:50;}
+.sbs{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);padding:0 8px;margin:12px 0 5px;}
+.sbs:first-child{margin-top:0;}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:9px;cursor:pointer;transition:all .2s;font-size:13px;font-weight:500;color:var(--gray-600);margin-bottom:2px;border:none;background:transparent;font-family:'Assistant';width:100%;text-align:right;}
+.ni:hover{background:var(--gray-100);color:var(--navy);}
+.ni.active{background:rgba(201,168,76,.1);color:var(--gold);font-weight:700;}
+.ni-ic{width:28px;height:28px;border-radius:7px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.ni.active .ni-ic{background:rgba(201,168,76,.15);}
+.ni-b{margin-right:auto;background:var(--red);color:var(--white);font-size:9px;padding:2px 6px;border-radius:10px;font-weight:700;}
+/* MAIN */
+.main{flex:1;margin-right:226px;padding:22px;max-width:calc(100% - 226px);}
+.ph{margin-bottom:20px;}
+.ph h1{font-family:'Heebo';font-size:22px;font-weight:900;color:var(--navy);}
+.ph p{font-size:12px;color:var(--gray-400);margin-top:3px;}
 /* PANELS */
 .panel{display:none;}
 .panel.active{display:block;}
-
 /* CARDS */
-.card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;padding:24px;}
-.card-title{font-family:'Heebo';font-size:17px;font-weight:700;color:var(--navy);margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
-
-/* STATS GRID */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
-.stat-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:20px;}
-.sc-label{font-size:12px;color:var(--gray-400);margin-bottom:8px;font-weight:600;}
-.sc-value{font-family:'Heebo';font-size:28px;font-weight:900;color:var(--navy);}
-.sc-sub{font-size:12px;margin-top:4px;}
-.sc-positive{color:var(--green);}
-.sc-negative{color:var(--red);}
-
-/* GRID LAYOUTS */
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
-
-/* TABLE */
-.table-wrap{overflow-x:auto;}
+.card{background:var(--white);border:1px solid var(--gray-200);border-radius:13px;padding:18px;margin-bottom:14px;}
+.card2{background:rgba(10,22,40,.02);border:1px solid var(--gray-200);border-radius:9px;padding:10px;margin-bottom:6px;}
+.ct{font-family:'Heebo';font-size:14px;font-weight:700;color:var(--navy);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:7px;}
+/* STATS */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.sc{background:var(--white);border:1px solid var(--gray-200);border-radius:12px;padding:14px;position:relative;overflow:hidden;}
+.sc::before{content:'';position:absolute;top:0;right:0;width:3px;height:100%;border-radius:0 12px 12px 0;}
+.scg::before{background:var(--green);}
+.sco::before{background:var(--gold);}
+.scr::before{background:var(--red);}
+.scb::before{background:var(--blue);}
+.sl{font-size:10px;color:var(--gray-400);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.sv{font-family:'Heebo';font-size:22px;font-weight:900;color:var(--navy);}
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+/* WELCOME */
+.wc{background:linear-gradient(135deg,var(--navy),var(--navy-light));border-radius:15px;padding:22px;margin-bottom:16px;position:relative;overflow:hidden;}
+.wc::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.12) 0%,transparent 70%);}
+.wc-t{font-family:'Heebo';font-size:19px;font-weight:900;color:var(--white);margin-bottom:4px;}
+.wc-s{font-size:12px;color:rgba(255,255,255,.5);}
+.wc-stats{display:flex;gap:18px;margin-top:15px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);}
+.ws{text-align:center;}
+.ws-v{font-family:'Heebo';font-size:18px;font-weight:900;color:var(--gold);display:block;}
+.ws-l{font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;}
+/* TABLES */
+.tw{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;}
-th{text-align:right;padding:12px 16px;font-size:12px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--gray-200);}
-td{padding:14px 16px;font-size:14px;border-bottom:1px solid var(--gray-100);vertical-align:middle;}
-tr:hover td{background:rgba(201,168,76,.03);}
+th{text-align:right;padding:8px 12px;font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--gray-200);}
+td{padding:10px 12px;font-size:12px;border-bottom:1px solid var(--gray-100);vertical-align:middle;}
 tr:last-child td{border:none;}
-
+tr:hover td{background:rgba(201,168,76,.02);}
 /* BADGES */
-.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
-.badge-green{background:rgba(16,185,129,.1);color:var(--green);}
-.badge-amber{background:rgba(245,158,11,.1);color:var(--amber);}
-.badge-red{background:rgba(239,68,68,.1);color:var(--red);}
-.badge-navy{background:rgba(10,22,40,.08);color:var(--navy);}
-.badge-gold{background:rgba(201,168,76,.1);color:var(--gold);}
-
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;}
+.bg{background:rgba(16,185,129,.1);color:var(--green);}
+.br{background:rgba(239,68,68,.1);color:var(--red);}
+.ba{background:rgba(245,158,11,.1);color:var(--amber);}
+.bb{background:rgba(59,130,246,.1);color:var(--blue);}
+.bp{background:rgba(139,92,246,.1);color:var(--purple);}
+.bn{background:rgba(10,22,40,.08);color:var(--navy);}
+.bo{background:rgba(201,168,76,.1);color:var(--gold);}
 /* BUTTONS */
-.btn{padding:9px 18px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Assistant';border:none;display:inline-flex;align-items:center;gap:6px;}
-.btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);}
-.btn-primary:hover{box-shadow:0 4px 16px rgba(201,168,76,.35);transform:translateY(-1px);}
-.btn-outline{background:transparent;border:1.5px solid var(--gray-200);color:var(--navy);}
-.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
-.btn-danger{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);}
-.btn-danger:hover{background:var(--red);color:var(--white);}
-.btn-sm{padding:6px 12px;font-size:12px;}
-
+.btn{padding:6px 13px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Assistant';border:none;display:inline-flex;align-items:center;gap:4px;}
+.btn-p{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);}
+.btn-p:hover{box-shadow:0 3px 10px rgba(201,168,76,.35);transform:translateY(-1px);}
+.btn-o{background:transparent;border:1.5px solid var(--gray-200);color:var(--navy);}
+.btn-o:hover{border-color:var(--gold);color:var(--gold);}
+.btn-d{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+.btn-d:hover{background:var(--red);color:var(--white);}
+.btn-s{font-size:11px;padding:4px 9px;}
+.btn-bl{background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.2);}
+.btn-bl:hover{background:var(--blue);color:var(--white);}
+.btn-gr{background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.2);}
+.btn-gr:hover{background:var(--green);color:var(--white);}
 /* FORM */
-.form-group{margin-bottom:16px;}
-.form-label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px;}
-.form-control{width:100%;padding:11px 14px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:14px;font-family:'Assistant';outline:none;transition:border-color .2s;background:var(--white);}
-.form-control:focus{border-color:var(--gold);}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-
-/* CASHFLOW */
-.cf-income{color:var(--green);font-weight:700;}
-.cf-expense{color:var(--red);font-weight:700;}
-.cf-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;}
-.cf-sum-card{border-radius:14px;padding:20px;text-align:center;}
-.cf-sum-card.income{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);}
-.cf-sum-card.expense{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);}
-.cf-sum-card.balance{background:var(--navy);color:var(--white);}
-.cf-sum-label{font-size:12px;font-weight:600;opacity:.7;margin-bottom:6px;}
-.cf-sum-value{font-family:'Heebo';font-size:26px;font-weight:900;}
-.cf-sum-card.income .cf-sum-value{color:var(--green);}
-.cf-sum-card.expense .cf-sum-value{color:var(--red);}
-.cf-sum-card.balance .cf-sum-value{color:var(--gold);}
-
-/* NOTIFICATIONS */
-.notif-panel{position:fixed;top:72px;left:24px;width:360px;background:var(--white);border:1px solid var(--gray-200);border-radius:16px;box-shadow:var(--shadow);z-index:200;display:none;}
-.notif-panel.open{display:block;}
-.notif-header{padding:16px 20px;border-bottom:1px solid var(--gray-200);display:flex;justify-content:space-between;align-items:center;}
-.notif-list{max-height:360px;overflow-y:auto;}
-.notif-item{padding:14px 20px;border-bottom:1px solid var(--gray-100);display:flex;gap:12px;align-items:flex-start;}
-.notif-item:last-child{border:none;}
-.notif-item.unread{background:rgba(201,168,76,.04);}
-.ni-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);margin-top:5px;flex-shrink:0;}
-.ni-title{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:3px;}
-.ni-time{font-size:11px;color:var(--gray-400);}
-
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.fc{width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:'Assistant';outline:none;transition:border-color .2s;background:var(--white);}
+.fc:focus{border-color:var(--gold);}
+textarea.fc{resize:vertical;}
+/* TYPE/BP TOGGLE */
+.tt{display:flex;border-radius:8px;overflow:hidden;border:1.5px solid var(--gray-200);}
+.tb{padding:7px 15px;border:none;cursor:pointer;font-size:12px;font-weight:600;background:transparent;color:var(--gray-400);font-family:'Assistant';transition:all .2s;}
+.tb.out.active{background:rgba(239,68,68,.1);color:var(--red);}
+.tb.in.active{background:rgba(16,185,129,.1);color:var(--green);}
+.bpt{display:flex;border-radius:8px;overflow:hidden;border:1.5px solid var(--gray-200);}
+.bpb{padding:7px 13px;border:none;cursor:pointer;font-size:12px;font-weight:600;background:transparent;color:var(--gray-400);font-family:'Assistant';transition:all .2s;}
+.bpb.biz.active{background:rgba(59,130,246,.1);color:var(--blue);}
+.bpb.priv.active{background:rgba(139,92,246,.1);color:var(--purple);}
+/* FIN TABS */
+.ft{display:flex;background:var(--gray-100);padding:4px;border-radius:10px;margin-bottom:16px;overflow-x:auto;gap:2px;}
+.ft-b{padding:7px 13px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;border:none;background:transparent;color:var(--gray-600);font-family:'Assistant';white-space:nowrap;}
+.ft-b.active{background:var(--white);color:var(--navy);box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.fp{display:none;}
+.fp.active{display:block;}
+/* CASHFLOW CHART */
+.cfc{display:flex;gap:5px;align-items:flex-end;height:120px;overflow-x:auto;padding-bottom:4px;}
+.cfc-col{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:36px;flex:1;}
+.cfc-bars{display:flex;gap:2px;align-items:flex-end;height:80px;}
+.cfc-bar{width:13px;border-radius:3px 3px 0 0;min-height:2px;transition:.4s;}
+.cfc-lbl{font-size:9px;color:var(--gray-400);white-space:nowrap;}
+.cfc-net{font-size:9px;font-weight:700;}
+/* RECONCILE */
+.rs{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.rc{background:var(--white);border:1px solid var(--gray-200);border-radius:12px;overflow:hidden;}
+.rc-l{border-top:3px solid var(--blue);}
+.rc-r{border-top:3px solid var(--purple);}
+.rc-h{padding:10px 14px;border-bottom:1px solid var(--gray-200);font-weight:700;font-size:12px;display:flex;justify-content:space-between;align-items:center;}
+.rc-b{padding:9px;max-height:420px;overflow-y:auto;}
+.ri{border-radius:9px;padding:9px 11px;margin-bottom:6px;cursor:pointer;border:2px solid transparent;transition:all .15s;position:relative;}
+.ri-bk{background:rgba(59,130,246,.04);border-color:rgba(59,130,246,.12);}
+.ri-rc{background:rgba(139,92,246,.04);border-color:rgba(139,92,246,.12);}
+.ri.sel{border-color:var(--green)!important;background:rgba(16,185,129,.06)!important;}
+.ri.dup{border-color:rgba(239,68,68,.5)!important;background:rgba(239,68,68,.05)!important;}
+.ri-d{font-size:12px;font-weight:600;margin-bottom:2px;}
+.ri-a{font-size:13px;font-weight:800;}
+.ri-dt{font-size:10px;color:var(--gray-400);}
+.mz{background:var(--gray-100);border:1.5px dashed var(--gray-300);border-radius:11px;padding:11px;text-align:center;margin-bottom:12px;}
+/* DROPZONE */
+.dz{border:2px dashed var(--gray-200);border-radius:11px;padding:24px 14px;text-align:center;cursor:pointer;transition:.2s;background:var(--gray-100);}
+.dz:hover{border-color:var(--gold);background:rgba(201,168,76,.04);}
+/* ACCT CHIPS */
+.acs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
+.ac{padding:4px 10px;border-radius:20px;border:1.5px solid var(--gray-200);background:transparent;color:var(--gray-600);cursor:pointer;font-size:11px;font-weight:500;display:flex;align-items:center;gap:3px;transition:all .2s;font-family:'Assistant';}
+.ac.a-all{border-color:var(--green);background:rgba(16,185,129,.08);color:var(--green);font-weight:700;}
+.ac.a-bk{border-color:var(--blue);background:rgba(59,130,246,.08);color:var(--blue);font-weight:700;}
+.ac.a-cc{border-color:var(--purple);background:rgba(139,92,246,.08);color:var(--purple);font-weight:700;}
+.ad{width:6px;height:6px;border-radius:50%;display:inline-block;}
+/* LIMIT/CAT BARS */
+.lb-t{background:var(--gray-200);border-radius:4px;height:5px;margin:4px 0;}
+.lb-f{height:5px;border-radius:4px;transition:.5s;}
+.cb-t{background:var(--gray-100);border-radius:3px;height:4px;}
+.cb-f{height:4px;border-radius:3px;transition:.4s;}
 /* MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(10,22,40,.6);backdrop-filter:blur(6px);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .25s;}
-.modal-overlay.open{opacity:1;visibility:visible;}
-.modal{background:var(--white);border-radius:18px;padding:36px;max-width:480px;width:90%;transform:translateY(16px);transition:transform .25s;}
-.modal-overlay.open .modal{transform:translateY(0);}
-.modal-title{font-family:'Heebo';font-size:20px;font-weight:800;color:var(--navy);margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
-.modal-close{background:var(--gray-100);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
-
+.mo{position:fixed;inset:0;background:rgba(10,22,40,.6);backdrop-filter:blur(5px);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .25s;padding:16px;}
+.mo.open{opacity:1;visibility:visible;}
+.mo-box{background:var(--white);border-radius:16px;padding:28px;width:100%;max-width:500px;transform:translateY(12px);transition:transform .25s;max-height:90vh;overflow-y:auto;}
+.mo.open .mo-box{transform:translateY(0);}
+.mo-t{font-family:'Heebo';font-size:17px;font-weight:800;color:var(--navy);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+.mo-c{background:var(--gray-100);border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;}
+/* EMAIL CARD */
+.et-card{background:var(--white);border:1px solid var(--gray-200);border-radius:11px;padding:14px;margin-bottom:9px;transition:all .2s;}
+.et-card:hover{border-color:rgba(201,168,76,.3);}
+.et-tr{font-size:10px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:4px;}
+.et-s{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:3px;}
+.et-d{font-size:11px;color:var(--gray-400);}
+/* LEGAL */
+.legal-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px;}
+.legal-tab{padding:6px 14px;border-radius:8px;border:1px solid var(--gray-200);background:transparent;color:var(--gray-600);cursor:pointer;font-size:12px;font-weight:600;transition:.2s;font-family:'Assistant';}
+.legal-tab.active{background:rgba(30,95,168,.1);color:var(--brand);border-color:var(--brand);}
+.legal-sec{display:none;}
+.legal-sec.active{display:block;}
+.lc{background:var(--gray-100);border-radius:10px;padding:18px;line-height:1.9;font-size:12px;color:var(--gray-600);}
+.lc h3{color:var(--navy);font-size:14px;font-weight:800;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--gray-200);}
+.lc h4{color:var(--navy);font-size:12px;font-weight:700;margin-top:14px;margin-bottom:5px;}
+/* PLAN CARD */
+.plan-c{border-radius:12px;padding:18px;border:2px solid var(--gray-200);transition:.2s;}
+.plan-c.cur{border-color:var(--green);background:rgba(16,185,129,.04);}
+/* SETTINGS */
+.theme-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:.2s;display:inline-block;}
+.theme-dot:hover,.theme-dot.active{border-color:var(--navy);transform:scale(1.15);}
 /* TOAST */
-.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy);color:var(--white);padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;z-index:400;transition:transform .3s;border:1px solid rgba(201,168,76,.3);white-space:nowrap;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--navy);color:var(--white);padding:10px 20px;border-radius:9px;font-size:12px;font-weight:600;z-index:400;transition:transform .3s;border:1px solid rgba(201,168,76,.3);}
 .toast.show{transform:translateX(-50%) translateY(0);}
-
 /* LOADING */
-.loading{display:flex;align-items:center;justify-content:center;padding:48px;color:var(--gray-400);font-size:14px;gap:10px;}
-.spinner{width:20px;height:20px;border:2px solid var(--gray-200);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-/* EMPTY STATE */
-.empty{text-align:center;padding:48px 24px;color:var(--gray-400);}
-.empty-icon{font-size:40px;margin-bottom:12px;}
-.empty-text{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:6px;}
-.empty-sub{font-size:13px;}
-
-/* SUBSCRIPTION CARD */
-.sub-plan-card{background:var(--navy);color:var(--white);border-radius:16px;padding:28px;margin-bottom:20px;}
-.spc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
-.spc-plan{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:4px;}
-.spc-name{font-family:'Heebo';font-size:24px;font-weight:900;color:var(--gold);}
-.spc-status{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;}
-.spc-active{background:rgba(16,185,129,.15);color:var(--green);}
-.spc-details{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
-.spc-detail-label{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px;}
-.spc-detail-value{font-size:15px;font-weight:700;}
-
-/* PROFILE SETTINGS */
-.avatar-upload{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-light));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:var(--navy);cursor:pointer;margin-bottom:16px;}
-
-/* RESPONSIVE */
+.ld{display:flex;align-items:center;justify-content:center;padding:32px;color:var(--gray-400);gap:7px;font-size:12px;}
+.sp{width:16px;height:16px;border:2px solid var(--gray-200);border-top-color:var(--gold);border-radius:50%;animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.emp{text-align:center;padding:32px 16px;color:var(--gray-400);}
+.emp-i{font-size:30px;margin-bottom:7px;}
+/* ADMIN STATS */
+.adm-sg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.adm-s{background:var(--white);border:1px solid var(--gray-200);border-radius:10px;padding:12px;text-align:center;}
+.adm-sv{font-size:22px;font-weight:800;color:var(--green);}
+.adm-sl{font-size:10px;color:var(--gray-400);margin-top:3px;}
+/* USER CARD */
+.uc2{background:rgba(10,22,40,.02);border:1px solid var(--gray-200);border-radius:10px;padding:10px;margin-bottom:7px;}
+.uc2-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.uav{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--brand),#2563eb);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0;}
+.uav.adm{background:linear-gradient(135deg,var(--amber),#d97706);}
+/* LIMIT WARN */
+.lw{padding:5px 9px;border-radius:6px;font-size:10px;font-weight:600;margin-top:5px;}
+/* PERIOD BTN */
+.pb{padding:4px 10px;border-radius:6px;border:1px solid var(--gray-200);background:transparent;color:var(--gray-600);cursor:pointer;font-size:11px;font-family:'Assistant';}
+.pb.active{border-color:var(--gold);background:rgba(201,168,76,.08);color:var(--gold);font-weight:700;}
 @media(max-width:768px){
   .sidebar{display:none;}
-  .main{margin-right:0;max-width:100%;padding:16px;}
-  .stats-grid{grid-template-columns:1fr 1fr;}
-  .grid-2,.grid-3{grid-template-columns:1fr;}
-  .cf-summary{grid-template-columns:1fr;}
-  .form-row{grid-template-columns:1fr;}
-  .spc-details{grid-template-columns:1fr 1fr;}
+  .main{margin-right:0;max-width:100%;padding:14px;}
+  .sg,.adm-sg,.g2,.g3,.fr2,.rs{grid-template-columns:1fr;}
 }
 </style>
 </head>
 <body>
-
-<!-- ===== AUTH SCREEN ===== -->
-<div id="auth-screen" class="auth-screen">
-  <div style="width:100%;max-width:420px;">
+<!-- AUTH SCREEN -->
+<div id="auth-screen" class="auth-wrap">
+  <div style="width:100%;max-width:440px;">
     <div class="auth-card">
       <div class="auth-logo">
-        <div class="auth-logo-icon">P</div>
-        <div style="font-family:'Heebo';font-size:22px;font-weight:900;color:var(--navy);">פרו<span style="color:var(--gold);">ביז</span></div>
+        <div class="auth-logo-icon">PL</div>
+        <span class="auth-brand">Prime <span>Ledger</span> Solutions</span>
+        <span class="auth-sub">מופעל ע"י גבר יזמות ייעוץ עסקי והשקעות</span>
       </div>
-
       <div class="auth-tabs">
-        <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">כניסה</button>
-        <button class="auth-tab" id="tab-register" onclick="switchTab('register')">הרשמה</button>
+        <button class="auth-tab active" onclick="swTab('login',this)">כניסה</button>
+        <button class="auth-tab" onclick="swTab('register',this)">הרשמה</button>
       </div>
-
-      <!-- LOGIN FORM -->
-      <div id="form-login">
-        <div class="auth-title">ברוכים הבאים</div>
-        <div class="auth-sub">הכנס לפורטל הלקוחות שלך</div>
-        <div class="auth-error" id="login-error"></div>
-        <div class="auth-success" id="login-success"></div>
-        <div class="form-group">
-          <label class="form-label">אימייל</label>
-          <input type="email" class="form-input" id="login-email" placeholder="you@example.com">
-        </div>
-        <div class="form-group">
-          <label class="form-label">סיסמה</label>
-          <input type="password" class="form-input" id="login-password" placeholder="הסיסמה שלך" onkeydown="if(event.key==='Enter')doLogin()">
-        </div>
-        <button class="btn-auth" id="btn-login" onclick="doLogin()">כניסה לפורטל ←</button>
-        <div class="forgot-link" onclick="showForgot()">שכחתי סיסמה</div>
+      <!-- LOGIN -->
+      <div id="f-login">
+        <div class="auth-err" id="li-err"></div>
+        <div class="fg"><label class="fl">אימייל</label><input type="email" class="fi" id="li-e" placeholder="you@example.com"></div>
+        <div class="fg"><label class="fl">סיסמה</label><input type="password" class="fi" id="li-p" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <button class="btn-auth" id="btn-li" onclick="doLogin()">כניסה לפורטל ←</button>
+        <div class="fl-link" onclick="swForgot()">שכחתי סיסמה</div>
       </div>
-
-      <!-- REGISTER FORM -->
-      <div id="form-register" style="display:none;">
-        <div class="auth-title">הצטרפו אלינו</div>
-        <div class="auth-sub">צרו חשבון חדש בפורטל</div>
-        <div class="auth-error" id="reg-error"></div>
-        <div class="auth-success" id="reg-success"></div>
-        <div class="form-group">
-          <label class="form-label">שם מלא</label>
-          <input type="text" class="form-input" id="reg-name" placeholder="ישראל ישראלי">
+      <!-- REGISTER -->
+      <div id="f-register" style="display:none">
+        <div class="auth-err" id="rg-err"></div>
+        <div class="auth-ok" id="rg-ok"></div>
+        <div class="fg"><label class="fl">שם מלא *</label><input type="text" class="fi" id="rg-n" placeholder="ישראל ישראלי"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+          <div class="fg"><label class="fl">אימייל *</label><input type="email" class="fi" id="rg-e" placeholder="you@example.com"></div>
+          <div class="fg"><label class="fl">טלפון</label><input type="tel" class="fi" id="rg-ph" placeholder="050-0000000"></div>
         </div>
-        <div class="form-group">
-          <label class="form-label">אימייל</label>
-          <input type="email" class="form-input" id="reg-email" placeholder="you@example.com">
+        <div class="fg"><label class="fl">שם חברה / עסק</label><input type="text" class="fi" id="rg-co" placeholder="שם העסק"></div>
+        <div class="fg"><label class="fl">סוג שימוש</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+            <label style="display:flex;align-items:center;gap:7px;border:1.5px solid var(--gray-200);border-radius:8px;padding:8px 11px;cursor:pointer;transition:.2s;" id="ul-biz">
+              <input type="radio" name="usage" value="biz" style="accent-color:var(--gold)" onchange="hlUsage('biz')">
+              <div><div style="font-size:12px;font-weight:700;">🏢 עסקי</div><div style="font-size:10px;color:var(--gray-400);">עסקי + פרטי</div></div>
+            </label>
+            <label style="display:flex;align-items:center;gap:7px;border:1.5px solid var(--gray-200);border-radius:8px;padding:8px 11px;cursor:pointer;transition:.2s;" id="ul-priv">
+              <input type="radio" name="usage" value="priv" style="accent-color:var(--gold)" onchange="hlUsage('priv')">
+              <div><div style="font-size:12px;font-weight:700;">🏠 פרטי</div><div style="font-size:10px;color:var(--gray-400);">פרטי בלבד</div></div>
+            </label>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">טלפון</label>
-          <input type="tel" class="form-input" id="reg-phone" placeholder="050-0000000">
+        <div class="fg"><label class="fl">סיסמה *</label><input type="password" class="fi" id="rg-pw" placeholder="לפחות 6 תווים"></div>
+        <div style="display:flex;align-items:flex-start;gap:7px;margin-bottom:11px;font-size:11px;color:var(--gray-400);">
+          <input type="checkbox" id="rg-terms" style="width:15px;height:15px;margin-top:2px;accent-color:var(--gold);">
+          <label for="rg-terms">קראתי ואני מסכים/ה ל<span style="color:var(--gold);cursor:pointer;" onclick="showPanel('legal')">תנאי השימוש</span></label>
         </div>
-        <div class="form-group">
-          <label class="form-label">שם חברה</label>
-          <input type="text" class="form-input" id="reg-company" placeholder="חברת ישראלי בע״מ">
-        </div>
-        <div class="form-group">
-          <label class="form-label">סיסמה (לפחות 6 תווים)</label>
-          <input type="password" class="form-input" id="reg-password" placeholder="בחר סיסמה חזקה">
-        </div>
-        <button class="btn-auth" id="btn-register" onclick="doRegister()">צור חשבון ←</button>
+        <button class="btn-auth" id="btn-rg" onclick="doRegister()">הרשמה ←</button>
       </div>
-
-      <!-- FORGOT PASSWORD -->
-      <div id="form-forgot" style="display:none;">
-        <div class="auth-title">איפוס סיסמה</div>
-        <div class="auth-sub">נשלח לך לינק לאיפוס</div>
-        <div class="auth-error" id="forgot-error"></div>
-        <div class="auth-success" id="forgot-success"></div>
-        <div class="form-group">
-          <label class="form-label">אימייל</label>
-          <input type="email" class="form-input" id="forgot-email" placeholder="you@example.com">
-        </div>
-        <button class="btn-auth" onclick="doForgot()">שלח לינק לאיפוס ←</button>
-        <div class="forgot-link" onclick="switchTab('login')">חזרה לכניסה</div>
+      <!-- FORGOT -->
+      <div id="f-forgot" style="display:none">
+        <div class="auth-err" id="fg-err"></div>
+        <div class="auth-ok" id="fg-ok"></div>
+        <div class="fg"><label class="fl">אימייל</label><input type="email" class="fi" id="fg-e" placeholder="you@example.com"></div>
+        <button class="btn-auth" onclick="doForgot()">שלח קישור איפוס ←</button>
+        <div class="fl-link" onclick="swTab('login',document.querySelector('.auth-tab'))">← חזרה לכניסה</div>
       </div>
     </div>
-    <a href="website.html" class="back-to-site">← חזרה לאתר</a>
+    <div style="text-align:center;margin-top:12px;"><a href="website.html" style="font-size:11px;color:rgba(255,255,255,.3);text-decoration:none;">← חזרה לאתר Prime Ledger</a></div>
   </div>
 </div>
 
-<!-- ===== APP ===== -->
+<!-- APP -->
 <div id="app" class="app">
-
-  <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-logo">
-      <div class="tl-icon">P</div>
-      <span class="tl-text">פרו<span>ביז</span> | פורטל</span>
+    <div class="tl">
+      <div class="tl-icon">PL</div>
+      <div><span class="tl-name">Prime <span>Ledger</span></span><span class="tl-sub">פורטל לקוחות</span></div>
     </div>
-    <div class="topbar-right">
-      <button class="notif-btn" onclick="toggleNotifications()">
-        🔔
-        <span class="notif-badge" id="notif-count">3</span>
-      </button>
-      <div class="user-menu">
-        <div class="user-avatar" id="user-avatar">?</div>
-        <span class="user-name" id="user-name-display">טוען...</span>
-      </div>
-      <button class="logout-btn" onclick="doLogout()">יציאה</button>
-    </div>
-  </div>
-
-  <!-- NOTIFICATIONS PANEL -->
-  <div class="notif-panel" id="notif-panel">
-    <div class="notif-header">
-      <span style="font-size:15px;font-weight:700;">התראות</span>
-      <button class="btn btn-sm btn-outline" onclick="markAllRead()">סמן הכל כנקרא</button>
-    </div>
-    <div class="notif-list" id="notif-list">
-      <div class="loading"><div class="spinner"></div> טוען...</div>
+    <div class="tb-right">
+      <button class="nb" onclick="showPanel('notifs')">🔔<span class="nb-dot" id="nb-dot"></span></button>
+      <div class="uc"><div class="ua" id="u-av">?</div><span class="un" id="u-nm">טוען...</span></div>
+      <button class="bl" onclick="doLogout()">יציאה</button>
     </div>
   </div>
 
   <div class="layout">
     <!-- SIDEBAR -->
     <div class="sidebar">
-      <div class="sidebar-section">
-        <div class="sidebar-label">ראשי</div>
-        <button class="nav-item active" onclick="showPanel('dashboard')">
-          <div class="ni-icon">📊</div> לוח בקרה
-        </button>
-        <button class="nav-item" onclick="showPanel('cashflow')">
-          <div class="ni-icon">💹</div> תזרים מזומנים
-        </button>
-        <button class="nav-item" onclick="showPanel('meetings')">
-          <div class="ni-icon">📅</div> פגישות
-          <span class="nav-badge" id="badge-meetings">2</span>
-        </button>
-        <button class="nav-item" onclick="showPanel('documents')">
-          <div class="ni-icon">📁</div> מסמכים
-        </button>
-      </div>
-      <div class="sidebar-section">
-        <div class="sidebar-label">חשבון</div>
-        <button class="nav-item" onclick="showPanel('subscription')">
-          <div class="ni-icon">⭐</div> מנוי ותשלום
-        </button>
-        <button class="nav-item" onclick="showPanel('profile')">
-          <div class="ni-icon">👤</div> פרופיל
-        </button>
-      </div>
-      <div class="sidebar-section" style="margin-top:auto;padding-top:16px;border-top:1px solid var(--gray-200);">
-        <a href="website.html" style="text-decoration:none;">
-          <button class="nav-item">
-            <div class="ni-icon">🌐</div> חזרה לאתר
-          </button>
-        </a>
+      <div class="sbs">ראשי</div>
+      <button class="ni active" onclick="showPanel('dashboard')"><div class="ni-ic">🏠</div>לוח בקרה</button>
+      <button class="ni" onclick="showPanel('cashflow')"><div class="ni-ic">💹</div>תזרים מזומנים</button>
+      <button class="ni" onclick="showPanel('meetings')"><div class="ni-ic">📅</div>פגישות<span class="ni-b" id="b-mtg" style="display:none">0</span></button>
+      <button class="ni" onclick="showPanel('docs')"><div class="ni-ic">📁</div>מסמכים</button>
+      <div class="sbs">מידע</div>
+      <button class="ni" onclick="showPanel('plans')"><div class="ni-ic">💳</div>מנויים ותמחור</button>
+      <button class="ni" onclick="showPanel('legal')"><div class="ni-ic">📋</div>מסמכים משפטיים</button>
+      <div class="sbs">חשבון</div>
+      <button class="ni" onclick="showPanel('sub')"><div class="ni-ic">⭐</div>מנוי שלי</button>
+      <button class="ni" onclick="openSettings()"><div class="ni-ic">⚙️</div>הגדרות</button>
+      <button class="ni" onclick="showPanel('profile')"><div class="ni-ic">👤</div>פרופיל</button>
+      <div class="sbs" id="sb-adm-s" style="display:none">ניהול</div>
+      <button class="ni" id="sb-adm-b" style="display:none" onclick="showPanel('admin')"><div class="ni-ic">👑</div>אדמין פאנל</button>
+      <button class="ni" id="sb-em-b" style="display:none" onclick="showPanel('emails')"><div class="ni-ic">📧</div>תבניות מייל</button>
+      <div style="padding-top:12px;margin-top:8px;border-top:1px solid var(--gray-200);">
+        <a href="website.html" style="text-decoration:none;"><button class="ni"><div class="ni-ic">🌐</div>חזרה לאתר</button></a>
       </div>
     </div>
 
-    <!-- MAIN -->
     <div class="main">
-
       <!-- DASHBOARD -->
       <div id="panel-dashboard" class="panel active">
-        <div class="page-header">
-          <div class="page-title" id="welcome-msg">שלום!</div>
-          <div class="page-sub">הנה סיכום הפעילות שלך</div>
-        </div>
-        <div class="stats-grid" id="dashboard-stats">
-          <div class="stat-card"><div class="sc-label">יתרת תזרים</div><div class="sc-value" id="ds-balance">—</div></div>
-          <div class="stat-card"><div class="sc-label">הכנסות החודש</div><div class="sc-value sc-positive" id="ds-income">—</div></div>
-          <div class="stat-card"><div class="sc-label">הוצאות החודש</div><div class="sc-value sc-negative" id="ds-expense">—</div></div>
-          <div class="stat-card"><div class="sc-label">פגישות קרובות</div><div class="sc-value" id="ds-meetings">—</div></div>
-        </div>
-        <div class="grid-2">
-          <div class="card">
-            <div class="card-title">פגישות קרובות <button class="btn btn-sm btn-primary" onclick="showPanel('meetings')">הכל ←</button></div>
-            <div id="dash-meetings-list"><div class="loading"><div class="spinner"></div></div></div>
-          </div>
-          <div class="card">
-            <div class="card-title">תנועות אחרונות <button class="btn btn-sm btn-outline" onclick="showPanel('cashflow')">הכל ←</button></div>
-            <div id="dash-cf-list"><div class="loading"><div class="spinner"></div></div></div>
+        <div class="ph"><h1 id="w-msg">שלום!</h1><p>סיכום הפעילות שלך</p></div>
+        <div class="wc">
+          <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);color:var(--gold);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;margin-bottom:9px;">● פורטל פעיל</div>
+          <div class="wc-t" id="wc-t">ברוך הבא</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.5);" id="wc-s">Prime Ledger Solutions | ניהול פיננסי</div>
+          <div class="wc-stats">
+            <div class="ws"><span class="ws-v" id="wc-bal">₪0</span><span class="ws-l">יתרה</span></div>
+            <div class="ws"><span class="ws-v" id="wc-rec">0</span><span class="ws-l">רישומים</span></div>
+            <div class="ws"><span class="ws-v" id="wc-unm">0</span><span class="ws-l">לא מותאם</span></div>
           </div>
         </div>
+        <div class="sg">
+          <div class="sc scg"><div class="sl">יתרה</div><div class="sv" id="ds-bal">₪0</div></div>
+          <div class="sc sco"><div class="sl">הכנסות החודש</div><div class="sv" id="ds-inc" style="color:var(--green)">₪0</div></div>
+          <div class="sc scr"><div class="sl">הוצאות החודש</div><div class="sv" id="ds-exp" style="color:var(--red)">₪0</div></div>
+          <div class="sc scb"><div class="sl">פגישות קרובות</div><div class="sv" id="ds-mtg">0</div></div>
+        </div>
+        <div class="g2">
+          <div class="card"><div class="ct">פגישות קרובות <button class="btn btn-s btn-o" onclick="showPanel('meetings')">הכל ←</button></div><div id="d-mtg"><div class="ld"><div class="sp"></div></div></div></div>
+          <div class="card"><div class="ct">תנועות אחרונות <button class="btn btn-s btn-o" onclick="showPanel('cashflow')">הכל ←</button></div><div id="d-cf"><div class="ld"><div class="sp"></div></div></div></div>
+        </div>
+        <div class="card"><div class="ct">📣 עדכונים מהמשרד</div><div style="font-size:13px;color:var(--gray-600);line-height:1.8;" id="adm-msgs">החל מ-01.06.2026, כל עסקה מעל ₪5,000 תחייב מספר הקצאה לפני הפקת חשבונית מס.</div></div>
       </div>
 
-      <!-- CASHFLOW -->
+      <!-- CASHFLOW PANEL -->
       <div id="panel-cashflow" class="panel">
-        <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div>
-            <div class="page-title">תזרים מזומנים</div>
-            <div class="page-sub">ניהול הכנסות והוצאות</div>
+        <div class="ph"><h1>תזרים מזומנים</h1><p>ניהול הכנסות, הוצאות וייבוא בנק</p></div>
+        <div class="ft">
+          <button class="ft-b active" onclick="swFT('ov',this)">📊 סקירה</button>
+          <button class="ft-b" onclick="swFT('accts',this)">🏦 חשבונות</button>
+          <button class="ft-b" onclick="swFT('imp',this)">📥 ייבוא בנק</button>
+          <button class="ft-b" onclick="swFT('rec',this)">🔗 התאמה</button>
+          <button class="ft-b" onclick="swFT('recs',this)">📋 רישומים</button>
+          <button class="ft-b" onclick="swFT('cfv',this)">💹 תזרים</button>
+        </div>
+        <!-- OVERVIEW -->
+        <div id="fp-ov" class="fp active">
+          <div class="acs" id="ov-chips"></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+            <button class="btn btn-s btn-o" id="ov-a" onclick="setOV('all',this)" style="border-color:var(--green);color:var(--green);">הכל</button>
+            <button class="btn btn-s btn-o" id="ov-b2" onclick="setOV('biz',this)">🏢 עסקי</button>
+            <button class="btn btn-s btn-o" id="ov-p" onclick="setOV('priv',this)">🏠 פרטי</button>
+            <button class="pb active" id="ov-w" onclick="setOP('week',this)">שבועי</button>
+            <button class="pb" id="ov-m" onclick="setOP('month',this)">חודשי</button>
           </div>
-          <button class="btn btn-primary" onclick="openCfModal()">+ הוסף תנועה</button>
-        </div>
-        <div class="cf-summary" id="cf-summary">
-          <div class="cf-sum-card income"><div class="cf-sum-label">הכנסות</div><div class="cf-sum-value" id="cf-total-income">—</div></div>
-          <div class="cf-sum-card expense"><div class="cf-sum-label">הוצאות</div><div class="cf-sum-value" id="cf-total-expense">—</div></div>
-          <div class="cf-sum-card balance"><div class="cf-sum-label">יתרה</div><div class="cf-sum-value" id="cf-total-balance">—</div></div>
-        </div>
-        <div class="card">
-          <div class="card-title">
-            כל התנועות
-            <div style="display:flex;gap:8px;">
-              <select class="form-control" id="cf-filter" onchange="loadCashflow()" style="width:auto;padding:6px 10px;font-size:13px;">
-                <option value="all">הכל</option>
-                <option value="income">הכנסות</option>
-                <option value="expense">הוצאות</option>
-              </select>
+          <div class="g3" style="margin-bottom:12px;">
+            <div class="sc scg"><div class="sl">הכנסות</div><div class="sv" id="ov-i" style="color:var(--green)">₪0</div></div>
+            <div class="sc scr"><div class="sl">הוצאות</div><div class="sv" id="ov-e" style="color:var(--red)">₪0</div></div>
+            <div class="sc sco"><div class="sl">יתרה</div><div class="sv" id="ov-b3">₪0</div></div>
+          </div>
+          <div class="g2">
+            <div class="card"><div class="ct">עסקי 🏢</div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px;"><span style="color:var(--gray-400)">הכנסות</span><span style="color:var(--green);font-weight:700" id="bi">₪0</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray-400)">הוצאות</span><span style="color:var(--red);font-weight:700" id="be">₪0</span></div>
+              <div style="height:1px;background:var(--gray-200);margin:7px 0;"></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;"><span>רווח נטו</span><span id="bn">₪0</span></div>
+            </div>
+            <div class="card"><div class="ct">פרטי 🏠</div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px;"><span style="color:var(--gray-400)">הכנסות</span><span style="color:var(--green);font-weight:700" id="pi">₪0</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray-400)">הוצאות</span><span style="color:var(--red);font-weight:700" id="pe">₪0</span></div>
+              <div style="height:1px;background:var(--gray-200);margin:7px 0;"></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;"><span>מאזן</span><span id="pn">₪0</span></div>
             </div>
           </div>
-          <div id="cf-table"><div class="loading"><div class="spinner"></div></div></div>
+          <div class="card"><div class="ct">הוצאות לפי קטגוריה</div><div id="cat-b"><div class="emp"><div class="emp-i">📊</div>אין נתונים</div></div></div>
+          <div class="card"><div class="ct">גרף תזרים <span style="font-size:10px;color:var(--gray-400)" id="ch-lbl"></span></div><div class="cfc" id="cf-ch"></div><div style="display:flex;gap:10px;margin-top:6px;"><span style="font-size:10px;color:var(--green);font-weight:600">■ הכנסות</span><span style="font-size:10px;color:var(--red);font-weight:600">■ הוצאות</span></div></div>
+        </div>
+        <!-- ACCOUNTS -->
+        <div id="fp-accts" class="fp">
+          <div class="card"><div class="ct">הוסף חשבון</div>
+            <div class="fr2"><div class="fg"><label class="fl">שם</label><input type="text" class="fc" id="an" placeholder="שם החשבון"></div><div class="fg"><label class="fl">סוג</label><select class="fc" id="at"><option value="bank">🏦 בנק</option><option value="cc">💳 כרטיס</option></select></div></div>
+            <div class="fr2"><div class="fg"><label class="fl">יתרת פתיחה (₪)</label><input type="number" class="fc" id="ao" placeholder="0"></div><div class="fg"><label class="fl">מסגרת (₪)</label><input type="number" class="fc" id="al" placeholder="0"></div></div>
+            <button class="btn btn-p" onclick="addAcct()">+ הוסף חשבון</button>
+          </div>
+          <div class="card"><div class="ct">חשבונות <span id="ac-c" style="color:var(--gray-400);font-size:11px;font-weight:400;"></span></div><div id="ac-l"><div class="ld"><div class="sp"></div></div></div></div>
+        </div>
+        <!-- IMPORT -->
+        <div id="fp-imp" class="fp">
+          <div class="card">
+            <div class="fr2" style="margin-bottom:11px;"><div class="fg"><label class="fl">חשבון</label><select class="fc" id="ia"></select></div><div class="fg"><label class="fl">סיווג</label><select class="fc" id="ib"><option value="biz">🏢 עסקי</option><option value="priv">🏠 פרטי</option></select></div></div>
+            <div class="dz" onclick="document.getElementById('fi').click()" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+              <div style="font-size:24px;margin-bottom:6px">📂</div>
+              <div style="font-weight:700;margin-bottom:3px;font-size:13px;">לחץ לבחירת קובץ Excel מהבנק</div>
+              <div style="font-size:11px;color:var(--gray-400);">.xlsx / .xls — עמודות: תאריך, תיאור, חיוב, זיכוי</div>
+              <input type="file" id="fi" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this.files[0])">
+            </div>
+          </div>
+          <div class="card"><div class="ct">היסטוריית העלאות</div><div id="up-h"><div class="emp"><div class="emp-i">📁</div>טרם הועלו קבצים</div></div></div>
+          <div class="card" id="imp-r" style="display:none"><div class="ct"><span id="imp-c">תנועות</span></div><div class="tw"><table><thead><tr><th>תאריך</th><th>תיאור</th><th>חיוב</th><th>זיכוי</th><th>סטטוס</th></tr></thead><tbody id="imp-b"></tbody></table></div></div>
+        </div>
+        <!-- RECONCILE -->
+        <div id="fp-rec" class="fp">
+          <div id="dup-ban" style="display:none;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:9px;padding:10px 14px;margin-bottom:11px;font-size:12px;"></div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px;align-items:center;">
+            <div class="acs" id="rec-chips" style="margin:0;"></div>
+            <button class="btn btn-s btn-o" onclick="addAllUnmatched()">⚡ הוסף הכל</button>
+          </div>
+          <div class="mz" id="mz" style="display:none">
+            <div style="font-size:12px;margin-bottom:7px;"><span id="mz-l" style="color:var(--blue);font-weight:700;"></span><span style="color:var(--gray-400);margin:0 7px;">↔</span><span id="mz-r" style="color:var(--purple);font-weight:700;"></span></div>
+            <div style="display:flex;gap:7px;justify-content:center;"><button class="btn btn-gr" id="btn-m" onclick="doMatch()">✓ התאם</button><button class="btn btn-s btn-d" onclick="clrSel()">✕ בטל</button></div>
+          </div>
+          <div class="rs">
+            <div class="rc rc-r"><div class="rc-h"><span>📋 רישומים ידניים</span><span id="rc-cnt" style="color:var(--gray-400);font-size:10px;"></span></div><div class="rc-b" id="rc-body"></div></div>
+            <div class="rc rc-l"><div class="rc-h"><span>🏦 תנועות בנק</span><span id="bk-cnt" style="color:var(--gray-400);font-size:10px;"></span></div><div class="rc-b" id="bk-body"></div></div>
+          </div>
+          <div class="card" style="margin-top:12px;"><div class="ct">✅ מותאמות <span id="mt-cnt" style="color:var(--green);font-size:11px;font-weight:400;"></span></div><div id="mt-l"><div class="emp"><div class="emp-i">🔗</div>אין התאמות</div></div></div>
+        </div>
+        <!-- RECORDS -->
+        <div id="fp-recs" class="fp">
+          <div class="card"><div class="ct">רישום חדש</div>
+            <div style="display:flex;gap:8px;margin-bottom:11px;flex-wrap:wrap;align-items:center;">
+              <div class="tt"><button class="tb out active" id="rt-o" onclick="setRT('הוצאה')">הוצאה</button><button class="tb in" id="rt-i" onclick="setRT('הכנסה')">הכנסה</button></div>
+              <div class="bpt"><button class="bpb biz active" id="rb-biz" onclick="setRBP('biz')">🏢 עסקי</button><button class="bpb priv" id="rb-priv" onclick="setRBP('priv')">🏠 פרטי</button></div>
+            </div>
+            <div class="fr2"><div class="fg"><label class="fl">תאריך</label><input type="date" class="fc" id="r-d"></div><div class="fg"><label class="fl">חשבון</label><select class="fc" id="r-a"></select></div></div>
+            <div class="fg"><label class="fl">תיאור</label><input type="text" class="fc" id="r-desc" placeholder="תיאור הפעולה"></div>
+            <div class="fr2"><div class="fg"><label class="fl">סכום (₪)</label><input type="number" class="fc" id="r-amt" placeholder="0.00"></div><div class="fg"><label class="fl">קטגוריה</label><select class="fc" id="r-cat"></select></div></div>
+            <button class="btn btn-p" onclick="addRecord()">+ הוסף רישום</button>
+          </div>
+          <div class="card">
+            <div class="ct">רישומים <span id="rec-tc" style="color:var(--gray-400);font-size:11px;font-weight:400;"></span>
+              <div style="display:flex;gap:6px;"><button class="btn btn-s btn-bl" onclick="exportRecXL()">📊 Excel</button></div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:11px;">
+              <select class="fc" id="flt-t" onchange="renderRecs()" style="width:auto;padding:5px 9px;font-size:11px;"><option value="">הכל</option><option value="הוצאה">הוצאות</option><option value="הכנסה">הכנסות</option></select>
+              <select class="fc" id="flt-bp" onchange="renderRecs()" style="width:auto;padding:5px 9px;font-size:11px;"><option value="">עסקי+פרטי</option><option value="biz">עסקי</option><option value="priv">פרטי</option></select>
+              <select class="fc" id="flt-cat" onchange="renderRecs()" style="width:auto;padding:5px 9px;font-size:11px;"><option value="">כל הקטגוריות</option></select>
+            </div>
+            <div id="recs-tbl"><div class="ld"><div class="sp"></div></div></div>
+          </div>
+        </div>
+        <!-- CFVIEW -->
+        <div id="fp-cfv" class="fp">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
+            <button class="pb active" id="cfv-w" onclick="setCFP('week',this)">שבועי</button>
+            <button class="pb" id="cfv-m" onclick="setCFP('month',this)">חודשי</button>
+            <button class="btn btn-s btn-bl" onclick="exportCFXL()">📊 Excel</button>
+          </div>
+          <div id="cfv-empty" class="emp"><div class="emp-i">💹</div>הוסף רישומים לצפייה</div>
+          <div id="cfv-content" style="display:none">
+            <div class="g2" style="margin-bottom:14px;">
+              <div class="card"><div class="ct" style="color:var(--blue)">עסקי 🏢</div><div id="cfv-biz"></div></div>
+              <div class="card"><div class="ct" style="color:var(--purple)">פרטי 🏠</div><div id="cfv-priv"></div></div>
+            </div>
+            <div class="card"><div class="ct">טבלה מפורטת</div>
+              <div class="tw"><table>
+                <thead><tr><th>תקופה</th><th>הכ׳ עסקי</th><th>הו׳ עסקי</th><th>רווח</th><th>הכ׳ פרטי</th><th>הו׳ פרטי</th><th>מאזן</th><th>נטו</th><th>יתרה</th></tr></thead>
+                <tbody id="cfv-tb"></tbody>
+                <tfoot><tr id="cfv-tf" style="background:var(--gray-100);font-weight:700;"></tr></tfoot>
+              </table></div>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- MEETINGS -->
       <div id="panel-meetings" class="panel">
-        <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div>
-            <div class="page-title">פגישות</div>
-            <div class="page-sub">לוח הפגישות שלך</div>
-          </div>
-          <button class="btn btn-primary" onclick="openMeetingRequest()">+ בקש פגישה</button>
-        </div>
-        <div id="meetings-list"><div class="loading"><div class="spinner"></div></div></div>
+        <div class="ph" style="display:flex;justify-content:space-between;align-items:flex-start;"><div><h1>פגישות</h1><p>לוח הפגישות שלך</p></div><button class="btn btn-p" onclick="openMo('mo-mtg')">+ בקש פגישה</button></div>
+        <div id="mtg-list"><div class="ld"><div class="sp"></div></div></div>
       </div>
 
       <!-- DOCUMENTS -->
-      <div id="panel-documents" class="panel">
-        <div class="page-header">
-          <div class="page-title">המסמכים שלי</div>
-          <div class="page-sub">מסמכים שהועלו עבורך</div>
+      <div id="panel-docs" class="panel">
+        <div class="ph"><h1>המסמכים שלי</h1><p>מסמכים שהועלו עבורך</p></div>
+        <div id="docs-list"><div class="ld"><div class="sp"></div></div></div>
+      </div>
+
+      <!-- PLANS -->
+      <div id="panel-plans" class="panel">
+        <div class="ph"><h1>מנויים ותמחור</h1><p>תוכניות Prime Ledger Solutions</p></div>
+        <div id="plans-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:16px;"></div>
+        <div class="card" style="background:rgba(201,168,76,.04);border-color:rgba(201,168,76,.2);"><div style="font-size:14px;font-weight:700;margin-bottom:6px;">📞 לשדרוג או שינוי מנוי</div><div style="font-size:12px;color:var(--gray-600);line-height:1.9;"><div>📧 info@primesolutionfinance.com</div><div>📱 055-502-7988</div><div>🕐 ראשון–חמישי 9:00–17:00</div></div></div>
+      </div>
+
+      <!-- LEGAL -->
+      <div id="panel-legal" class="panel">
+        <div class="ph"><h1>מסמכים משפטיים</h1><p>תנאי שימוש, פרטיות ומדיניות</p></div>
+        <div class="legal-tabs">
+          <button class="legal-tab active" onclick="swLegal('terms',this)">תנאי שימוש</button>
+          <button class="legal-tab" onclick="swLegal('privacy',this)">מדיניות פרטיות</button>
+          <button class="legal-tab" onclick="swLegal('access',this)">נגישות</button>
+          <button class="legal-tab" onclick="swLegal('cancel',this)">ביטולים</button>
         </div>
-        <div id="documents-list"><div class="loading"><div class="spinner"></div></div></div>
+        <div id="ls-terms" class="legal-sec active"><div class="lc"><h3>תנאי שימוש — Prime Ledger Solutions</h3><h4>1. כללי</h4><p>פורטל Prime Ledger מופעל ע"י גבר יזמות ייעוץ עסקי והשקעות. השימוש בפורטל מהווה הסכמה מלאה לתנאים.</p><h4>2. שימוש מותר</h4><p>הפורטל מיועד ללקוחות Prime Ledger בלבד. חל איסור להעביר פרטי גישה לצד שלישי.</p><h4>3. אחריות</h4><p>Prime Ledger אינה אחראית לנזקים עקב שימוש לא מורשה. הנתונים מסונכרנים עם Supabase ומאובטחים.</p><h4>4. יצירת קשר</h4><p>📧 info@primesolutionfinance.com | 📱 055-502-7988</p></div></div>
+        <div id="ls-privacy" class="legal-sec"><div class="lc"><h3>מדיניות פרטיות</h3><h4>מידע שנאסף</h4><p>שם, אימייל, טלפון, שם חברה, ונתונים פיננסיים שהוזנו.</p><h4>שימוש במידע</h4><p>המידע משמש למתן שירותי הנהלת חשבונות ויעוץ. אינו נמכר לצדדים שלישיים.</p><h4>אחסון</h4><p>הנתונים מאוחסנים ב-Supabase עם הצפנה מלאה בהתאם לתקנות GDPR.</p><h4>זכויות</h4><p>יש לך זכות לעיין, לתקן או למחוק מידע. פנה: info@primesolutionfinance.com</p></div></div>
+        <div id="ls-access" class="legal-sec"><div class="lc"><h3>הצהרת נגישות</h3><p>Prime Ledger מחויבת לספק פורטל נגיש לכלל המשתמשים בהתאם לתקנות שוויון זכויות לאנשים עם מוגבלות.</p><h4>פנייה</h4><p>📧 info@primesolutionfinance.com | 📱 055-502-7988</p></div></div>
+        <div id="ls-cancel" class="legal-sec"><div class="lc"><h3>מדיניות ביטולים</h3><h4>ביטול מנוי</h4><p>ניתן לבטל בכל עת. הביטול ייכנס לתוקף בתום תקופת החיוב הנוכחית.</p><h4>החזר כספי</h4><p>תוך 7 ימים מהרכישה — החזר מלא. לאחר 7 ימים — ביטול ללא החזר.</p><h4>יצירת קשר</h4><p>📧 info@primesolutionfinance.com</p></div></div>
       </div>
 
       <!-- SUBSCRIPTION -->
-      <div id="panel-subscription" class="panel">
-        <div class="page-header">
-          <div class="page-title">מנוי ותשלום</div>
-          <div class="page-sub">סטטוס המנוי שלך</div>
-        </div>
-        <div id="subscription-content"><div class="loading"><div class="spinner"></div></div></div>
+      <div id="panel-sub" class="panel">
+        <div class="ph"><h1>המנוי שלי</h1><p>פרטי המנוי הנוכחי</p></div>
+        <div id="sub-content"><div class="ld"><div class="sp"></div></div></div>
       </div>
 
       <!-- PROFILE -->
       <div id="panel-profile" class="panel">
-        <div class="page-header">
-          <div class="page-title">הפרופיל שלי</div>
-          <div class="page-sub">עדכן את הפרטים שלך</div>
+        <div class="ph"><h1>הפרופיל שלי</h1><p>עדכן את פרטיך האישיים</p></div>
+        <div class="g2">
+          <div class="card"><div class="ct">פרטים אישיים</div>
+            <div class="fg"><label class="fl">שם מלא</label><input type="text" class="fc" id="p-n"></div>
+            <div class="fg"><label class="fl">אימייל</label><input type="email" class="fc" id="p-e" readonly style="opacity:.6"></div>
+            <div class="fg"><label class="fl">טלפון</label><input type="tel" class="fc" id="p-ph"></div>
+            <div class="fg"><label class="fl">שם חברה</label><input type="text" class="fc" id="p-co"></div>
+            <button class="btn btn-p" onclick="saveProfile()" style="width:100%;padding:11px;">שמור שינויים</button>
+          </div>
+          <div class="card"><div class="ct">שינוי סיסמה</div>
+            <div class="fg"><label class="fl">סיסמה חדשה</label><input type="password" class="fc" id="np" placeholder="לפחות 6 תווים"></div>
+            <div class="fg"><label class="fl">אימות</label><input type="password" class="fc" id="cp" placeholder="חזור על הסיסמה"></div>
+            <button class="btn btn-o" onclick="changePass()" style="width:100%;padding:11px;">עדכן סיסמה</button>
+          </div>
         </div>
-        <div class="grid-2">
-          <div class="card">
-            <div class="card-title">פרטים אישיים</div>
-            <div style="text-align:center;margin-bottom:20px;">
-              <div class="avatar-upload" id="profile-avatar" style="margin:0 auto;">?</div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">שם מלא</label>
-              <input type="text" class="form-control" id="p-name">
-            </div>
-            <div class="form-group">
-              <label class="form-label">אימייל</label>
-              <input type="email" class="form-control" id="p-email" readonly style="opacity:.6;">
-            </div>
-            <div class="form-group">
-              <label class="form-label">טלפון</label>
-              <input type="tel" class="form-control" id="p-phone">
-            </div>
-            <div class="form-group">
-              <label class="form-label">שם חברה</label>
-              <input type="text" class="form-control" id="p-company">
-            </div>
-            <button class="btn btn-primary" onclick="saveProfile()" style="width:100%;padding:12px;">שמור שינויים</button>
+      </div>
+
+      <!-- NOTIFICATIONS -->
+      <div id="panel-notifs" class="panel">
+        <div class="ph"><h1>התראות</h1></div>
+        <div id="notifs-list"><div class="ld"><div class="sp"></div></div></div>
+      </div>
+
+      <!-- ADMIN -->
+      <div id="panel-admin" class="panel">
+        <div class="ph"><h1>👑 אדמין פאנל</h1><p>ניהול לקוחות ומערכת</p></div>
+        <div class="adm-sg">
+          <div class="adm-s"><div class="adm-sv" id="adm-c">—</div><div class="adm-sl">לקוחות</div></div>
+          <div class="adm-s"><div class="adm-sv" id="adm-m" style="color:var(--amber)">—</div><div class="adm-sl">פגישות ממתינות</div></div>
+          <div class="adm-s"><div class="adm-sv" id="adm-ct" style="color:var(--red)">—</div><div class="adm-sl">פניות חדשות</div></div>
+          <div class="adm-s"><div class="adm-sv" id="adm-n" style="color:var(--blue)">—</div><div class="adm-sl">התראות שנשלחו</div></div>
+        </div>
+        <div class="card"><div class="ct">לקוחות <button class="btn btn-s btn-p" onclick="openMo('mo-adduser')">+ הוסף לקוח</button></div>
+          <div style="margin-bottom:11px;"><input type="text" class="fc" id="adm-q" placeholder="חיפוש לפי שם / אימייל..." oninput="loadAdminUsers()" style="max-width:280px;"></div>
+          <div id="adm-users"><div class="ld"><div class="sp"></div></div></div>
+        </div>
+        <div class="card"><div class="ct">📅 פגישות ממתינות</div><div id="adm-mtgs"><div class="ld"><div class="sp"></div></div></div></div>
+        <div class="card"><div class="ct">📩 פניות חדשות</div><div id="adm-cts"><div class="ld"><div class="sp"></div></div></div></div>
+        <div class="card"><div class="ct">🔔 שלח התראה</div>
+          <div class="fr2"><div class="fg"><label class="fl">נמען</label><select class="fc" id="notif-to"><option value="all">כל הלקוחות</option></select></div><div class="fg"><label class="fl">סוג</label><select class="fc" id="notif-type"><option value="info">מידע</option><option value="warning">אזהרה</option><option value="success">הצלחה</option></select></div></div>
+          <div class="fg"><label class="fl">כותרת</label><input type="text" class="fc" id="notif-title" placeholder="כותרת ההתראה"></div>
+          <div class="fg"><label class="fl">הודעה</label><textarea class="fc" id="notif-msg" rows="3" placeholder="תוכן ההתראה..."></textarea></div>
+          <button class="btn btn-p" onclick="sendNotif()">🔔 שלח התראה</button>
+        </div>
+      </div>
+
+      <!-- EMAIL TEMPLATES -->
+      <div id="panel-emails" class="panel">
+        <div class="ph"><h1>📧 תבניות מייל</h1><p>ניהול מיילים אוטומטיים מ-info@primesolutionfinance.com</p></div>
+        <div class="card" style="background:rgba(201,168,76,.04);border-color:rgba(201,168,76,.2);">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-size:26px;">📬</div>
+            <div><div style="font-size:14px;font-weight:700;margin-bottom:5px;">מערכת מיילים — Prime Ledger Solutions</div>
+            <div style="font-size:12px;color:var(--gray-600);line-height:1.7;">הבסיס מוכן. לחיבור מייל עסקי אמיתי: Supabase → Authentication → SMTP. מומלץ להשתמש ב-<strong>Resend</strong> (חינמי עד 100 מייל/יום) עם הכתובת info@primesolutionfinance.com.</div>
+            <div style="margin-top:10px;display:flex;gap:7px;"><button class="btn btn-s btn-o" onclick="window.open('https://resend.com','_blank')">🔗 Resend</button><button class="btn btn-s btn-o" onclick="window.open('https://supabase.com/docs/guides/auth/auth-smtp','_blank')">📖 מדריך SMTP</button></div></div>
           </div>
-          <div class="card">
-            <div class="card-title">שינוי סיסמה</div>
-            <div class="form-group">
-              <label class="form-label">סיסמה חדשה</label>
-              <input type="password" class="form-control" id="new-pass" placeholder="לפחות 6 תווים">
-            </div>
-            <div class="form-group">
-              <label class="form-label">אימות סיסמה</label>
-              <input type="password" class="form-control" id="confirm-pass" placeholder="חזור על הסיסמה">
-            </div>
-            <button class="btn btn-outline" onclick="changePassword()" style="width:100%;padding:12px;">עדכן סיסמה</button>
+        </div>
+        <div class="card"><div class="ct">תבניות <button class="btn btn-s btn-p" onclick="openMo('mo-email')">+ תבנית חדשה</button></div><div id="et-list"><div class="ld"><div class="sp"></div></div></div></div>
+        <div class="card"><div class="ct">📤 שלח מייל ידני (לוג)</div>
+          <div class="fr2">
+            <div class="fg"><label class="fl">נמען</label><select class="fc" id="em-to"><option value="all">כל הלקוחות</option></select></div>
+            <div class="fg"><label class="fl">תבנית</label><select class="fc" id="em-tmpl" onchange="previewEmail()"><option value="">בחר תבנית...</option></select></div>
           </div>
+          <div id="em-preview" style="background:var(--gray-100);border-radius:9px;padding:12px;font-size:12px;color:var(--gray-600);margin-bottom:11px;display:none;"></div>
+          <button class="btn btn-p" onclick="logEmail()">📧 רשום שליחה בלוג</button>
+          <div style="font-size:10px;color:var(--gray-400);margin-top:6px;">* אחרי הגדרת SMTP — ישלח בפועל</div>
         </div>
       </div>
 
@@ -495,566 +616,670 @@ tr:last-child td{border:none;}
   </div><!-- /layout -->
 </div><!-- /app -->
 
-<!-- CASHFLOW MODAL -->
-<div class="modal-overlay" id="cf-modal">
-  <div class="modal">
-    <div class="modal-title">
-      הוסף תנועה
-      <button class="modal-close" onclick="closeCfModal()">✕</button>
-    </div>
-    <div class="form-group">
-      <label class="form-label">סוג</label>
-      <select class="form-control" id="cf-type">
-        <option value="income">הכנסה</option>
-        <option value="expense">הוצאה</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">תיאור</label>
-      <input type="text" class="form-control" id="cf-desc" placeholder="למשל: חשבונית לקוח">
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">סכום (₪)</label>
-        <input type="number" class="form-control" id="cf-amount" placeholder="0">
-      </div>
-      <div class="form-group">
-        <label class="form-label">תאריך</label>
-        <input type="date" class="form-control" id="cf-date">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">קטגוריה</label>
-      <select class="form-control" id="cf-category">
-        <option value="general">כללי</option>
-        <option value="salary">שכר</option>
-        <option value="rent">שכירות</option>
-        <option value="marketing">שיווק</option>
-        <option value="supplies">ציוד</option>
-        <option value="tax">מיסים</option>
-        <option value="income_client">הכנסה מלקוח</option>
-      </select>
-    </div>
-    <div style="display:flex;gap:10px;margin-top:8px;">
-      <button class="btn btn-primary" onclick="saveCashflow()" style="flex:1;padding:12px;">שמור</button>
-      <button class="btn btn-outline" onclick="closeCfModal()" style="padding:12px 20px;">ביטול</button>
-    </div>
+<!-- MODALS -->
+<div class="mo" id="mo-mtg">
+  <div class="mo-box">
+    <div class="mo-t">בקשת פגישה <button class="mo-c" onclick="closeMo('mo-mtg')">✕</button></div>
+    <div class="fg"><label class="fl">נושא *</label><input type="text" class="fc" id="mt-title" placeholder="נושא הפגישה"></div>
+    <div class="fr"><div class="fg"><label class="fl">תאריך</label><input type="date" class="fc" id="mt-date"></div><div class="fg"><label class="fl">שעה</label><input type="time" class="fc" id="mt-time"></div></div>
+    <div class="fg"><label class="fl">אופן פגישה</label><select class="fc" id="mt-loc"><option>זום</option><option>משרד</option><option>טלפון</option></select></div>
+    <div class="fg"><label class="fl">הערות</label><textarea class="fc" id="mt-notes" rows="3"></textarea></div>
+    <button class="btn btn-p" onclick="reqMtg()" style="width:100%;padding:12px;">שלח בקשה</button>
   </div>
 </div>
 
-<!-- MEETING REQUEST MODAL -->
-<div class="modal-overlay" id="meeting-modal">
-  <div class="modal">
-    <div class="modal-title">
-      בקשת פגישה
-      <button class="modal-close" onclick="document.getElementById('meeting-modal').classList.remove('open')">✕</button>
-    </div>
-    <div class="form-group">
-      <label class="form-label">נושא הפגישה</label>
-      <input type="text" class="form-control" id="mtg-title" placeholder="למשל: ייעוץ חשבונאי">
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">תאריך מועדף</label>
-        <input type="date" class="form-control" id="mtg-date">
-      </div>
-      <div class="form-group">
-        <label class="form-label">שעה מועדפת</label>
-        <input type="time" class="form-control" id="mtg-time">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">אופן הפגישה</label>
-      <select class="form-control" id="mtg-location">
-        <option value="זום">זום</option>
-        <option value="משרד">פגישה במשרד</option>
-        <option value="טלפון">טלפון</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">הערות</label>
-      <textarea class="form-control" id="mtg-notes" rows="3" placeholder="כל פרט נוסף..."></textarea>
-    </div>
-    <button class="btn btn-primary" onclick="requestMeeting()" style="width:100%;padding:12px;">שלח בקשה</button>
+<div class="mo" id="mo-adduser">
+  <div class="mo-box">
+    <div class="mo-t">הוסף לקוח <button class="mo-c" onclick="closeMo('mo-adduser')">✕</button></div>
+    <div class="fg"><label class="fl">שם מלא *</label><input type="text" class="fc" id="au-n"></div>
+    <div class="fr"><div class="fg"><label class="fl">אימייל *</label><input type="email" class="fc" id="au-e"></div><div class="fg"><label class="fl">טלפון</label><input type="tel" class="fc" id="au-ph"></div></div>
+    <div class="fr"><div class="fg"><label class="fl">שם חברה</label><input type="text" class="fc" id="au-co"></div><div class="fg"><label class="fl">סיסמה *</label><input type="text" class="fc" id="au-pw" placeholder="לפחות 6 תווים"></div></div>
+    <div class="fr"><div class="fg"><label class="fl">תוכנית</label><select class="fc" id="au-pl"><option value="basic">בסיסי</option><option value="professional">מקצועי</option><option value="enterprise">ארגוני</option></select></div><div class="fg"><label class="fl">תפקיד</label><select class="fc" id="au-ro"><option value="client">לקוח</option><option value="admin">מנהל</option></select></div></div>
+    <button class="btn btn-p" onclick="adminAddUser()" style="width:100%;padding:12px;margin-top:6px;">+ הוסף לקוח</button>
   </div>
 </div>
 
-<!-- TOAST -->
+<div class="mo" id="mo-email">
+  <div class="mo-box" style="max-width:560px;">
+    <div class="mo-t">תבנית מייל <button class="mo-c" onclick="closeMo('mo-email')">✕</button></div>
+    <input type="hidden" id="et-id">
+    <div class="fg"><label class="fl">שם התבנית</label><input type="text" class="fc" id="et-n" placeholder="ברוך הבא"></div>
+    <div class="fg"><label class="fl">נושא (Subject)</label><input type="text" class="fc" id="et-s" placeholder="ברוכים הבאים ל-Prime Ledger Solutions"></div>
+    <div class="fg"><label class="fl">אירוע הפעלה</label>
+      <select class="fc" id="et-tr">
+        <option value="welcome">הרשמה (Welcome)</option>
+        <option value="meeting_confirmed">אישור פגישה</option>
+        <option value="meeting_reminder">תזכורת פגישה</option>
+        <option value="document_uploaded">מסמך חדש</option>
+        <option value="subscription_renewal">חידוש מנוי</option>
+        <option value="monthly_report">דוח חודשי</option>
+        <option value="manual">ידני בלבד</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">תוכן (HTML)</label><textarea class="fc" id="et-b" rows="7" placeholder="&lt;h2&gt;שלום {{name}}&lt;/h2&gt;&#10;&lt;p&gt;ברוכים הבאים ל-Prime Ledger Solutions&lt;/p&gt;"></textarea></div>
+    <div style="font-size:11px;color:var(--gray-400);margin-bottom:12px;">משתנים: <code>{{name}}</code> <code>{{email}}</code> <code>{{company}}</code> <code>{{date}}</code> <code>{{plan}}</code></div>
+    <div style="display:flex;gap:8px;"><button class="btn btn-p" onclick="saveEmailTmpl()" style="flex:1;padding:11px;">שמור</button><button class="btn btn-o" onclick="closeMo('mo-email')" style="padding:11px 16px;">ביטול</button></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== SUPABASE INIT =====
-const SUPABASE_URL = 'https://urpzikwromhwtuffkhyr.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_DuDeBDU5Ee5d1xMkzi0Drg_kzFYYY44';
+// ===== SUPABASE =====
+const SB_URL = 'https://urpzikwromhwtuffkhyr.supabase.co';
+const SB_KEY = 'sb_publishable_DuDeBDU5Ee5d1xMkzi0Drg_kzFYYY44';
 const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = createClient(SB_URL, SB_KEY);
 
-let currentUser = null;
-let currentProfile = null;
+let CU = null, CP = null;
+let lAcc=[], lBR=[], lRec=[], lUpl=[];
+let rType='הוצאה', rBP='biz', selR=null, selB=null;
+let ovAcc='all', ovView='all', ovPer='week', cfvPer='week';
 
-// ===== INIT =====
-async function init() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) {
-    await loadUser(session.user);
+const COUT_BIZ=['שכירות עסקי','שכר עובדים','דלק','חשמל/מים','טלפון/אינטרנט','פרסום/שיווק','ציוד משרדי','הוצאות נסיעה','מסים ואגרות','ביטוח עסקי','ספקים','תחזוקה','הוצאות בנק','אחר עסקי'];
+const COUT_PRI=['שכירות','מזון','דלק','חשמל','מים/ארנונה','טלפון','ביטוח','רכב','בריאות','חינוך','פנאי','בגדים','אחר פרטי'];
+const CIN_BIZ=['הכנסות לקוחות','שכר','דמי ניהול','השקעות','מענקים','אחר הכנסה עסקי'];
+const CIN_PRI=['משכורת','קצבה','שכ"ד','ריבית','מתנות','החזר מס','אחר הכנסה פרטי'];
+const MONTHS=['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצ'];
+const COLORS=['#3b82f6','#8b5cf6','#f59e0b','#10b981','#ef4444','#06b6d4','#f97316'];
+
+const $=id=>document.getElementById(id);
+const fmt=n=>'₪'+Math.round(n||0).toLocaleString('he-IL');
+const fmtD=d=>{if(!d)return'';const dt=new Date(d);return`${dt.getDate()} ${MONTHS[dt.getMonth()]} ${dt.getFullYear()}`};
+const getAcc=id=>lAcc.find(a=>a.id===id);
+const accNm=id=>getAcc(id)?.name||'—';
+const getLK=()=>'pl_'+( CU?.id||'g');
+const getCats=()=>rType==='הוצאה'?(rBP==='biz'?COUT_BIZ:COUT_PRI):(rBP==='biz'?CIN_BIZ:CIN_PRI);
+
+function saveL(){try{localStorage.setItem(getLK(),JSON.stringify({a:lAcc,b:lBR,r:lRec,u:lUpl}));}catch(e){}}
+
+async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session) await loadUser(session.user);
+  sb.auth.onAuthStateChange(async(ev,sess)=>{
+    if(ev==='SIGNED_IN'&&sess) await loadUser(sess.user);
+    else if(ev==='SIGNED_OUT') showAuth();
+  });
+}
+
+async function loadUser(user){
+  CU=user;
+  const {data:p}=await sb.from('profiles').select('*').eq('id',user.id).single();
+  CP=p;
+  enterApp();
+}
+
+function enterApp(){
+  $('auth-screen').style.display='none';
+  $('app').style.display='block';
+  const nm=CP?.full_name||CU?.email||'לקוח';
+  $('u-av').textContent=nm.charAt(0).toUpperCase();
+  $('u-nm').textContent=nm.split(' ')[0];
+  $('w-msg').textContent=`שלום, ${nm.split(' ')[0]}! 👋`;
+  $('wc-t').textContent=`שלום, ${nm.split(' ')[0]}`;
+  $('wc-s').textContent=CP?.company_name||'Prime Ledger Solutions | ניהול פיננסי';
+  if(CP?.role==='admin'){
+    $('sb-adm-s').style.display='block';
+    $('sb-adm-b').style.display='flex';
+    $('sb-em-b').style.display='flex';
   }
-  // Listen for auth changes
-  sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-      await loadUser(session.user);
-    } else if (event === 'SIGNED_OUT') {
-      showAuth();
-    }
-  });
+  // Load local cache
+  try{const d=JSON.parse(localStorage.getItem(getLK())||'null');if(d){lAcc=d.a||[];lBR=d.b||[];lRec=d.r||[];lUpl=d.u||[];}}catch(e){}
+  loadDash();
+  syncFromSupabase();
 }
 
-async function loadUser(user) {
-  currentUser = user;
-  // Load profile
-  const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
-  currentProfile = profile;
-  showApp();
+function showAuth(){$('auth-screen').style.display='flex';$('app').style.display='none';CU=null;CP=null;}
+
+// ===== AUTH =====
+function swAuthTab(tab,btn){
+  ['login','register','forgot'].forEach(t=>$('f-'+t).style.display=t===tab?'block':'none');
+  document.querySelectorAll('.auth-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function swForgot(){['login','register','forgot'].forEach(t=>$('f-'+t).style.display=t==='forgot'?'block':'none');}
+
+async function doLogin(){
+  const e=$('li-e').value.trim(), p=$('li-p').value;
+  const er=$('li-err'); er.style.display='none';
+  if(!e||!p){showErr(er,'נא למלא אימייל וסיסמה');return;}
+  const btn=$('btn-li'); btn.disabled=true; btn.textContent='מתחבר...';
+  const {error}=await sb.auth.signInWithPassword({email:e,password:p});
+  btn.disabled=false; btn.textContent='כניסה לפורטל ←';
+  if(error) showErr(er,xlE(error.message));
 }
 
-function showApp() {
-  document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  const name = currentProfile?.full_name || currentUser?.email || 'משתמש';
-  document.getElementById('user-name-display').textContent = name.split(' ')[0];
-  document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
-  document.getElementById('welcome-msg').textContent = `שלום, ${name.split(' ')[0]}! 👋`;
-  loadDashboard();
-}
-
-function showAuth() {
-  document.getElementById('auth-screen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  currentUser = null;
-  currentProfile = null;
-}
-
-// ===== AUTH FUNCTIONS =====
-function switchTab(tab) {
-  ['login','register','forgot'].forEach(t => {
-    document.getElementById('form-'+t).style.display = t === tab ? 'block' : 'none';
-    const btn = document.getElementById('tab-'+t);
-    if (btn) btn.classList.toggle('active', t === tab);
-  });
-}
-
-function showForgot() {
-  ['login','register','forgot'].forEach(t => {
-    document.getElementById('form-'+t).style.display = t === 'forgot' ? 'block' : 'none';
-    const btn = document.getElementById('tab-'+t);
-    if (btn) btn.classList.remove('active');
-  });
-}
-
-async function doLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-  const errEl = document.getElementById('login-error');
-  errEl.style.display = 'none';
-  if (!email || !password) { showErr(errEl, 'נא למלא אימייל וסיסמה'); return; }
-  const btn = document.getElementById('btn-login');
-  btn.disabled = true; btn.textContent = 'מתחבר...';
-  const { error } = await sb.auth.signInWithPassword({ email, password });
-  btn.disabled = false; btn.textContent = 'כניסה לפורטל ←';
-  if (error) showErr(errEl, translateError(error.message));
-}
-
-async function doRegister() {
-  const name = document.getElementById('reg-name').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const phone = document.getElementById('reg-phone').value.trim();
-  const company = document.getElementById('reg-company').value.trim();
-  const password = document.getElementById('reg-password').value;
-  const errEl = document.getElementById('reg-error');
-  const sucEl = document.getElementById('reg-success');
-  errEl.style.display = 'none'; sucEl.style.display = 'none';
-  if (!name || !email || !password) { showErr(errEl, 'נא למלא שם, אימייל וסיסמה'); return; }
-  if (password.length < 6) { showErr(errEl, 'הסיסמה חייבת להיות לפחות 6 תווים'); return; }
-  const btn = document.getElementById('btn-register');
-  btn.disabled = true; btn.textContent = 'יוצר חשבון...';
-  const { data, error } = await sb.auth.signUp({
-    email, password,
-    options: { data: { full_name: name, phone, company_name: company } }
-  });
-  btn.disabled = false; btn.textContent = 'צור חשבון ←';
-  if (error) { showErr(errEl, translateError(error.message)); return; }
-  // Update profile with phone and company
-  if (data.user) {
-    await sb.from('profiles').update({ full_name: name, phone, company_name: company }).eq('id', data.user.id);
+async function doRegister(){
+  const n=$('rg-n').value.trim(),e=$('rg-e').value.trim(),ph=$('rg-ph').value.trim(),co=$('rg-co').value.trim(),p=$('rg-pw').value;
+  const er=$('rg-err'),ok=$('rg-ok'); er.style.display='none'; ok.style.display='none';
+  if(!n||!e||!p){showErr(er,'נא למלא שדות חובה');return;}
+  if(p.length<6){showErr(er,'סיסמה — לפחות 6 תווים');return;}
+  const btn=$('btn-rg'); btn.disabled=true; btn.textContent='נרשם...';
+  const {data,error}=await sb.auth.signUp({email:e,password:p,options:{data:{full_name:n}}});
+  btn.disabled=false; btn.textContent='הרשמה ←';
+  if(error){showErr(er,xlE(error.message));return;}
+  if(data.user){
+    await sb.from('profiles').update({full_name:n,phone:ph,company_name:co}).eq('id',data.user.id);
   }
-  sucEl.style.display = 'block';
-  sucEl.textContent = '✓ החשבון נוצר! בדוק את האימייל שלך לאישור.';
+  ok.style.display='block'; ok.textContent='✓ נרשמת! בדוק אימייל לאישור.';
 }
 
-async function doForgot() {
-  const email = document.getElementById('forgot-email').value.trim();
-  const errEl = document.getElementById('forgot-error');
-  const sucEl = document.getElementById('forgot-success');
-  if (!email) { showErr(errEl, 'נא להכניס אימייל'); return; }
-  const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + '/portal.html'
-  });
-  if (error) { showErr(errEl, translateError(error.message)); return; }
-  sucEl.style.display = 'block';
-  sucEl.textContent = '✓ קישור לאיפוס סיסמה נשלח לאימייל שלך!';
+async function doForgot(){
+  const e=$('fg-e').value.trim();
+  if(!e){showErr($('fg-err'),'נא להכניס אימייל');return;}
+  const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:window.location.href});
+  if(error){showErr($('fg-err'),xlE(error.message));return;}
+  $('fg-ok').style.display='block'; $('fg-ok').textContent='✓ קישור נשלח לאימייל!';
 }
 
-async function doLogout() {
-  await sb.auth.signOut();
-  showToast('התנתקת בהצלחה');
+async function doLogout(){await sb.auth.signOut(); toast('התנתקת בהצלחה');}
+
+// ===== SUPABASE SYNC =====
+async function syncFromSupabase(){
+  if(!CU) return;
+  try{
+    const [ar,br,lr]=await Promise.all([
+      sb.from('accounts_ledger').select('*').eq('user_id',CU.id).order('created_at'),
+      sb.from('bank_rows').select('*').eq('user_id',CU.id).order('row_date',{ascending:false}),
+      sb.from('ledger_records').select('*').eq('user_id',CU.id).order('record_date',{ascending:false})
+    ]);
+    if(ar.data?.length) lAcc=ar.data.map(a=>({id:a.id,name:a.name,type:a.type,opening:a.opening_balance||0,limit:a.credit_limit||0,color:a.color||'#3b82f6'}));
+    if(br.data?.length) lBR=br.data.map(r=>({id:r.id,acctId:r.account_id,date:r.row_date,desc:r.description,debit:r.debit||0,credit:r.credit||0,bp:r.bp||'biz',matched:r.matched,mId:r.manual_entry_id,src:r.source_file}));
+    if(lr.data?.length) lRec=lr.data.map(r=>({id:r.id,date:r.record_date,desc:r.description,amount:r.amount,type:r.type,bp:r.bp||'biz',cat:r.category||'כללי',acctId:r.account_id,bkId:r.bank_row_id,matched:r.matched}));
+    saveL(); refreshAll();
+  }catch(e){refreshAll();}
 }
 
 // ===== PANELS =====
-function showPanel(name) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('panel-'+name).classList.add('active');
-  event?.currentTarget?.classList.add('active');
-  // Load data for panel
-  if (name === 'dashboard') loadDashboard();
-  else if (name === 'cashflow') loadCashflow();
-  else if (name === 'meetings') loadMeetings();
-  else if (name === 'documents') loadDocuments();
-  else if (name === 'subscription') loadSubscription();
-  else if (name === 'profile') loadProfile();
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  $('panel-'+name)?.classList.add('active');
+  document.querySelectorAll('.ni').forEach(n=>{if(n.getAttribute('onclick')?.includes(`'${name}'`))n.classList.add('active');});
+  const map={dashboard:loadDash,meetings:loadMtgs,docs:loadDocs,sub:loadSub,profile:loadProf,notifs:loadNotifs,admin:loadAdmin,emails:loadEmailTmpls,cashflow:()=>{syncSelects();refreshAll();}};
+  if(map[name]) map[name]();
 }
 
 // ===== DASHBOARD =====
-async function loadDashboard() {
-  if (!currentUser) return;
-  // Load cashflow summary
-  const { data: cf } = await sb.from('cashflow').select('*').eq('user_id', currentUser.id);
-  if (cf) {
-    const now = new Date();
-    const thisMonth = cf.filter(r => new Date(r.date).getMonth() === now.getMonth());
-    const income = thisMonth.filter(r => r.type === 'income').reduce((s,r) => s + r.amount, 0);
-    const expense = thisMonth.filter(r => r.type === 'expense').reduce((s,r) => s + r.amount, 0);
-    const balance = cf.reduce((s,r) => s + (r.type === 'income' ? r.amount : -r.amount), 0);
-    document.getElementById('ds-balance').textContent = fmt(balance);
-    document.getElementById('ds-income').textContent = fmt(income);
-    document.getElementById('ds-expense').textContent = fmt(expense);
-    // Recent cashflow
-    const recent = [...cf].sort((a,b) => new Date(b.date)-new Date(a.date)).slice(0,5);
-    document.getElementById('dash-cf-list').innerHTML = recent.length ? recent.map(r => `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--gray-100);">
-        <div>
-          <div style="font-size:13px;font-weight:600;">${r.description}</div>
-          <div style="font-size:11px;color:var(--gray-400);">${formatDate(r.date)} · ${r.category}</div>
-        </div>
-        <span class="${r.type==='income'?'cf-income':'cf-expense'}">${r.type==='income'?'+':'-'}${fmt(r.amount)}</span>
-      </div>`).join('') : '<div class="empty"><div class="empty-icon">💳</div><div class="empty-text">אין תנועות עדיין</div></div>';
-  }
-  // Meetings
-  const { data: meetings } = await sb.from('meetings').select('*').eq('user_id', currentUser.id).gte('meeting_date', new Date().toISOString().split('T')[0]).order('meeting_date').limit(3);
-  document.getElementById('ds-meetings').textContent = meetings?.length || 0;
-  document.getElementById('dash-meetings-list').innerHTML = meetings?.length ? meetings.map(m => `
-    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--gray-100);">
-      <div style="width:40px;height:40px;background:var(--navy);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--white);flex-shrink:0;">
+async function loadDash(){
+  if(!CU) return;
+  const {data:mtgs}=await sb.from('meetings').select('*').eq('user_id',CU.id).gte('meeting_date',new Date().toISOString().split('T')[0]).order('meeting_date').limit(3);
+  $('ds-mtg').textContent=mtgs?.length||0;
+  if(mtgs?.length){$('b-mtg').textContent=mtgs.length;$('b-mtg').style.display='flex';}
+  $('d-mtg').innerHTML=mtgs?.length?mtgs.map(m=>`
+    <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--gray-100);">
+      <div style="width:40px;height:40px;background:var(--navy);border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--white);flex-shrink:0;">
         <span style="font-size:15px;font-weight:900;line-height:1;">${new Date(m.meeting_date).getDate()}</span>
-        <span style="font-size:9px;opacity:.5;">${months[new Date(m.meeting_date).getMonth()]}</span>
+        <span style="font-size:9px;opacity:.5;">${MONTHS[new Date(m.meeting_date).getMonth()]}</span>
       </div>
-      <div style="flex:1;">
-        <div style="font-size:13px;font-weight:600;">${m.title}</div>
-        <div style="font-size:11px;color:var(--gray-400);">${m.meeting_time || ''} · ${m.location}</div>
-      </div>
-      <span class="badge ${m.status==='confirmed'?'badge-green':'badge-amber'}">${m.status==='confirmed'?'מאושר':'ממתין'}</span>
-    </div>`).join('') : '<div class="empty"><div class="empty-icon">📅</div><div class="empty-text">אין פגישות קרובות</div></div>';
+      <div style="flex:1;"><div style="font-size:13px;font-weight:700;">${m.title}</div><div style="font-size:11px;color:var(--gray-400);">${m.meeting_time||''} · ${m.location}</div></div>
+      <span class="badge ${m.status==='confirmed'?'bg':'ba'}">${m.status==='confirmed'?'מאושר':'ממתין'}</span>
+    </div>`).join(''):'<div class="emp" style="padding:16px"><div class="emp-i">📅</div>אין פגישות קרובות</div>';
+
+  const allInc=lRec.filter(r=>r.type==='הכנסה').reduce((s,r)=>s+r.amount,0)+lBR.reduce((s,r)=>s+r.credit,0);
+  const allExp=lRec.filter(r=>r.type==='הוצאה').reduce((s,r)=>s+r.amount,0)+lBR.reduce((s,r)=>s+r.debit,0);
+  const ob=lAcc.reduce((s,a)=>s+a.opening,0);
+  const bal=ob+allInc-allExp;
+  const now=new Date();
+  const mI=lRec.filter(r=>r.type==='הכנסה'&&new Date(r.date).getMonth()===now.getMonth()).reduce((s,r)=>s+r.amount,0);
+  const mE=lRec.filter(r=>r.type==='הוצאה'&&new Date(r.date).getMonth()===now.getMonth()).reduce((s,r)=>s+r.amount,0);
+  $('ds-bal').textContent=fmt(bal); $('ds-inc').textContent=fmt(mI); $('ds-exp').textContent=fmt(mE);
+  $('wc-bal').textContent=fmt(bal); $('wc-rec').textContent=lRec.length;
+  $('wc-unm').textContent=lBR.filter(r=>!r.matched).length;
+  const rec5=lRec.slice(0,5);
+  $('d-cf').innerHTML=rec5.length?rec5.map(r=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-100);">
+      <div><div style="font-size:13px;font-weight:600;">${r.desc}</div><div style="font-size:11px;color:var(--gray-400);">${fmtD(r.date)}</div></div>
+      <span style="font-weight:700;color:${r.type==='הכנסה'?'var(--green)':'var(--red)'};">${r.type==='הכנסה'?'+':'-'}${fmt(r.amount)}</span>
+    </div>`).join(''):'<div class="emp" style="padding:16px"><div class="emp-i">💳</div>אין תנועות</div>';
 }
 
-// ===== CASHFLOW =====
-async function loadCashflow() {
-  if (!currentUser) return;
-  const filter = document.getElementById('cf-filter')?.value || 'all';
-  let query = sb.from('cashflow').select('*').eq('user_id', currentUser.id).order('date', {ascending: false});
-  if (filter !== 'all') query = query.eq('type', filter);
-  const { data: cf } = await query;
-  if (!cf) return;
-  const income = cf.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0);
-  const expense = cf.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0);
-  document.getElementById('cf-total-income').textContent = fmt(income);
-  document.getElementById('cf-total-expense').textContent = fmt(expense);
-  document.getElementById('cf-total-balance').textContent = fmt(income - expense);
-  if (!cf.length) {
-    document.getElementById('cf-table').innerHTML = '<div class="empty"><div class="empty-icon">💹</div><div class="empty-text">אין תנועות עדיין</div><div class="empty-sub">הוסף את התנועה הראשונה שלך</div></div>';
-    return;
+// ===== FIN TABS =====
+function swFT(name,btn){
+  document.querySelectorAll('.ft-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.fp').forEach(p=>{p.classList.remove('active');p.style.display='none';});
+  btn.classList.add('active');
+  $('fp-'+name).classList.add('active');
+  $('fp-'+name).style.display='block';
+  if(name==='ov') refreshOv();
+  else if(name==='accts'){syncSelects();renderAccts();}
+  else if(name==='imp') renderUplH();
+  else if(name==='rec'){buildChips('rec-chips','all',setRA);renderRec();showDupB();}
+  else if(name==='recs'){syncSelects();refreshCatSel();renderRecs();}
+  else if(name==='cfv') renderCFV();
+}
+
+// ===== ACCOUNTS =====
+async function addAcct(){
+  const name=$('an').value.trim();
+  if(!name){toast('נא להזין שם חשבון');return;}
+  const a={id:'ac-'+Date.now(),name,type:$('at').value,opening:parseFloat($('ao').value)||0,limit:parseFloat($('al').value)||0,color:COLORS[lAcc.length%COLORS.length]};
+  lAcc.push(a);
+  $('an').value=''; $('ao').value=''; $('al').value='';
+  if(CU) await sb.from('accounts_ledger').insert({id:a.id,user_id:CU.id,name:a.name,type:a.type,opening_balance:a.opening,credit_limit:a.limit,color:a.color});
+  saveL(); refreshAll();
+}
+
+async function delAcct(id){
+  if(!confirm('למחוק חשבון זה?')) return;
+  lAcc=lAcc.filter(a=>a.id!==id);
+  if(CU) await sb.from('accounts_ledger').delete().eq('id',id);
+  saveL(); refreshAll();
+}
+
+function renderAccts(){
+  $('ac-c').textContent=lAcc.length+' חשבונות';
+  if(!lAcc.length){$('ac-l').innerHTML='<div class="emp"><div class="emp-i">🏦</div>אין חשבונות</div>';return;}
+  $('ac-l').innerHTML=lAcc.map(a=>{
+    const aR=lRec.filter(r=>r.acctId===a.id&&!r.bkId);
+    const inc=aR.filter(r=>r.type==='הכנסה').reduce((s,r)=>s+r.amount,0)+lBR.filter(r=>r.acctId===a.id).reduce((s,r)=>s+r.credit,0);
+    const exp=aR.filter(r=>r.type==='הוצאה').reduce((s,r)=>s+r.amount,0)+lBR.filter(r=>r.acctId===a.id).reduce((s,r)=>s+r.debit,0);
+    const bal=a.opening+inc-exp;
+    let lmH='';
+    if(a.limit>0){const p=Math.min(100,Math.round(exp/a.limit*100));const c=p>85?'var(--red)':p>70?'var(--amber)':'var(--green)';
+      lmH=`<div style="margin-top:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;"><span style="color:var(--gray-400)">מסגרת ${fmt(a.limit)}</span><span style="color:${c};font-weight:700;">${p}% · נותר ${fmt(a.limit-exp)}</span></div><div class="lb-t"><div class="lb-f" style="width:${p}%;background:${c}"></div></div></div>`;}
+    return`<div style="background:var(--white);border:1px solid var(--gray-200);border-radius:12px;padding:15px;margin-bottom:9px;border-right:3px solid ${a.color};">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div><span style="font-weight:700;font-size:14px;">${a.name}</span> <span class="badge ${a.type==='bank'?'bb':'bp'}">${a.type==='bank'?'🏦':'💳'}</span></div>
+        <div style="display:flex;gap:8px;align-items:center;"><span style="color:${bal>=0?'var(--green)':'var(--red)'};font-weight:800;font-size:15px;">${fmt(bal)}</span><button class="btn btn-s btn-d" onclick="delAcct('${a.id}')">מחק</button></div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:7px;font-size:11px;color:var(--gray-400);flex-wrap:wrap;"><span>פתיחה: <b style="color:var(--navy)">${fmt(a.opening)}</b></span><span>הכנסות: <b style="color:var(--green)">${fmt(inc)}</b></span><span>הוצאות: <b style="color:var(--red)">${fmt(exp)}</b></span></div>${lmH}
+    </div>`;}).join('');
+  syncSelects();
+}
+
+// ===== RECORDS =====
+function setRT(t){rType=t;$('rt-o').classList.toggle('active',t==='הוצאה');$('rt-i').classList.toggle('active',t==='הכנסה');refreshCatSel();}
+function setRBP(bp){rBP=bp;$('rb-biz').classList.toggle('active',bp==='biz');$('rb-priv').classList.toggle('active',bp==='priv');refreshCatSel();}
+function refreshCatSel(){const s=$('r-cat');if(s)s.innerHTML=getCats().map(c=>`<option>${c}</option>`).join('');}
+
+async function addRec(){
+  const desc=$('r-desc').value.trim(), amt=parseFloat($('r-amt').value);
+  if(!desc||isNaN(amt)||amt<=0){toast('נא למלא תיאור וסכום');return;}
+  const r={id:'r-'+Date.now(),date:$('r-date').value||new Date().toISOString().slice(0,10),desc,amount:amt,type:rType,bp:rBP,cat:$('r-cat').value,acctId:$('r-acct').value||null,matched:false};
+  lRec.unshift(r); $('r-desc').value=''; $('r-amt').value='';
+  if(CU) await sb.from('ledger_records').insert({id:r.id,user_id:CU.id,account_id:r.acctId,record_date:r.date,description:r.desc,amount:r.amount,type:r.type,bp:r.bp,category:r.cat,matched:false});
+  saveL(); refreshAll();
+}
+
+async function delRec(id){
+  lRec=lRec.filter(r=>r.id!==id);
+  if(CU) await sb.from('ledger_records').delete().eq('id',id);
+  saveL(); refreshAll();
+}
+
+function renderRecs(){
+  const ft=$('flt-t')?.value||'', fb=$('flt-b')?.value||'';
+  const f=lRec.filter(r=>(!ft||r.type===ft)&&(!fb||r.bp===fb));
+  $('rc-total').textContent=f.length+' רישומים | '+fmt(f.reduce((s,r)=>s+(r.type==='הוצאה'?-r.amount:r.amount),0));
+  if(!f.length){$('recs-tbl').innerHTML='<div class="emp"><div class="emp-i">📋</div>אין רישומים</div>';return;}
+  $('recs-tbl').innerHTML=`<div class="tw"><table>
+    <thead><tr><th>תאריך</th><th>תיאור</th><th>קטגוריה</th><th>סוג</th><th>ע/פ</th><th>חשבון</th><th>סכום</th><th>סטטוס</th><th></th></tr></thead>
+    <tbody>${f.map(r=>`<tr>
+      <td style="font-size:12px;color:var(--gray-600);">${fmtD(r.date)}</td>
+      <td style="font-weight:600;">${r.desc}</td>
+      <td><span class="badge bn">${r.cat}</span></td>
+      <td><span class="badge ${r.type==='הוצאה'?'br':'bg'}">${r.type}</span></td>
+      <td><span class="badge ${r.bp==='biz'?'bb':'bp'}">${r.bp==='biz'?'🏢':'🏠'}</span></td>
+      <td style="font-size:12px;">${accNm(r.acctId)}</td>
+      <td style="font-weight:700;color:${r.type==='הוצאה'?'var(--red)':'var(--green)'};">${r.type==='הוצאה'?'-':'+'}${fmt(r.amount)}</td>
+      <td>${r.matched?'<span class="badge bg">✓ מותאם</span>':'<span class="badge ba">ממתין</span>'}</td>
+      <td><button class="btn btn-s btn-d" onclick="delRec('${r.id}')">🗑</button></td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+
+// ===== FILE IMPORT =====
+function handleDrop(e){e.preventDefault();handleFile(e.dataTransfer.files[0]);}
+function handleFile(file){
+  if(!file) return;
+  const acctId=$('ia').value, bp=$('ib').value;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const wb=XLSX.read(ev.target.result,{type:'binary',cellDates:true});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    parseBk(XLSX.utils.sheet_to_json(ws,{header:1,raw:false,dateNF:'yyyy-mm-dd'}),acctId,bp,file.name);
+  };
+  reader.readAsBinaryString(file);
+}
+
+async function parseBk(data,acctId,bp,fname){
+  let added=0,dupes=0;
+  const newRows=[];
+  for(let i=1;i<data.length;i++){
+    const r=data[i]; if(!r||r.every(c=>!c)) continue;
+    let date=r[0],desc=r[1],deb=0,cre=0;
+    for(let j=2;j<6;j++){const v=parseFloat(String(r[j]||'').replace(/,/g,''));if(!isNaN(v)&&v>0){if(j===2||j===4)deb=v;else cre=v;}}
+    if(!desc&&!deb&&!cre) continue;
+    const ex=lBR.find(b=>b.desc?.trim()===String(desc||'').trim()&&Math.abs((b.debit||b.credit)-(deb||cre))<0.01&&String(b.date).slice(0,10)===String(date).slice(0,10));
+    if(ex){dupes++;continue;}
+    const row={id:'bk-'+Date.now()+'-'+i,acctId:acctId||null,date,desc:String(desc||''),debit:deb,credit:cre,bp:bp||'biz',matched:false,mId:null,src:fname};
+    lBR.unshift(row); newRows.push(row); added++;
   }
-  document.getElementById('cf-table').innerHTML = `
-    <div class="table-wrap">
-    <table>
-      <thead><tr><th>תאריך</th><th>תיאור</th><th>קטגוריה</th><th>סוג</th><th>סכום</th><th></th></tr></thead>
-      <tbody>${cf.map(r=>`
-        <tr>
-          <td style="color:var(--gray-600);font-size:13px;">${formatDate(r.date)}</td>
-          <td style="font-weight:600;">${r.description}</td>
-          <td><span class="badge badge-navy">${r.category}</span></td>
-          <td><span class="badge ${r.type==='income'?'badge-green':'badge-red'}">${r.type==='income'?'הכנסה':'הוצאה'}</span></td>
-          <td class="${r.type==='income'?'cf-income':'cf-expense'}">${r.type==='income'?'+':'-'}${fmt(r.amount)}</td>
-          <td><button class="btn btn-sm btn-danger" onclick="deleteCf('${r.id}')">🗑</button></td>
-        </tr>`).join('')}
-      </tbody>
-    </table></div>`;
+  if(CU&&newRows.length){
+    for(const r of newRows) await sb.from('bank_rows').insert({id:r.id,user_id:CU.id,account_id:r.acctId,row_date:r.date,description:r.desc,debit:r.debit,credit:r.credit,bp:r.bp,matched:r.matched,source_file:r.src});
+    await sb.from('upload_history').insert({user_id:CU.id,file_name:fname,rows_added:added,rows_duplicates:dupes,account_id:acctId||null,bp});
+  }
+  lUpl.unshift({name:fname,date:new Date().toLocaleDateString('he-IL'),added,dupes});
+  $('imp-r').style.display='block';
+  $('imp-c').textContent=`יובאו ${added} תנועות${dupes?` · ${dupes} כפולות דולגו`:''}`;
+  $('imp-b').innerHTML=lBR.slice(0,40).map(r=>`<tr>
+    <td style="font-size:12px;">${String(r.date).slice(0,10)}</td><td style="font-size:12px;">${r.desc}</td>
+    <td style="color:var(--red);font-weight:600;">${r.debit>0?fmt(r.debit):''}</td>
+    <td style="color:var(--green);font-weight:600;">${r.credit>0?fmt(r.credit):''}</td>
+    <td>${r.matched?'<span class="badge bg">✓</span>':'<span class="badge ba">ממתין</span>'}</td></tr>`).join('');
+  renderUplH(); saveL(); refreshAll();
 }
 
-function openCfModal() {
-  document.getElementById('cf-date').value = new Date().toISOString().split('T')[0];
-  document.getElementById('cf-modal').classList.add('open');
-}
-function closeCfModal() { document.getElementById('cf-modal').classList.remove('open'); }
-
-async function saveCashflow() {
-  const type = document.getElementById('cf-type').value;
-  const description = document.getElementById('cf-desc').value.trim();
-  const amount = parseFloat(document.getElementById('cf-amount').value);
-  const date = document.getElementById('cf-date').value;
-  const category = document.getElementById('cf-category').value;
-  if (!description || !amount || !date) { showToast('נא למלא את כל השדות'); return; }
-  const { error } = await sb.from('cashflow').insert({ user_id: currentUser.id, type, description, amount, date, category });
-  if (error) { showToast('שגיאה בשמירה: ' + error.message); return; }
-  closeCfModal();
-  showToast('✓ התנועה נשמרה!');
-  loadCashflow();
-  loadDashboard();
+function renderUplH(){
+  if(!lUpl.length){$('up-h').innerHTML='<div class="emp"><div class="emp-i">📁</div>טרם הועלו קבצים</div>';return;}
+  $('up-h').innerHTML=lUpl.map(h=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:11px;background:var(--gray-100);border-radius:9px;margin-bottom:7px;">
+      <div><div style="font-size:13px;font-weight:700;">📄 ${h.name}</div><div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${h.date} · ${h.added} תנועות${h.dupes?` · ${h.dupes} כפולות`:''}</div></div>
+      <span class="badge bg">✓ הועלה</span>
+    </div>`).join('');
 }
 
-async function deleteCf(id) {
-  if (!confirm('למחוק תנועה זו?')) return;
-  await sb.from('cashflow').delete().eq('id', id);
-  loadCashflow();
-  showToast('✓ נמחק');
+// ===== RECONCILE =====
+let recAccF='all';
+function buildChips(cId,cur,fn){
+  const bar=$(cId); if(!bar) return;
+  bar.innerHTML=`<button class="ac ${cur==='all'?'a-all':''}" onclick="fn_${cId}('all',this)">הכל</button>`;
+  lAcc.forEach(a=>{const b=document.createElement('button');b.className=`ac ${cur===a.id?('a-'+(a.type==='bank'?'bk':'cc')):''}`;b.innerHTML=`<span class="ad" style="background:${a.color}"></span>${a.name}`;b.onclick=()=>fn(a.id,b);bar.appendChild(b);});
+  window[`fn_${cId}`]=(id,btn)=>fn(id,btn);
+}
+function setRA(id,btn){recAccF=id;document.querySelectorAll('#rec-chips .ac').forEach(c=>{c.className='ac';});btn.className=`ac ${id==='all'?'a-all':(getAcc(id)?.type==='bank'?'a-bk':'a-cc')}`;clrSel();renderRec();}
+function clrSel(){selR=null;selB=null;const mz=$('mz');if(mz)mz.style.display='none';renderRec();}
+function selRI(id){selR=selR===id?null:id;updMZ();renderRec();}
+function selBI(id){selB=selB===id?null:id;updMZ();renderRec();}
+function updMZ(){
+  const mz=$('mz'); if(!mz) return;
+  if(!selR&&!selB){mz.style.display='none';return;}
+  mz.style.display='block';
+  const r=lRec.find(x=>x.id===selR),b=lBR.find(x=>x.id===selB);
+  $('mz-r').textContent=r?`${r.desc} ${fmt(r.amount)}`:'(לא נבחר)';
+  $('mz-l').textContent=b?`${b.desc} ${fmt(b.debit||b.credit)}`:'(לא נבחר)';
+  $('btn-m').disabled=!(selR&&selB);
+}
+async function doMatch(){
+  if(!selR||!selB) return;
+  const bk=lBR.find(r=>r.id===selB),en=lRec.find(e=>e.id===selR);
+  if(!bk||!en) return;
+  bk.matched=true; bk.mId=selR; en.matched=true; en.bkId=selB;
+  if(CU){await sb.from('bank_rows').update({matched:true,manual_entry_id:selR}).eq('id',selB);await sb.from('ledger_records').update({matched:true,bank_row_id:selB}).eq('id',selR);}
+  selR=null; selB=null; saveL(); renderRec();
+}
+async function unmatch(bkId){
+  const r=lBR.find(x=>x.id===bkId); if(!r) return;
+  if(r.mId){const e=lRec.find(x=>x.id===r.mId);if(e){e.matched=false;e.bkId=null;}}
+  r.matched=false; r.mId=null;
+  if(CU) await sb.from('bank_rows').update({matched:false,manual_entry_id:null}).eq('id',bkId);
+  saveL(); renderRec();
+}
+async function addBkAsRec(bkId){
+  const r=lBR.find(x=>x.id===bkId); if(!r) return;
+  const rec={id:'r-'+Date.now(),date:String(r.date).slice(0,10),desc:r.desc||'פעולה בנקאית',amount:r.debit||r.credit,type:r.debit>0?'הוצאה':'הכנסה',bp:r.bp||'biz',cat:r.debit>0?'אחר עסקי':'אחר הכנסה עסקי',acctId:r.acctId,matched:true,bkId:r.id};
+  r.matched=true; r.mId=rec.id; lRec.unshift(rec);
+  if(CU){await sb.from('ledger_records').insert({id:rec.id,user_id:CU.id,account_id:rec.acctId,bank_row_id:rec.bkId,record_date:rec.date,description:rec.desc,amount:rec.amount,type:rec.type,bp:rec.bp,category:rec.cat,matched:true});await sb.from('bank_rows').update({matched:true,manual_entry_id:rec.id}).eq('id',bkId);}
+  saveL(); renderRec(); showDupB();
+}
+async function addAllUnmatched(){
+  const unm=lBR.filter(r=>!r.matched&&(recAccF==='all'||r.acctId===recAccF));
+  for(const r of unm){
+    const rec={id:'r-'+Date.now()+'-'+r.id,date:String(r.date).slice(0,10),desc:r.desc||'פעולה בנקאית',amount:r.debit||r.credit,type:r.debit>0?'הוצאה':'הכנסה',bp:r.bp||'biz',cat:r.debit>0?'אחר עסקי':'אחר הכנסה עסקי',acctId:r.acctId,matched:true,bkId:r.id};
+    r.matched=true; r.mId=rec.id; lRec.unshift(rec);
+    if(CU){await sb.from('ledger_records').insert({id:rec.id,user_id:CU.id,account_id:rec.acctId,bank_row_id:r.id,record_date:rec.date,description:rec.desc,amount:rec.amount,type:rec.type,bp:rec.bp,category:rec.cat,matched:true});await sb.from('bank_rows').update({matched:true,manual_entry_id:rec.id}).eq('id',r.id);}
+  }
+  saveL(); renderRec(); showDupB();
+}
+function renderRec(){
+  const af=recAccF==='all'?null:recAccF;
+  const uR=lRec.filter(r=>!r.matched&&(!af||r.acctId===af));
+  const uB=lBR.filter(r=>!r.matched&&(!af||r.acctId===af));
+  $('rc-cnt').textContent=uR.length+' ממתינים'; $('bk-cnt').textContent=uB.length+' תנועות';
+  $('rc-body').innerHTML=!uR.length?'<div class="emp" style="padding:16px;"><div class="emp-i">✅</div>הכל מותאם</div>':uR.slice(0,25).map(r=>`
+    <div class="ri ri-rc ${selR===r.id?'sel':''}" onclick="selRI('${r.id}')">
+      <div class="ri-d">${r.desc}</div>
+      <div class="ri-a" style="color:${r.type==='הוצאה'?'var(--red)':'var(--green)'}">${r.type==='הוצאה'?'-':'+'}${fmt(r.amount)}</div>
+      <div class="ri-dt">${fmtD(r.date)} · ${r.cat}</div>
+      <div style="font-size:10px;color:var(--gray-400);margin-top:2px;">${selR===r.id?'✓ נבחר':'לחץ לבחירה'}</div>
+    </div>`).join('');
+  $('bk-body').innerHTML=!uB.length?'<div class="emp" style="padding:16px;"><div class="emp-i">✅</div>הכל מותאם</div>':uB.slice(0,25).map(r=>`
+    <div class="ri ri-bk ${selB===r.id?'sel':''}" onclick="selBI('${r.id}')">
+      <div class="ri-d">${r.desc||'פעולה בנקאית'}</div>
+      <div class="ri-a" style="color:${r.debit>0?'var(--red)':'var(--green)'}">${r.debit>0?'-':'+'}${fmt(r.debit||r.credit)}</div>
+      <div class="ri-dt">${String(r.date).slice(0,10)}</div>
+      <button class="btn btn-s btn-g" onclick="event.stopPropagation();addBkAsRec('${r.id}')" style="width:100%;margin-top:5px;font-size:11px;">+ הוסף לרישומים</button>
+    </div>`).join('');
+  const mt=lBR.filter(r=>r.matched&&(!af||r.acctId===af));
+  $('mt-cnt').textContent=mt.length+' זוגות';
+  $('mt-l').innerHTML=!mt.length?'<div class="emp"><div class="emp-i">🔗</div>אין התאמות</div>':
+    `<div class="tw"><table><thead><tr><th>תאריך</th><th>תיאור</th><th>סכום</th><th>רישום</th><th></th></tr></thead><tbody>${mt.slice(0,15).map(r=>{const e=lRec.find(x=>x.id===r.mId);return`<tr><td style="font-size:12px;">${String(r.date).slice(0,10)}</td><td style="font-size:12px;">${r.desc}</td><td style="font-weight:700;color:${r.debit>0?'var(--red)':'var(--green)'};">${r.debit>0?'-':'+'}${fmt(r.debit||r.credit)}</td><td style="font-size:12px;">${e?e.desc:'(אוטומטי)'}</td><td><button class="btn btn-s btn-d" onclick="unmatch('${r.id}')">בטל</button></td></tr>`;}).join('')}</tbody></table></div>`;
+}
+function showDupB(){
+  const dups=[];
+  for(let i=0;i<lRec.length;i++)for(let j=i+1;j<lRec.length;j++){const a=lRec[i],b=lRec[j];if(Math.abs(a.amount-b.amount)<0.01&&a.desc===b.desc&&a.date===b.date&&a.type===b.type)dups.push(`כפיל: "${a.desc}" ${fmt(a.amount)} — <button class="btn btn-s btn-d" onclick="delRec('${b.id}')">מחק</button>`);}
+  const ban=$('dup-ban'); if(!ban) return;
+  if(!dups.length){ban.style.display='none';return;}
+  ban.style.display='block'; ban.innerHTML=`<strong>⚠️ ${dups.length} כפילויות:</strong><ul style="margin:5px 0 0 0;padding-right:16px;">${dups.map(d=>`<li style="margin-bottom:3px;">${d}</li>`).join('')}</ul>`;
+}
+
+// ===== OVERVIEW =====
+function setOV(v,btn){ovView=v;['a','b','p'].forEach(x=>{const b=$('ov-'+x);if(b){b.style.borderColor='';b.style.color='';}});if(btn){const c={all:'var(--green)',biz:'var(--blue)',priv:'var(--purple)'};btn.style.borderColor=c[v];btn.style.color=c[v];}refreshOv();}
+function setOP(p,btn){ovPer=p;['w','m'].forEach(x=>{const b=$('ov-'+x);if(b){b.style.borderColor='';b.style.color='';}});if(btn){btn.style.borderColor='var(--gold)';btn.style.color='var(--gold)';}refreshOv();}
+
+function refreshOv(){
+  const af=ovAcc==='all'?null:ovAcc;
+  const fR=lRec.filter(r=>(!af||r.acctId===af)&&(ovView==='all'||r.bp===ovView)&&!r.bkId);
+  const fB=lBR.filter(r=>(!af||r.acctId===af));
+  const ob=lAcc.reduce((s,a)=>s+(af?a.id===af?a.opening:0:a.opening),0);
+  const tI=fR.filter(r=>r.type==='הכנסה').reduce((s,r)=>s+r.amount,0)+fB.reduce((s,r)=>s+r.credit,0);
+  const tE=fR.filter(r=>r.type==='הוצאה').reduce((s,r)=>s+r.amount,0)+fB.reduce((s,r)=>s+r.debit,0);
+  const bal=ob+tI-tE;
+  if($('ov-i'))$('ov-i').textContent=fmt(tI);
+  if($('ov-e'))$('ov-e').textContent=fmt(tE);
+  if($('ov-b2')){$('ov-b2').textContent=fmt(bal);$('ov-b2').style.color=bal>=0?'var(--green)':'var(--red)';}
+  const bR=lRec.filter(r=>r.bp==='biz'&&!r.bkId&&(!af||r.acctId===af));
+  const pR=lRec.filter(r=>r.bp==='priv'&&!r.bkId&&(!af||r.acctId===af));
+  const bI=bR.filter(r=>r.type==='הכנסה').reduce((s,r)=>s+r.amount,0),bE=bR.filter(r=>r.type==='הוצאה').reduce((s,r)=>s+r.amount,0);
+  const pI=pR.filter(r=>r.type==='הכנסה').reduce((s,r)=>s+r.amount,0),pE=pR.filter(r=>r.type==='הוצאה').reduce((s,r)=>s+r.amount,0);
+  ['bi','be','pi','pe'].forEach(x=>{if($(x))$(x).textContent='₪0';});
+  if($('bi'))$('bi').textContent=fmt(bI); if($('be'))$('be').textContent=fmt(bE);
+  const bN=bI-bE; if($('bn')){$('bn').textContent=fmt(bN);$('bn').style.color=bN>=0?'var(--green)':'var(--red)';}
+  if($('pi'))$('pi').textContent=fmt(pI); if($('pe'))$('pe').textContent=fmt(pE);
+  const pN=pI-pE; if($('pn')){$('pn').textContent=fmt(pN);$('pn').style.color=pN>=0?'var(--green)':'var(--red)';}
+  const catMap={};
+  fR.filter(r=>r.type==='הוצאה').forEach(r=>{catMap[r.cat]=(catMap[r.cat]||0)+r.amount;});
+  const cats=Object.entries(catMap).sort(([,a],[,b])=>b-a).slice(0,7);
+  if($('cat-b'))$('cat-b').innerHTML=cats.length?cats.map(([c,v])=>{const p=Math.min(100,(v/(tE||1))*100);return`<div style="margin-bottom:9px;"><div style="display:flex;justify-content:space-between;margin-bottom:3px;font-size:12px;"><span>${c}</span><span style="color:var(--red);font-weight:700;">${fmt(v)}</span></div><div class="cb-t"><div class="cb-f" style="width:${p}%;background:var(--red);"></div></div></div>`}).join(''):'<div class="emp" style="padding:12px;"><div class="emp-i">📊</div>אין נתונים</div>';
+  renderChart(af);
+}
+
+function getPK(d,p){const dt=new Date(d);if(isNaN(dt))return null;if(p==='month')return`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;const j=new Date(dt.getFullYear(),0,1);const w=Math.ceil(((dt-j)/86400000+j.getDay()+1)/7);return`${dt.getFullYear()}-W${String(w).padStart(2,'0')}`;}
+function getPL(k,p){if(p==='month'){const[y,m]=k.split('-');return`${MONTHS[parseInt(m)-1]} ${y}`;}const[y,w]=k.split('-W');return`שב'${w}`;}
+function buildCFMap(af,p){
+  const map={};
+  const add=(d,deb,cre,ai)=>{if(af&&af!=='all'&&ai!==af)return;const k=getPK(d,p);if(!k)return;if(!map[k])map[k]={k,l:getPL(k,p),i:0,e:0};map[k].i+=cre||0;map[k].e+=deb||0;};
+  lBR.forEach(r=>add(r.date,r.debit,r.credit,r.acctId));
+  lRec.filter(r=>!r.bkId).forEach(r=>add(r.date,r.type==='הוצאה'?r.amount:0,r.type==='הכנסה'?r.amount:0,r.acctId));
+  return Object.values(map).sort((a,b)=>a.k.localeCompare(b.k));
+}
+function renderChart(af){
+  const cf=buildCFMap(af,ovPer);
+  if($('ch-lbl'))$('ch-lbl').textContent=ovPer==='week'?'שבועי':'חודשי';
+  if(!cf.length){if($('cf-ch'))$('cf-ch').innerHTML='<div style="color:var(--gray-400);font-size:12px;padding:16px;">אין נתונים</div>';return;}
+  const mx=Math.max(...cf.map(r=>Math.max(r.i,r.e)),1);
+  if($('cf-ch'))$('cf-ch').innerHTML=cf.slice(-12).map(row=>{const net=row.i-row.e;return`<div class="cf-col"><div class="cf-bars"><div class="cf-bar" style="background:var(--green);height:${Math.max(3,(row.i/mx)*78)}px" title="${fmt(row.i)}"></div><div class="cf-bar" style="background:var(--red);height:${Math.max(3,(row.e/mx)*78)}px" title="${fmt(row.e)}"></div></div><div class="cf-lbl">${row.l}</div><div class="cf-net" style="color:${net>=0?'var(--green)':'var(--red)'}">${net>=0?'+':''}${Math.round(net/1000)}K</div></div>`;}).join('');
+}
+
+// ===== CFVIEW =====
+function setCFP2(p,btn){cfvPer=p;['cfv-w','cfv-m'].forEach(x=>{const b=$(x);if(b){b.style.borderColor='';b.style.color='';}});if(btn){btn.style.borderColor='var(--gold)';btn.style.color='var(--gold)';}renderCFV();}
+function renderCFV(){
+  const cf=buildCFMap('all',cfvPer);
+  if(!cf.length){if($('cfv-e'))$('cfv-e').style.display='block';if($('cfv-c'))$('cfv-c').style.display='none';return;}
+  if($('cfv-e'))$('cfv-e').style.display='none';if($('cfv-c'))$('cfv-c').style.display='block';
+  const ob=lAcc.reduce((s,a)=>s+a.opening,0);let cum=ob;
+  if($('cfv-tb'))$('cfv-tb').innerHTML=cf.map(r=>{const net=r.i-r.e;cum+=net;return`<tr><td style="font-weight:600;">${r.l}</td><td style="color:var(--green);font-weight:600;">${fmt(r.i)}</td><td style="color:var(--red);font-weight:600;">${fmt(r.e)}</td><td style="color:${net>=0?'var(--green)':'var(--red)'};font-weight:700;">${net>=0?'+':''}${fmt(net)}</td><td style="color:${cum>=0?'var(--green)':'var(--red)'};font-weight:800;">${fmt(cum)}</td></tr>`;}).join('');
 }
 
 // ===== MEETINGS =====
-async function loadMeetings() {
-  if (!currentUser) return;
-  const { data: meetings } = await sb.from('meetings').select('*').eq('user_id', currentUser.id).order('meeting_date', {ascending: true});
-  if (!meetings?.length) {
-    document.getElementById('meetings-list').innerHTML = '<div class="empty"><div class="empty-icon">📅</div><div class="empty-text">אין פגישות עדיין</div><div class="empty-sub">שלח בקשת פגישה ונקבע לך זמן</div></div>';
-    return;
-  }
-  document.getElementById('meetings-list').innerHTML = meetings.map(m => `
-    <div style="display:flex;align-items:center;gap:16px;padding:18px;background:var(--white);border:1px solid var(--gray-200);border-radius:14px;margin-bottom:12px;border-right:4px solid ${m.status==='confirmed'?'var(--green)':'var(--amber)'};">
-      <div style="width:52px;height:52px;background:var(--navy);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--white);flex-shrink:0;">
-        <span style="font-size:20px;font-weight:900;line-height:1;">${new Date(m.meeting_date).getDate()}</span>
-        <span style="font-size:10px;opacity:.5;">${months[new Date(m.meeting_date).getMonth()]}</span>
+async function loadMtgs(){
+  if(!CU) return;
+  const {data}=await sb.from('meetings').select('*').eq('user_id',CU.id).order('meeting_date');
+  if(!data?.length){$('mtg-list').innerHTML='<div class="emp"><div class="emp-i">📅</div>אין פגישות</div>';return;}
+  $('mtg-list').innerHTML=data.map(m=>`
+    <div style="display:flex;align-items:center;gap:13px;padding:15px;background:var(--white);border:1px solid var(--gray-200);border-radius:13px;margin-bottom:9px;border-right:4px solid ${m.status==='confirmed'?'var(--green)':'var(--amber)'};">
+      <div style="width:46px;height:46px;background:var(--navy);border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--white);flex-shrink:0;">
+        <span style="font-size:16px;font-weight:900;line-height:1;">${new Date(m.meeting_date).getDate()}</span>
+        <span style="font-size:9px;opacity:.5;">${MONTHS[new Date(m.meeting_date).getMonth()]}</span>
       </div>
-      <div style="flex:1;">
-        <div style="font-size:15px;font-weight:700;">${m.title}</div>
-        <div style="font-size:13px;color:var(--gray-400);margin-top:3px;">${m.meeting_time || 'שעה לא נקבעה'} · ${m.location}</div>
-        ${m.notes ? `<div style="font-size:12px;color:var(--gray-600);margin-top:4px;">${m.notes}</div>` : ''}
-      </div>
-      <span class="badge ${m.status==='confirmed'?'badge-green':m.status==='cancelled'?'badge-red':'badge-amber'}">${statusHe(m.status)}</span>
+      <div style="flex:1;"><div style="font-size:14px;font-weight:700;">${m.title}</div><div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${m.meeting_time||'—'} · ${m.location}</div>${m.notes?`<div style="font-size:12px;color:var(--gray-600);margin-top:3px;">${m.notes}</div>`:''}</div>
+      <span class="badge ${m.status==='confirmed'?'bg':m.status==='cancelled'?'br':'ba'}">${m.status==='confirmed'?'מאושר':m.status==='cancelled'?'בוטל':'ממתין'}</span>
     </div>`).join('');
-  document.getElementById('badge-meetings').textContent = meetings.filter(m=>m.status==='pending').length || '';
 }
 
-function openMeetingRequest() {
-  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
-  document.getElementById('mtg-date').value = tomorrow.toISOString().split('T')[0];
-  document.getElementById('meeting-modal').classList.add('open');
-}
-
-async function requestMeeting() {
-  const title = document.getElementById('mtg-title').value.trim();
-  const date = document.getElementById('mtg-date').value;
-  const time = document.getElementById('mtg-time').value;
-  const location = document.getElementById('mtg-location').value;
-  const notes = document.getElementById('mtg-notes').value.trim();
-  if (!title || !date) { showToast('נא למלא נושא ותאריך'); return; }
-  const { error } = await sb.from('meetings').insert({ user_id: currentUser.id, title, meeting_date: date, meeting_time: time, location, notes, status: 'pending' });
-  if (error) { showToast('שגיאה: ' + error.message); return; }
-  document.getElementById('meeting-modal').classList.remove('open');
-  showToast('✓ בקשת הפגישה נשלחה! נחזור אליך לאישור.');
-  loadMeetings();
+async function reqMtg(){
+  const title=$('mt-title').value.trim(), date=$('mt-date').value;
+  if(!title||!date){toast('נא למלא נושא ותאריך');return;}
+  const {error}=await sb.from('meetings').insert({user_id:CU.id,title,meeting_date:date,meeting_time:$('mt-time').value,location:$('mt-loc').value,notes:$('mt-notes').value.trim(),status:'pending'});
+  if(error){toast('שגיאה: '+error.message);return;}
+  closeMo('mo-mtg'); toast('✓ בקשת הפגישה נשלחה!'); loadMtgs();
 }
 
 // ===== DOCUMENTS =====
-async function loadDocuments() {
-  if (!currentUser) return;
-  const { data: docs } = await sb.from('documents').select('*').eq('user_id', currentUser.id).order('created_at', {ascending: false});
-  if (!docs?.length) {
-    document.getElementById('documents-list').innerHTML = '<div class="empty"><div class="empty-icon">📁</div><div class="empty-text">אין מסמכים עדיין</div><div class="empty-sub">המנהל יעלה מסמכים עבורך</div></div>';
-    return;
-  }
-  document.getElementById('documents-list').innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;">
-    ${docs.map(d => `
-      <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:20px;">
-        <div style="font-size:28px;margin-bottom:10px;">${fileIcon(d.file_type)}</div>
-        <div style="font-size:14px;font-weight:700;margin-bottom:4px;">${d.title}</div>
-        <div style="font-size:11px;color:var(--gray-400);margin-bottom:14px;">${formatDate(d.created_at)} · ${d.file_size || ''}</div>
-        ${d.file_url ? `<a href="${d.file_url}" target="_blank" style="text-decoration:none;"><button class="btn btn-primary btn-sm" style="width:100%;">⬇ הורדה</button></a>` : '<button class="btn btn-outline btn-sm" style="width:100%;" disabled>לא זמין להורדה</button>'}
-      </div>`).join('')}
-    </div>`;
+async function loadDocs(){
+  if(!CU) return;
+  const {data}=await sb.from('documents').select('*').eq('user_id',CU.id).order('created_at',{ascending:false});
+  if(!data?.length){$('docs-list').innerHTML='<div class="emp"><div class="emp-i">📁</div>אין מסמכים עדיין</div>';return;}
+  $('docs-list').innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;">
+    ${data.map(d=>`<div style="background:var(--white);border:1px solid var(--gray-200);border-radius:13px;padding:18px;">
+      <div style="font-size:26px;margin-bottom:7px;">${d.file_type==='pdf'?'📄':d.file_type==='xlsx'?'📊':'📝'}</div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:3px;">${d.title}</div>
+      <div style="font-size:11px;color:var(--gray-400);margin-bottom:11px;">${fmtD(d.created_at)}</div>
+      ${d.file_url?`<a href="${d.file_url}" target="_blank"><button class="btn btn-p btn-s" style="width:100%;">⬇ הורדה</button></a>`:'<button class="btn btn-o btn-s" style="width:100%;" disabled>לא זמין</button>'}
+    </div>`).join('')}
+  </div>`;
 }
 
 // ===== SUBSCRIPTION =====
-async function loadSubscription() {
-  if (!currentUser) return;
-  const { data: sub } = await sb.from('subscriptions').select('*').eq('user_id', currentUser.id).single();
-  const plans = { basic: 'בסיסי', professional: 'מקצועי', enterprise: 'ארגוני' };
-  const prices = { basic: 899, professional: 1999, enterprise: 0 };
-  document.getElementById('subscription-content').innerHTML = `
-    <div class="sub-plan-card">
-      <div class="spc-top">
-        <div>
-          <div class="spc-plan">התוכנית הנוכחית שלך</div>
-          <div class="spc-name">${plans[sub?.plan||'basic']} ⭐</div>
-        </div>
-        <span class="spc-status spc-active">● פעיל</span>
+async function loadSub(){
+  if(!CU) return;
+  const {data:sub}=await sb.from('subscriptions').select('*').eq('user_id',CU.id).single();
+  const plans={basic:'בסיסי',professional:'מקצועי',enterprise:'ארגוני'};
+  const prices={basic:899,professional:1999,enterprise:0};
+  $('sub-c').innerHTML=`
+    <div style="background:var(--navy);color:var(--white);border-radius:15px;padding:26px;margin-bottom:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">
+        <div><div style="font-size:11px;color:rgba(255,255,255,.45);margin-bottom:3px;">התוכנית שלך</div><div style="font-family:'Heebo';font-size:22px;font-weight:900;color:var(--gold);">${plans[sub?.plan||'basic']} ⭐</div></div>
+        <span style="background:rgba(16,185,129,.15);color:var(--green);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">● פעיל</span>
       </div>
-      <div class="spc-details">
-        <div><div class="spc-detail-label">תשלום חודשי</div><div class="spc-detail-value">₪${prices[sub?.plan||'basic'].toLocaleString()}</div></div>
-        <div><div class="spc-detail-label">תאריך הצטרפות</div><div class="spc-detail-value">${sub?.start_date ? formatDate(sub.start_date) : '—'}</div></div>
-        <div><div class="spc-detail-label">חידוש הבא</div><div class="spc-detail-value">${sub?.renewal_date ? formatDate(sub.renewal_date) : '—'}</div></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+        <div><div style="font-size:10px;color:rgba(255,255,255,.4);">תשלום</div><div style="font-size:14px;font-weight:700;">₪${prices[sub?.plan||'basic'].toLocaleString()}/חודש</div></div>
+        <div><div style="font-size:10px;color:rgba(255,255,255,.4);">הצטרפות</div><div style="font-size:14px;font-weight:700;">${sub?.start_date?fmtD(sub.start_date):'—'}</div></div>
+        <div><div style="font-size:10px;color:rgba(255,255,255,.4);">חידוש</div><div style="font-size:14px;font-weight:700;">${sub?.renewal_date?fmtD(sub.renewal_date):'—'}</div></div>
       </div>
     </div>
-    <div class="grid-3">
-      <div class="card" style="text-align:center;">
-        <div style="font-size:28px;margin-bottom:8px;">📊</div>
-        <div style="font-weight:700;margin-bottom:4px;">הנהלת חשבונות</div>
-        <span class="badge badge-green">פעיל</span>
-      </div>
-      <div class="card" style="text-align:center;">
-        <div style="font-size:28px;margin-bottom:8px;">💰</div>
-        <div style="font-weight:700;margin-bottom:4px;">חשבות שכר</div>
-        <span class="badge ${sub?.plan!=='basic'?'badge-green':'badge-amber'}">${sub?.plan!=='basic'?'פעיל':'בסיסי'}</span>
-      </div>
-      <div class="card" style="text-align:center;">
-        <div style="font-size:28px;margin-bottom:8px;">💼</div>
-        <div style="font-weight:700;margin-bottom:4px;">יעוץ עסקי</div>
-        <span class="badge ${sub?.plan==='professional'||sub?.plan==='enterprise'?'badge-green':'badge-navy'}">${sub?.plan==='professional'||sub?.plan==='enterprise'?'פעיל':'לא פעיל'}</span>
-      </div>
-    </div>
-    <div class="card" style="margin-top:20px;text-align:center;">
-      <div style="font-size:16px;font-weight:700;margin-bottom:8px;">רוצים לשדרג?</div>
-      <div style="font-size:14px;color:var(--gray-600);margin-bottom:16px;">עברו לתוכנית מקצועית וקבלו עוד שירותים</div>
-      <button class="btn btn-primary" onclick="showToast('נציג יצור קשר לשדרוג ✓')">שדרג תוכנית</button>
+    <div style="text-align:center;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);border-radius:13px;padding:18px;">
+      <div style="font-size:14px;font-weight:700;margin-bottom:7px;">רוצה לשדרג?</div>
+      <button class="btn btn-p" onclick="toast('נציג יצור קשר ✓')">שדרג תוכנית</button>
     </div>`;
 }
 
 // ===== PROFILE =====
-async function loadProfile() {
-  if (!currentUser || !currentProfile) return;
-  document.getElementById('p-name').value = currentProfile.full_name || '';
-  document.getElementById('p-email').value = currentUser.email || '';
-  document.getElementById('p-phone').value = currentProfile.phone || '';
-  document.getElementById('p-company').value = currentProfile.company_name || '';
-  const initials = (currentProfile.full_name || '?').charAt(0).toUpperCase();
-  document.getElementById('profile-avatar').textContent = initials;
+async function loadProf(){
+  if(!CU||!CP) return;
+  $('p-n').value=CP.full_name||''; $('p-e').value=CU.email||'';
+  $('p-ph').value=CP.phone||''; $('p-co').value=CP.company_name||'';
 }
-
-async function saveProfile() {
-  const full_name = document.getElementById('p-name').value.trim();
-  const phone = document.getElementById('p-phone').value.trim();
-  const company_name = document.getElementById('p-company').value.trim();
-  const { error } = await sb.from('profiles').update({ full_name, phone, company_name, updated_at: new Date().toISOString() }).eq('id', currentUser.id);
-  if (error) { showToast('שגיאה: ' + error.message); return; }
-  currentProfile = { ...currentProfile, full_name, phone, company_name };
-  document.getElementById('user-name-display').textContent = full_name.split(' ')[0];
-  showToast('✓ הפרופיל עודכן בהצלחה!');
+async function saveProf(){
+  const full_name=$('p-n').value.trim(), phone=$('p-ph').value.trim(), company_name=$('p-co').value.trim();
+  const {error}=await sb.from('profiles').update({full_name,phone,company_name,updated_at:new Date().toISOString()}).eq('id',CU.id);
+  if(error){toast('שגיאה: '+error.message);return;}
+  CP={...CP,full_name,phone,company_name};
+  $('u-nm').textContent=full_name.split(' ')[0]; toast('✓ הפרופיל עודכן!');
 }
-
-async function changePassword() {
-  const p1 = document.getElementById('new-pass').value;
-  const p2 = document.getElementById('confirm-pass').value;
-  if (!p1 || p1.length < 6) { showToast('הסיסמה חייבת להיות לפחות 6 תווים'); return; }
-  if (p1 !== p2) { showToast('הסיסמאות אינן תואמות'); return; }
-  const { error } = await sb.auth.updateUser({ password: p1 });
-  if (error) { showToast('שגיאה: ' + error.message); return; }
-  showToast('✓ הסיסמה עודכנה!');
-  document.getElementById('new-pass').value = '';
-  document.getElementById('confirm-pass').value = '';
+async function chgPass(){
+  const p1=$('p-pw1').value, p2=$('p-pw2').value;
+  if(!p1||p1.length<6){toast('סיסמה — לפחות 6 תווים');return;}
+  if(p1!==p2){toast('הסיסמאות אינן תואמות');return;}
+  const {error}=await sb.auth.updateUser({password:p1});
+  if(error){toast('שגיאה: '+error.message);return;}
+  toast('✓ הסיסמה עודכנה!'); $('p-pw1').value=''; $('p-pw2').value='';
 }
 
 // ===== NOTIFICATIONS =====
-function toggleNotifications() {
-  document.getElementById('notif-panel').classList.toggle('open');
+async function loadNotifs(){
+  if(!CU) return;
+  const {data}=await sb.from('notifications').select('*').eq('user_id',CU.id).order('created_at',{ascending:false}).limit(20);
+  const unread=data?.filter(n=>!n.read).length||0;
+  const dot=$('nb-dot'); if(dot) dot.style.display=unread?'block':'none';
+  if(!data?.length){$('notif-list').innerHTML='<div class="emp"><div class="emp-i">🔔</div>אין התראות</div>';return;}
+  $('notif-list').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><span style="font-size:13px;font-weight:700;">${unread} לא נקראו</span><button class="btn btn-s btn-o" onclick="markAllRead()">סמן הכל כנקרא</button></div>
+    ${data.map(n=>`<div style="display:flex;gap:11px;padding:13px;background:${n.read?'var(--white)':'rgba(201,168,76,.04)'};border:1px solid ${n.read?'var(--gray-200)':'rgba(201,168,76,.2)'};border-radius:11px;margin-bottom:7px;">
+      <div style="width:8px;height:8px;border-radius:50%;background:${n.read?'var(--gray-200)':'var(--gold)'};margin-top:5px;flex-shrink:0;"></div>
+      <div><div style="font-size:13px;font-weight:600;margin-bottom:2px;">${n.title}</div>${n.message?`<div style="font-size:12px;color:var(--gray-600);">${n.message}</div>`:''}<div style="font-size:10px;color:var(--gray-400);margin-top:3px;">${timeAgo(n.created_at)}</div></div>
+    </div>`).join('')}`;
 }
+async function markAllRead(){if(!CU)return;await sb.from('notifications').update({read:true}).eq('user_id',CU.id);loadNotifs();}
 
-async function loadNotifications() {
-  if (!currentUser) return;
-  const { data: notifs } = await sb.from('notifications').select('*').eq('user_id', currentUser.id).order('created_at', {ascending: false}).limit(20);
-  const unread = notifs?.filter(n => !n.read).length || 0;
-  document.getElementById('notif-count').textContent = unread || '';
-  document.getElementById('notif-count').style.display = unread ? 'flex' : 'none';
-  document.getElementById('notif-list').innerHTML = notifs?.length ? notifs.map(n => `
-    <div class="notif-item ${n.read?'':'unread'}">
-      <div class="ni-dot" style="${n.read?'opacity:0':''}"></div>
-      <div>
-        <div class="ni-title">${n.title}</div>
-        ${n.message ? `<div style="font-size:12px;color:var(--gray-600);margin-bottom:3px;">${n.message}</div>` : ''}
-        <div class="ni-time">${timeAgo(n.created_at)}</div>
-      </div>
-    </div>`).join('') : '<div class="empty"><div class="empty-icon">🔔</div><div class="empty-text">אין התראות</div></div>';
+// ===== ADMIN =====
+async function loadAdmin(){
+  if(!CU||CP?.role!=='admin') return;
+  const [cr,mr,conr]=await Promise.all([
+    sb.from('profiles').select('*',{count:'exact',head:true}).eq('role','client'),
+    sb.from('meetings').select('*',{count:'exact',head:true}).eq('status','pending'),
+    sb.from('contact_requests').select('*',{count:'exact',head:true}).eq('status','new')
+  ]);
+  $('adm-cl').textContent=cr.count||0; $('adm-pm').textContent=mr.count||0; $('adm-nc').textContent=conr.count||0;
+  loadAdmUsers(); loadAdmMtgs(); loadAdmCon();
 }
-
-async function markAllRead() {
-  if (!currentUser) return;
-  await sb.from('notifications').update({ read: true }).eq('user_id', currentUser.id);
-  loadNotifications();
+async function loadAdmUsers(){
+  const q=$('adm-q')?.value||'';
+  const {data}=await sb.from('profiles').select('*,subscriptions(plan)').eq('role','client').order('created_at',{ascending:false});
+  let f=data||[]; if(q) f=f.filter(u=>(u.full_name||'').toLowerCase().includes(q.toLowerCase()));
+  if(!f.length){$('adm-ul').innerHTML='<div class="emp"><div class="emp-i">👥</div>אין לקוחות</div>';return;}
+  const pn={basic:'בסיסי',professional:'מקצועי',enterprise:'ארגוני'};
+  $('adm-ul').innerHTML=`<div class="tw"><table><thead><tr><th>שם</th><th>טלפון</th><th>חברה</th><th>תוכנית</th><th>תאריך</th><th>פעולות</th></tr></thead><tbody>
+    ${f.map(u=>`<tr><td style="font-weight:700;">${u.full_name||'—'}</td><td>${u.phone||'—'}</td><td>${u.company_name||'—'}</td><td><span class="badge bo">${pn[u.subscriptions?.[0]?.plan||'basic']}</span></td><td style="font-size:11px;color:var(--gray-400);">${fmtD(u.created_at)}</td>
+    <td><div style="display:flex;gap:4px;"><button class="btn btn-s btn-p" onclick="admNotif('${u.id}')">🔔</button><button class="btn btn-s btn-b" onclick="admDoc('${u.id}')">📁</button></div></td></tr>`).join('')}
+  </tbody></table></div>`;
+  const sel=$('em-to'); if(sel) sel.innerHTML='<option value="all">כל הלקוחות</option>'+f.map(u=>`<option value="${u.id}">${u.full_name||u.id}</option>`).join('');
 }
-
-// ===== HELPERS =====
-const months = ['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצ'];
-
-function fmt(n) { return '₪' + Math.round(n).toLocaleString('he-IL'); }
-
-function formatDate(d) {
-  if (!d) return '';
-  const date = new Date(d);
-  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+async function loadAdmMtgs(){
+  const {data}=await sb.from('meetings').select('*,profiles(full_name)').eq('status','pending').order('meeting_date').limit(10);
+  if(!data?.length){$('adm-ml').innerHTML='<div class="emp" style="padding:14px;"><div class="emp-i">📅</div>אין פגישות ממתינות</div>';return;}
+  $('adm-ml').innerHTML=`<div class="tw"><table><thead><tr><th>לקוח</th><th>נושא</th><th>תאריך</th><th>מיקום</th><th>פעולות</th></tr></thead><tbody>
+    ${data.map(m=>`<tr><td style="font-weight:700;">${m.profiles?.full_name||'—'}</td><td>${m.title}</td><td>${fmtD(m.meeting_date)} ${m.meeting_time||''}</td><td><span class="badge bn">${m.location}</span></td>
+    <td><div style="display:flex;gap:4px;"><button class="btn btn-s btn-g" onclick="appMtg('${m.id}')">✓</button><button class="btn btn-s btn-d" onclick="canMtg('${m.id}')">✕</button></div></td></tr>`).join('')}
+  </tbody></table></div>`;
 }
-
-function timeAgo(d) {
-  const diff = (Date.now() - new Date(d)) / 1000;
-  if (diff < 60) return 'עכשיו';
-  if (diff < 3600) return `לפני ${Math.floor(diff/60)} דקות`;
-  if (diff < 86400) return `לפני ${Math.floor(diff/3600)} שעות`;
-  return `לפני ${Math.floor(diff/86400)} ימים`;
+async function loadAdmCon(){
+  const {data}=await sb.from('contact_requests').select('*').eq('status','new').order('created_at',{ascending:false}).limit(10);
+  if(!data?.length){$('adm-con').innerHTML='<div class="emp" style="padding:14px;"><div class="emp-i">📩</div>אין פניות חדשות</div>';return;}
+  $('adm-con').innerHTML=`<div class="tw"><table><thead><tr><th>שם</th><th>אימייל</th><th>הודעה</th><th>תאריך</th><th></th></tr></thead><tbody>
+    ${data.map(c=>`<tr><td style="font-weight:700;">${c.full_name}</td><td style="color:var(--gold);">${c.email}</td><td style="font-size:12px;max-width:180px;">${(c.message||'').substring(0,55)}${(c.message||'').length>55?'...':''}</td><td style="font-size:11px;color:var(--gray-400);">${timeAgo(c.created_at)}</td>
+    <td><button class="btn btn-s btn-b" onclick="mkConDone('${c.id}')">✓ טופל</button></td></tr>`).join('')}
+  </tbody></table></div>`;
 }
-
-function statusHe(s) {
-  return { confirmed:'מאושר', pending:'ממתין', cancelled:'בוטל' }[s] || s;
+async function appMtg(id){await sb.from('meetings').update({status:'confirmed'}).eq('id',id);toast('✓ הפגישה אושרה');loadAdmMtgs();}
+async function canMtg(id){await sb.from('meetings').update({status:'cancelled'}).eq('id',id);toast('✓ הפגישה בוטלה');loadAdmMtgs();}
+async function mkConDone(id){await sb.from('contact_requests').update({status:'resolved'}).eq('id',id);toast('✓ טופל');loadAdmCon();}
+async function admNotif(uid){const t=prompt('כותרת ההתראה:');if(!t)return;const m=prompt('תוכן (אופציונלי):');await sb.from('notifications').insert({user_id:uid,title:t,message:m||null,type:'info'});toast('✓ ההתראה נשלחה');}
+async function admDoc(uid){const t=prompt('שם המסמך:');if(!t)return;const url=prompt('קישור URL:');const tp=prompt('סוג (pdf/docx/xlsx):','pdf');await sb.from('documents').insert({user_id:uid,title:t,file_url:url||null,file_type:tp||'pdf',uploaded_by:'admin'});toast('✓ המסמך נוסף');}
+async function adminAddUser(){
+  const n=$('au-n').value.trim(),e=$('au-e').value.trim(),pw=$('au-pw').value;
+  if(!n||!e||!pw){toast('נא למלא שם, אימייל וסיסמה');return;}
+  const {data,error}=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n}}});
+  if(error){toast('שגיאה: '+error.message);return;}
+  if(data.user){await sb.from('profiles').update({full_name:n,phone:$('au-ph').value,company_name:$('au-co').value,role:$('au-ro').value}).eq('id',data.user.id);await sb.from('subscriptions').update({plan:$('au-pl').value}).eq('user_id',data.user.id);}
+  closeMo('mo-adduser'); toast('✓ הלקוח נוצר'); loadAdmUsers();
 }
+async function sendNotif(){const msg=prompt('הודעה לכל הלקוחות:');if(!msg)return;const {data}=await sb.from('profiles').select('id').eq('role','client');if(!data?.length){toast('אין לקוחות');return;}for(const u of data) await sb.from('notifications').insert({user_id:u.id,title:'עדכון ממשרד Prime Ledger',message:msg,type:'info'});toast(`✓ ההתראה נשלחה ל-${data.length} לקוחות`);}
 
-function fileIcon(type) {
-  return { pdf:'📄', docx:'📝', xlsx:'📊', jpg:'🖼', png:'🖼' }[type] || '📎';
-}
-
-function showErr(el, msg) { el.style.display = 'block'; el.textContent = '⚠ ' + msg; }
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-function translateError(msg) {
-  const map = {
-    'Invalid login credentials': 'אימייל או סיסמה שגויים',
-    'Email not confirmed': 'נא לאשר את האימייל שלך',
-    'User already registered': 'משתמש עם אימייל זה כבר קיים',
-    'Password should be at least 6 characters': 'הסיסמה חייבת להיות לפחות 6 תווים',
-    'Email rate limit exceeded': 'יותר מדי ניסיונות. נסה שוב מאוחר יותר',
-  };
-  for (const [k,v] of Object.entries(map)) { if (msg.includes(k)) return v; }
-  return msg;
-}
-
-// Close notifications on outside click
-document.addEventListener('click', e => {
-  const panel = document.getElementById('notif-panel');
-  if (!panel.contains(e.target) && !e.target.closest('.notif-btn')) {
-    panel.classList.remove('open');
-  }
-});
-
-// ===== START =====
-init();
-</script>
-</body>
-</html>
+// ===== EMAIL TEMPLATES =====
+async function loadEmailTmpls(){
+  if(!CU) return;
+  const {data}=await sb.from('email_templates').select('*').order('created_at',{ascending:false});
+  if(!data?.length){$('et-list').innerHTML='<div class="emp"><div class="emp-i">📧</div>אין תבניות עדיין</div>';return;}
+  const tn={welcome:'הרשמה',meeting_confirmed:'אישור פגישה',meeting_reminder:'תזכורת פגישה',document_uploaded:'מסמך חדש',subscription_renewal:'חידוש מנוי',monthly_report:'דוח חודשי',manual:'ידני'};
+  $('et-list').innerHTML=data.map(t=>`<div class="et-card"><div class="et-tr">${tn[t.trigger_event]||t.trigger_event}</div><div class="et-s">${t.name}</div><div class="et-d">נושא: ${t.subject}</div><div style="display:flex;gap:7px;margin-top:10px;"><button class="btn btn-s btn-o" onclick="editET('${t.id}')">✏️ ערוך</button><button class="btn btn-s btn-d" onclick="delET('${t.id}')">🗑</button><span class="badge ${t.is_active?'bg':'br'}" style="align-self:center;">${t.is_active?'פעיל':'לא פעיל'}</span></div></div>`).join('');
+  const tSel=$('em-tmpl'); if(tSel) tSel.innerHTML='<option value="">בחר תבנית...</option>'+data.map(t=>`<option value="${t.id}">${t.name}</optio
