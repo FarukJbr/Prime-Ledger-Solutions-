@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>פרוביז | אדמין פאנל</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --navy:#0A1628;--navy-mid:#112240;--navy-light:#1E3A5F;
+  --gold:#C9A84C;--gold-light:#E8C870;
+  --white:#fff;--gray-100:#F8F9FA;--gray-200:#E9ECEF;
+  --gray-400:#9CA3AF;--gray-600:#6B7280;
+  --green:#10B981;--red:#EF4444;--amber:#F59E0B;--blue:#3B82F6;
+  --shadow:0 4px 24px rgba(10,22,40,.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Assistant',sans-serif;background:#F0F2F5;color:var(--navy);}
+
+/* AUTH */
+.auth-wrap{min-height:100vh;background:var(--navy);display:flex;align-items:center;justify-content:center;}
+.auth-card{background:var(--white);border-radius:20px;padding:44px 40px;width:100%;max-width:400px;}
+.auth-logo{text-align:center;margin-bottom:28px;}
+.logo-icon{width:52px;height:52px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:13px;display:inline-flex;align-items:center;justify-content:center;font-family:'Heebo';font-size:24px;font-weight:900;color:var(--navy);}
+.auth-title{font-family:'Heebo';font-size:24px;font-weight:900;color:var(--navy);text-align:center;margin-bottom:4px;}
+.auth-sub{text-align:center;font-size:13px;color:var(--gray-400);margin-bottom:28px;}
+.admin-badge{display:inline-block;background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:20px;}
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:var(--navy);}
+.form-input{width:100%;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:14px;font-family:'Assistant';outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:var(--gold);}
+.btn-auth{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Assistant';}
+.err-msg{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:14px;display:none;}
+
+/* APP */
+.app{display:none;min-height:100vh;}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:62px;background:var(--navy);border-bottom:1px solid rgba(201,168,76,.15);display:flex;align-items:center;justify-content:space-between;padding:0 24px;}
+.topbar-logo{display:flex;align-items:center;gap:10px;}
+.tl-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Heebo';font-size:16px;font-weight:900;color:var(--navy);}
+.tl-text{font-family:'Heebo';font-size:17px;font-weight:900;color:var(--white);}
+.tl-text span{color:var(--gold);}
+.admin-pill{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);padding:3px 12px;border-radius:20px;font-size:11px;font-weight:800;margin-right:10px;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.admin-name{font-size:13px;color:rgba(255,255,255,.7);}
+.btn-logout{padding:6px 14px;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:7px;color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;font-family:'Assistant';transition:all .2s;}
+.btn-logout:hover{border-color:rgba(239,68,68,.5);color:var(--red);}
+
+/* SIDEBAR */
+.layout{display:flex;padding-top:62px;}
+.sidebar{width:232px;background:var(--white);border-left:1px solid var(--gray-200);position:fixed;top:62px;right:0;bottom:0;overflow-y:auto;padding:16px 10px;}
+.sb-section{margin-bottom:20px;}
+.sb-label{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);padding:0 8px;margin-bottom:8px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:all .2s;font-size:14px;font-weight:500;color:var(--gray-600);margin-bottom:2px;border:none;background:transparent;font-family:'Assistant';width:100%;text-align:right;}
+.nav-item:hover{background:var(--gray-100);color:var(--navy);}
+.nav-item.active{background:rgba(201,168,76,.1);color:var(--gold);font-weight:700;}
+.nav-icon{width:30px;height:30px;border-radius:7px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.nav-item.active .nav-icon{background:rgba(201,168,76,.15);}
+.nav-badge{margin-right:auto;background:var(--red);color:var(--white);font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;}
+
+/* MAIN */
+.main{flex:1;margin-right:232px;padding:24px;min-height:calc(100vh - 62px);}
+.page-header{margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-start;}
+.page-title{font-family:'Heebo';font-size:24px;font-weight:900;color:var(--navy);}
+.page-sub{font-size:13px;color:var(--gray-400);margin-top:3px;}
+
+/* PANELS */
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.kpi{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:20px;position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;right:0;width:4px;height:100%;border-radius:0 14px 14px 0;}
+.kpi.green::before{background:var(--green);}
+.kpi.gold::before{background:var(--gold);}
+.kpi.blue::before{background:var(--blue);}
+.kpi.red::before{background:var(--red);}
+.kpi-label{font-size:12px;color:var(--gray-400);font-weight:600;margin-bottom:8px;}
+.kpi-value{font-family:'Heebo';font-size:30px;font-weight:900;color:var(--navy);}
+.kpi-sub{font-size:12px;margin-top:4px;}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:22px;margin-bottom:18px;}
+.card-title{font-family:'Heebo';font-size:16px;font-weight:700;color:var(--navy);margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:11px 14px;font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--gray-200);white-space:nowrap;}
+td{padding:13px 14px;font-size:13px;border-bottom:1px solid var(--gray-100);vertical-align:middle;}
+tr:last-child td{border:none;}
+tr:hover td{background:rgba(201,168,76,.02);}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.b-green{background:rgba(16,185,129,.1);color:var(--green);}
+.b-amber{background:rgba(245,158,11,.1);color:var(--amber);}
+.b-red{background:rgba(239,68,68,.1);color:var(--red);}
+.b-navy{background:rgba(10,22,40,.08);color:var(--navy);}
+.b-gold{background:rgba(201,168,76,.1);color:var(--gold);}
+.b-blue{background:rgba(59,130,246,.1);color:var(--blue);}
+
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Assistant';border:none;display:inline-flex;align-items:center;gap:5px;}
+.btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);}
+.btn-primary:hover{box-shadow:0 3px 12px rgba(201,168,76,.35);}
+.btn-outline{background:transparent;border:1.5px solid var(--gray-200);color:var(--navy);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.btn-danger{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+.btn-danger:hover{background:var(--red);color:var(--white);}
+.btn-success{background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.2);}
+.btn-success:hover{background:var(--green);color:var(--white);}
+.btn-sm{padding:5px 11px;font-size:12px;}
+.btn-blue{background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.2);}
+.btn-blue:hover{background:var(--blue);color:var(--white);}
+
+/* FORM */
+.fc{width:100%;padding:10px 13px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:14px;font-family:'Assistant';outline:none;transition:border-color .2s;background:var(--white);}
+.fc:focus{border-color:var(--gold);}
+textarea.fc{resize:vertical;}
+.fg{margin-bottom:15px;}
+.fl{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:5px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(10,22,40,.55);backdrop-filter:blur(5px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .25s;padding:20px;}
+.mo.open{opacity:1;visibility:visible;}
+.mo-box{background:var(--white);border-radius:18px;padding:32px;width:100%;max-width:520px;transform:translateY(14px);transition:transform .25s;max-height:90vh;overflow-y:auto;}
+.mo.open .mo-box{transform:translateY(0);}
+.mo-title{font-family:'Heebo';font-size:19px;font-weight:800;color:var(--navy);margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
+.mo-close{background:var(--gray-100);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+
+/* SEARCH */
+.search-bar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+.search-input{flex:1;min-width:200px;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:14px;font-family:'Assistant';outline:none;}
+.search-input:focus{border-color:var(--gold);}
+
+/* ACTIVITY FEED */
+.activity-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--gray-100);}
+.ai-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.ai-body{flex:1;}
+.ai-text{font-size:13px;color:var(--navy);}
+.ai-time{font-size:11px;color:var(--gray-400);margin-top:2px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--navy);color:var(--white);padding:11px 22px;border-radius:10px;font-size:13px;font-weight:600;z-index:400;transition:transform .3s;border:1px solid rgba(201,168,76,.3);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* LOADING */
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--gray-400);gap:8px;font-size:14px;}
+.spin{width:18px;height:18px;border:2px solid var(--gray-200);border-top-color:var(--gold);border-radius:50%;animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.empty{text-align:center;padding:40px 20px;color:var(--gray-400);}
+.empty-icon{font-size:36px;margin-bottom:10px;}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--gray-100);padding:4px;border-radius:10px;margin-bottom:20px;width:fit-content;}
+.tab{padding:8px 18px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:'Assistant';color:var(--gray-600);}
+.tab.active{background:var(--white);color:var(--navy);box-shadow:0 2px 6px rgba(0,0,0,.07);}
+
+/* USER DETAIL */
+.user-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.ud-item{background:var(--gray-100);border-radius:8px;padding:10px 12px;}
+.ud-label{font-size:10px;color:var(--gray-400);font-weight:600;margin-bottom:3px;}
+.ud-value{font-size:13px;font-weight:700;color:var(--navy);}
+
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .main{margin-right:0;padding:16px;}
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .g2,.g3{grid-template-columns:1fr;}
+  .form-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-wrap" class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon">P</div>
+      <div style="font-family:'Heebo';font-size:20px;font-weight:900;margin-top:8px;">פרו<span style="color:var(--gold);">ביז</span></div>
+    </div>
+    <div style="text-align:center;margin-bottom:16px;"><span class="admin-badge">🔐 כניסת מנהל בלבד</span></div>
+    <div class="auth-title">אדמין פאנל</div>
+    <div class="auth-sub">גישה מוגבלת למנהלי מערכת</div>
+    <div class="err-msg" id="a-err"></div>
+    <div class="form-group">
+      <label class="form-label">אימייל מנהל</label>
+      <input type="email" class="form-input" id="a-email" placeholder="admin@probiz.co.il">
+    </div>
+    <div class="form-group">
+      <label class="form-label">סיסמה</label>
+      <input type="password" class="form-input" id="a-pass" placeholder="סיסמת מנהל" onkeydown="if(event.key==='Enter')adminLogin()">
+    </div>
+    <button class="btn-auth" onclick="adminLogin()">כניסה לפאנל הניהול ←</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="tl-icon">P</div>
+      <span class="tl-text">פרו<span>ביז</span></span>
+      <span class="admin-pill">ADMIN</span>
+    </div>
+    <div class="topbar-right">
+      <span class="admin-name" id="admin-name-display"></span>
+      <button class="btn-logout" onclick="adminLogout()">יציאה</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sb-section">
+        <div class="sb-label">ניהול</div>
+        <button class="nav-item active" onclick="showPanel('dashboard')"><div class="nav-icon">📊</div> לוח בקרה</button>
+        <button class="nav-item" onclick="showPanel('users')"><div class="nav-icon">👥</div> לקוחות <span class="nav-badge" id="badge-users">0</span></button>
+        <button class="nav-item" onclick="showPanel('meetings')"><div class="nav-icon">📅</div> פגישות <span class="nav-badge" id="badge-meetings">0</span></button>
+        <button class="nav-item" onclick="showPanel('documents')"><div class="nav-icon">📁</div> מסמכים</button>
+        <button class="nav-item" onclick="showPanel('cashflow')"><div class="nav-icon">💹</div> תזרים</button>
+      </div>
+      <div class="sb-section">
+        <div class="sb-label">תקשורת</div>
+        <button class="nav-item" onclick="showPanel('contacts')"><div class="nav-icon">📩</div> פניות <span class="nav-badge" id="badge-contacts">0</span></button>
+        <button class="nav-item" onclick="showPanel('newsletter')"><div class="nav-icon">📧</div> ניוזלטר</button>
+        <button class="nav-item" onclick="showPanel('notifications')"><div class="nav-icon">🔔</div> שלח התראה</button>
+      </div>
+      <div class="sb-section">
+        <div class="sb-label">מערכת</div>
+        <button class="nav-item" onclick="showPanel('settings')"><div class="nav-icon">⚙️</div> הגדרות</button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- DASHBOARD -->
+      <div id="panel-dashboard" class="panel active">
+        <div class="page-header"><div><div class="page-title">לוח בקרה</div><div class="page-sub" id="dash-date"></div></div></div>
+        <div class="kpi-grid">
+          <div class="kpi green"><div class="kpi-label">לקוחות פעילים</div><div class="kpi-value" id="kpi-clients">—</div><div class="kpi-sub" style="color:var(--green);">סה״כ רשומים</div></div>
+          <div class="kpi gold"><div class="kpi-label">הכנסות החודש</div><div class="kpi-value" id="kpi-revenue">—</div><div class="kpi-sub" style="color:var(--gold);">מכל הלקוחות</div></div>
+          <div class="kpi blue"><div class="kpi-label">פגישות ממתינות</div><div class="kpi-value" id="kpi-meetings">—</div><div class="kpi-sub" style="color:var(--blue);">לאישור</div></div>
+          <div class="kpi red"><div class="kpi-label">פניות חדשות</div><div class="kpi-value" id="kpi-contacts">—</div><div class="kpi-sub" style="color:var(--red);">טרם טופלו</div></div>
+        </div>
+        <div class="g2">
+          <div class="card">
+            <div class="card-title">פגישות ממתינות לאישור <button class="btn btn-sm btn-outline" onclick="showPanel('meetings')">הכל ←</button></div>
+            <div id="dash-meetings"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">פניות חדשות <button class="btn btn-sm btn-outline" onclick="showPanel('contacts')">הכל ←</button></div>
+            <div id="dash-contacts"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">לקוחות חדשים אחרונים</div>
+          <div id="dash-new-clients"></div>
+        </div>
+      </div>
+
+      <!-- USERS / CLIENTS -->
+      <div id="panel-users" class="panel">
+        <div class="page-header">
+          <div><div class="page-title">ניהול לקוחות</div><div class="page-sub">כל הלקוחות הרשומים במערכת</div></div>
+          <button class="btn btn-primary" onclick="openAddUser()">+ הוסף לקוח</button>
+        </div>
+        <div class="search-bar">
+          <input type="text" class="search-input" id="user-search" placeholder="חפש לפי שם, אימייל, חברה..." oninput="filterUsers()">
+          <select class="fc" id="user-plan-filter" onchange="filterUsers()" style="width:auto;">
+            <option value="">כל התוכניות</option>
+            <option value="basic">בסיסי</option>
+            <option value="professional">מקצועי</option>
+            <option value="enterprise">ארגוני</option>
+          </select>
+        </div>
+        <div class="card"><div id="users-table"><div class="loading"><div class="spin"></div> טוען...</div></div></div>
+      </div>
+
+      <!-- MEETINGS -->
+      <div id="panel-meetings" class="panel">
+        <div class="page-header">
+          <div><div class="page-title">ניהול פגישות</div><div class="page-sub">אשר, דחה וערוך פגישות</div></div>
+          <button class="btn btn-primary" onclick="openAddMeeting()">+ הוסף פגישה</button>
+        </div>
+        <div class="tabs">
+          <button class="tab active" onclick="loadMeetings('all',this)">הכל</button>
+          <button class="tab" onclick="loadMeetings('pending',this)">ממתין</button>
+          <button class="tab" onclick="loadMeetings('confirmed',this)">מאושר</button>
+          <button class="tab" onclick="loadMeetings('cancelled',this)">בוטל</button>
+        </div>
+        <div class="card"><div id="meetings-table"><div class="loading"><div class="spin"></div></div></div></div>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div id="panel-documents" class="panel">
+        <div class="page-header">
+          <div><div class="page-title">ניהול מסמכים</div><div class="page-sub">העלה ונהל מסמכים ללקוחות</div></div>
+          <button class="btn btn-primary" onclick="openAddDoc()">+ הוסף מסמך</button>
+        </div>
+        <div class="card"><div id="docs-table"><div class="loading"><div class="spin"></div></div></div></div>
+      </div>
+
+      <!-- CASHFLOW OVERVIEW -->
+      <div id="panel-cashflow" class="panel">
+        <div class="page-header"><div><div class="page-title">סקירת תזרים</div><div class="page-sub">תזרים מזומנים של כל הלקוחות</div></div></div>
+        <div class="kpi-grid" style="grid-template-columns:1fr 1fr 1fr;">
+          <div class="kpi green"><div class="kpi-label">סה״כ הכנסות</div><div class="kpi-value" id="cf-all-income">—</div></div>
+          <div class="kpi red"><div class="kpi-label">סה״כ הוצאות</div><div class="kpi-value" id="cf-all-expense">—</div></div>
+          <div class="kpi gold"><div class="kpi-label">יתרה כוללת</div><div class="kpi-value" id="cf-all-balance">—</div></div>
+        </div>
+        <div class="card"><div class="card-title">כל התנועות</div><div id="cf-all-table"><div class="loading"><div class="spin"></div></div></div></div>
+      </div>
+
+      <!-- CONTACTS -->
+      <div id="panel-contacts" class="panel">
+        <div class="page-header"><div><div class="page-title">פניות צור קשר</div><div class="page-sub">הודעות שנשלחו מהאתר</div></div></div>
+        <div class="tabs">
+          <button class="tab active" onclick="loadContacts('all',this)">הכל</button>
+          <button class="tab" onclick="loadContacts('new',this)">חדש</button>
+          <button class="tab" onclick="loadContacts('in_progress',this)">בטיפול</button>
+          <button class="tab" onclick="loadContacts('resolved',this)">טופל</button>
+        </div>
+        <div class="card"><div id="contacts-table"><div class="loading"><div class="spin"></div></div></div></div>
+      </div>
+
+      <!-- NEWSLETTER -->
+      <div id="panel-newsletter" class="panel">
+        <div class="page-header"><div><div class="page-title">ניוזלטר</div><div class="page-sub">מנויי הניוזלטר</div></div></div>
+        <div class="card"><div id="newsletter-table"><div class="loading"><div class="spin"></div></div></div></div>
+      </div>
+
+      <!-- SEND NOTIFICATION -->
+      <div id="panel-notifications" class="panel">
+        <div class="page-header"><div><div class="page-title">שלח התראה</div><div class="page-sub">שלח התראה ללקוח אחד או לכולם</div></div></div>
+        <div class="g2" style="align-items:start;">
+          <div class="card">
+            <div class="card-title">שלח התראה חדשה</div>
+            <div class="fg">
+              <label class="fl">נמען</label>
+              <select class="fc" id="notif-recipient">
+                <option value="all">כל הלקוחות</option>
+              </select>
+            </div>
+            <div class="fg"><label class="fl">כותרת</label><input type="text" class="fc" id="notif-title" placeholder="למשל: תזכורת הגשת דוח"></div>
+            <div class="fg"><label class="fl">הודעה</label><textarea class="fc" id="notif-message" rows="4" placeholder="תוכן ההתראה..."></textarea></div>
+            <div class="fg">
+              <label class="fl">סוג</label>
+              <select class="fc" id="notif-type">
+                <option value="info">מידע</option>
+                <option value="warning">אזהרה</option>
+                <option value="success">הצלחה</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="sendNotification()" style="width:100%;padding:12px;">שלח התראה 🔔</button>
+          </div>
+          <div class="card">
+            <div class="card-title">התראות שנשלחו</div>
+            <div id="sent-notifs"><div class="loading"><div class="spin"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="panel-settings" class="panel">
+        <div class="page-header"><div><div class="page-title">הגדרות מערכת</div><div class="page-sub">ניהול הגדרות האתר והפורטל</div></div></div>
+        <div class="g2" style="align-items:start;">
+          <div class="card">
+            <div class="card-title">פרטי החברה</div>
+            <div class="fg"><label class="fl">שם החברה</label><input type="text" class="fc" value="פרוביז בע״מ" id="set-company"></div>
+            <div class="fg"><label class="fl">טלפון</label><input type="tel" class="fc" value="03-1234567" id="set-phone"></div>
+            <div class="fg"><label class="fl">אימייל</label><input type="email" class="fc" value="info@probiz.co.il" id="set-email"></div>
+            <div class="fg"><label class="fl">כתובת</label><input type="text" class="fc" value="רחוב אלנבי 32, תל אביב" id="set-address"></div>
+            <button class="btn btn-primary" onclick="showToast('✓ הגדרות נשמרו')">שמור</button>
+          </div>
+          <div class="card">
+            <div class="card-title">הגדרת אדמין</div>
+            <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:16px;margin-bottom:16px;">
+              <p style="font-size:13px;color:var(--gray-600);line-height:1.7;">כדי להגדיר משתמש כאדמין, הרץ ב-Supabase SQL Editor:</p>
+              <code style="display:block;background:var(--navy);color:var(--gold);padding:12px;border-radius:8px;font-size:12px;margin-top:10px;word-break:break-all;">UPDATE public.profiles SET role = 'admin' WHERE id = 'USER-ID-HERE';</code>
+            </div>
+            <div class="fg"><label class="fl">הסיסמה הנוכחית</label><input type="password" class="fc" id="cur-pass" placeholder="••••••"></div>
+            <div class="fg"><label class="fl">סיסמה חדשה</label><input type="password" class="fc" id="new-pass" placeholder="••••••"></div>
+            <button class="btn btn-outline" onclick="changeAdminPass()" style="width:100%;">עדכן סיסמה</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /layout -->
+</div><!-- /app -->
+
+<!-- MODALS -->
+
+<!-- Add/Edit User Modal -->
+<div class="mo" id="mo-user">
+  <div class="mo-box">
+    <div class="mo-title"><span id="mo-user-title">הוסף לקוח</span><button class="mo-close" onclick="closeMo('mo-user')">✕</button></div>
+    <input type="hidden" id="edit-user-id">
+    <div class="form-row">
+      <div class="fg"><label class="fl">שם מלא</label><input type="text" class="fc" id="u-name" placeholder="ישראל ישראלי"></div>
+      <div class="fg"><label class="fl">אימייל</label><input type="email" class="fc" id="u-email" placeholder="user@example.com"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label class="fl">טלפון</label><input type="tel" class="fc" id="u-phone"></div>
+      <div class="fg"><label class="fl">שם חברה</label><input type="text" class="fc" id="u-company"></div>
+    </div>
+    <div class="fg"><label class="fl">תוכנית</label>
+      <select class="fc" id="u-plan">
+        <option value="basic">בסיסי — ₪899</option>
+        <option value="professional">מקצועי — ₪1,999</option>
+        <option value="enterprise">ארגוני</option>
+      </select>
+    </div>
+    <div class="fg" id="u-pass-row">
+      <label class="fl">סיסמה ראשונית</label>
+      <input type="text" class="fc" id="u-pass" placeholder="לפחות 6 תווים">
+    </div>
+    <div class="fg"><label class="fl">הערות</label><textarea class="fc" id="u-notes" rows="3"></textarea></div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-primary" onclick="saveUser()" style="flex:1;padding:12px;">שמור</button>
+      <button class="btn btn-outline" onclick="closeMo('mo-user')" style="padding:12px 18px;">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- Meeting Modal -->
+<div class="mo" id="mo-meeting">
+  <div class="mo-box">
+    <div class="mo-title"><span id="mo-meeting-title">פגישה</span><button class="mo-close" onclick="closeMo('mo-meeting')">✕</button></div>
+    <input type="hidden" id="edit-meeting-id">
+    <div class="fg"><label class="fl">לקוח</label><select class="fc" id="m-user"></select></div>
+    <div class="fg"><label class="fl">נושא</label><input type="text" class="fc" id="m-title" placeholder="נושא הפגישה"></div>
+    <div class="form-row">
+      <div class="fg"><label class="fl">תאריך</label><input type="date" class="fc" id="m-date"></div>
+      <div class="fg"><label class="fl">שעה</label><input type="time" class="fc" id="m-time"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label class="fl">מיקום</label><select class="fc" id="m-location"><option>זום</option><option>משרד</option><option>טלפון</option></select></div>
+      <div class="fg"><label class="fl">סטטוס</label><select class="fc" id="m-status"><option value="pending">ממתין</option><option value="confirmed">מאושר</option><option value="cancelled">בוטל</option></select></div>
+    </div>
+    <div class="fg"><label class="fl">הערות</label><textarea class="fc" id="m-notes" rows="3"></textarea></div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-primary" onclick="saveMeeting()" style="flex:1;padding:12px;">שמור</button>
+      <button class="btn btn-outline" onclick="closeMo('mo-meeting')" style="padding:12px 18px;">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- Document Modal -->
+<div class="mo" id="mo-doc">
+  <div class="mo-box">
+    <div class="mo-title">הוסף מסמך <button class="mo-close" onclick="closeMo('mo-doc')">✕</button></div>
+    <div class="fg"><label class="fl">לקוח</label><select class="fc" id="d-user"></select></div>
+    <div class="fg"><label class="fl">שם המסמך</label><input type="text" class="fc" id="d-title" placeholder="למשל: דוח שנתי 2024"></div>
+    <div class="form-row">
+      <div class="fg"><label class="fl">סוג קובץ</label><select class="fc" id="d-type"><option value="pdf">PDF</option><option value="docx">Word</option><option value="xlsx">Excel</option><option value="other">אחר</option></select></div>
+      <div class="fg"><label class="fl">גודל</label><input type="text" class="fc" id="d-size" placeholder="למשל: 2.4MB"></div>
+    </div>
+    <div class="fg"><label class="fl">קישור לקובץ (URL)</label><input type="url" class="fc" id="d-url" placeholder="https://..."></div>
+    <div class="fg"><label class="fl">קטגוריה</label><select class="fc" id="d-cat"><option value="general">כללי</option><option value="annual">דוח שנתי</option><option value="salary">שכר</option><option value="contract">חוזה</option><option value="tax">מס</option></select></div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-primary" onclick="saveDoc()" style="flex:1;padding:12px;">שמור</button>
+      <button class="btn btn-outline" onclick="closeMo('mo-doc')" style="padding:12px 18px;">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- User Detail Modal -->
+<div class="mo" id="mo-user-detail">
+  <div class="mo-box" style="max-width:600px;">
+    <div class="mo-title"><span id="ud-name">פרטי לקוח</span><button class="mo-close" onclick="closeMo('mo-user-detail')">✕</button></div>
+    <div id="user-detail-content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://urpzikwromhwtuffkhyr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_DuDeBDU5Ee5d1xMkzi0Drg_kzFYYY44';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let adminUser = null;
+let allUsers = [];
+let allUsersFiltered = [];
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+    if (profile?.role === 'admin') {
+      adminUser = session.user;
+      showApp(profile);
+    } else {
+      showErr('חשבון זה אינו מוגדר כמנהל');
+    }
+  }
+}
+
+async function adminLogin() {
+  const email = document.getElementById('a-email').value.trim();
+  const pass = document.getElementById('a-pass').value;
+  const errEl = document.getElementById('a-err');
+  errEl.style.display = 'none';
+  if (!email || !pass) { showErrEl(errEl, 'נא למלא אימייל וסיסמה'); return; }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) { showErrEl(errEl, 'אימייל או סיסמה שגויים'); return; }
+  const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
+  if (!profile || profile.role !== 'admin') {
+    await sb.auth.signOut();
+    showErrEl(errEl, 'אין לך הרשאות מנהל');
+    return;
+  }
+  adminUser = data.user;
+  showApp(profile);
+}
+
+function showApp(profile) {
+  document.getElementById('auth-wrap').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('admin-name-display').textContent = profile.full_name || adminUser.email;
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('he-IL', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  loadDashboard();
+  loadUsersForSelects();
+}
+
+async function adminLogout() {
+  await sb.auth.signOut();
+  location.reload();
+}
+
+// ===== PANELS =====
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event?.currentTarget?.classList.add('active');
+  const loaders = { users: loadUsers, meetings: () => loadMeetings('all'), documents: loadDocs, cashflow: loadAllCashflow, contacts: () => loadContacts('all'), newsletter: loadNewsletter, notifications: loadSentNotifs };
+  if (loaders[name]) loaders[name]();
+}
+
+// ===== DASHBOARD =====
+async function loadDashboard() {
+  // Count users
+  const { count: clientCount } = await sb.from('profiles').select('*', {count:'exact',head:true}).eq('role','client');
+  document.getElementById('kpi-clients').textContent = clientCount || 0;
+  document.getElementById('badge-users').textContent = clientCount || 0;
+
+  // Cashflow this month
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const { data: cf } = await sb.from('cashflow').select('type,amount').gte('date', monthStart);
+  const revenue = cf?.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0) || 0;
+  document.getElementById('kpi-revenue').textContent = fmt(revenue);
+
+  // Pending meetings
+  const { count: pendingMtg } = await sb.from('meetings').select('*',{count:'exact',head:true}).eq('status','pending');
+  document.getElementById('kpi-meetings').textContent = pendingMtg || 0;
+  document.getElementById('badge-meetings').textContent = pendingMtg || 0;
+
+  // New contacts
+  const { count: newContacts } = await sb.from('contact_requests').select('*',{count:'exact',head:true}).eq('status','new');
+  document.getElementById('kpi-contacts').textContent = newContacts || 0;
+  document.getElementById('badge-contacts').textContent = newContacts || 0;
+
+  // Pending meetings list
+  const { data: pMeetings } = await sb.from('meetings').select('*, profiles(full_name)').eq('status','pending').order('meeting_date').limit(5);
+  document.getElementById('dash-meetings').innerHTML = pMeetings?.length ? pMeetings.map(m => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray-100);">
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;">${m.title}</div>
+        <div style="font-size:11px;color:var(--gray-400);">${m.profiles?.full_name || '—'} · ${formatDate(m.meeting_date)}</div>
+      </div>
+      <button class="btn btn-success btn-sm" onclick="quickApprove('${m.id}')">✓ אשר</button>
+    </div>`).join('') : '<div class="empty"><div class="empty-icon">📅</div><div style="font-size:13px;">אין פגישות ממתינות</div></div>';
+
+  // New contacts
+  const { data: newC } = await sb.from('contact_requests').select('*').eq('status','new').order('created_at',{ascending:false}).limit(5);
+  document.getElementById('dash-contacts').innerHTML = newC?.length ? newC.map(c => `
+    <div style="padding:10px 0;border-bottom:1px solid var(--gray-100);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-size:13px;font-weight:700;">${c.full_name}</div>
+          <div style="font-size:11px;color:var(--gray-400);">${c.email} · ${timeAgo(c.created_at)}</div>
+        </div>
+        <button class="btn btn-blue btn-sm" onclick="markContact('${c.id}','in_progress')">טפל</button>
+      </div>
+      <div style="font-size:12px;color:var(--gray-600);margin-top:4px;">${c.message?.substring(0,80)}${c.message?.length>80?'...':''}</div>
+    </div>`).join('') : '<div class="empty"><div class="empty-icon">📩</div><div style="font-size:13px;">אין פניות חדשות</div></div>';
+
+  // New clients
+  const { data: newClients } = await sb.from('profiles').select('*').eq('role','client').order('created_at',{ascending:false}).limit(5);
+  document.getElementById('dash-new-clients').innerHTML = newClients?.length ? `
+    <table><thead><tr><th>שם</th><th>אימייל</th><th>חברה</th><th>תאריך הצטרפות</th></tr></thead>
+    <tbody>${newClients.map(u=>`<tr>
+      <td style="font-weight:700;">${u.full_name||'—'}</td>
+      <td style="color:var(--gray-600);">${u.id}</td>
+      <td>${u.company_name||'—'}</td>
+      <td style="color:var(--gray-400);">${formatDate(u.created_at)}</td>
+    </tr>`).join('')}</tbody></table>` : '<div class="empty"><div class="empty-icon">👥</div><div style="font-size:13px;">אין לקוחות עדיין</div></div>';
+}
+
+// ===== USERS =====
+async function loadUsers() {
+  const { data: profiles } = await sb.from('profiles').select('*, subscriptions(plan,status,renewal_date)').eq('role','client').order('created_at',{ascending:false});
+  allUsers = profiles || [];
+  allUsersFiltered = allUsers;
+  renderUsers(allUsers);
+}
+
+function filterUsers() {
+  const q = document.getElementById('user-search').value.toLowerCase();
+  const plan = document.getElementById('user-plan-filter').value;
+  allUsersFiltered = allUsers.filter(u => {
+    const matchQ = !q || (u.full_name||'').toLowerCase().includes(q) || (u.company_name||'').toLowerCase().includes(q) || (u.phone||'').includes(q);
+    const matchPlan = !plan || u.subscriptions?.[0]?.plan === plan;
+    return matchQ && matchPlan;
+  });
+  renderUsers(allUsersFiltered);
+}
+
+function renderUsers(users) {
+  const planHe = {basic:'בסיסי',professional:'מקצועי',enterprise:'ארגוני'};
+  document.getElementById('users-table').innerHTML = users.length ? `
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>שם</th><th>טלפון</th><th>חברה</th><th>תוכנית</th><th>תאריך הצטרפות</th><th>פעולות</th></tr></thead>
+      <tbody>${users.map(u => `<tr>
+        <td><div style="font-weight:700;">${u.full_name||'—'}</div><div style="font-size:11px;color:var(--gray-400);">${u.id.substring(0,8)}...</div></td>
+        <td>${u.phone||'—'}</td>
+        <td>${u.company_name||'—'}</td>
+        <td><span class="badge ${u.subscriptions?.[0]?.plan==='professional'?'b-gold':u.subscriptions?.[0]?.plan==='enterprise'?'b-blue':'b-navy'}">${planHe[u.subscriptions?.[0]?.plan||'basic']}</span></td>
+        <td style="color:var(--gray-400);font-size:12px;">${formatDate(u.created_at)}</td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-sm btn-outline" onclick="viewUser('${u.id}')">👁 פרטים</button>
+            <button class="btn btn-sm btn-primary" onclick="editUser('${u.id}')">✏️</button>
+          </div>
+        </td>
+      </tr>`).join('')}
+      </tbody>
+    </table></div>` : '<div class="empty"><div class="empty-icon">👥</div><div class="empty-text">לא נמצאו לקוחות</div></div>';
+}
+
+function openAddUser() {
+  document.getElementById('mo-user-title').textContent = 'הוסף לקוח';
+  document.getElementById('edit-user-id').value = '';
+  document.getElementById('u-pass-row').style.display = 'block';
+  ['u-name','u-email','u-phone','u-company','u-pass','u-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('mo-user').classList.add('open');
+}
+
+async function editUser(userId) {
+  const user = allUsers.find(u => u.id === userId);
+  if (!user) return;
+  document.getElementById('mo-user-title').textContent = 'ערוך לקוח';
+  document.getElementById('edit-user-id').value = userId;
+  document.getElementById('u-pass-row').style.display = 'none';
+  document.getElementById('u-name').value = user.full_name || '';
+  document.getElementById('u-email').value = '(לא ניתן לשינוי)';
+  document.getElementById('u-phone').value = user.phone || '';
+  document.getElementById('u-company').value = user.company_name || '';
+  document.getElementById('u-plan').value = user.subscriptions?.[0]?.plan || 'basic';
+  document.getElementById('u-notes').value = '';
+  document.getElementById('mo-user').classList.add('open');
+}
+
+async function saveUser() {
+  const editId = document.getElementById('edit-user-id').value;
+  const name = document.getElementById('u-name').value.trim();
+  const phone = document.getElementById('u-phone').value.trim();
+  const company = document.getElementById('u-company').value.trim();
+  const plan = document.getElementById('u-plan').value;
+
+  if (editId) {
+    // Update existing
+    await sb.from('profiles').update({ full_name: name, phone, company_name: company, updated_at: new Date().toISOString() }).eq('id', editId);
+    await sb.from('subscriptions').update({ plan }).eq('user_id', editId);
+    showToast('✓ הלקוח עודכן');
+  } else {
+    // Create new via admin (invite)
+    const email = document.getElementById('u-email').value.trim();
+    const pass = document.getElementById('u-pass').value;
+    if (!email || !pass || !name) { showToast('נא למלא שם, אימייל וסיסמה'); return; }
+    const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { full_name: name } } });
+    if (error) { showToast('שגיאה: ' + error.message); return; }
+    if (data.user) {
+      await sb.from('profiles').update({ full_name: name, phone, company_name: company }).eq('id', data.user.id);
+      await sb.from('subscriptions').update({ plan }).eq('user_id', data.user.id);
+    }
+    showToast('✓ הלקוח נוצר — נשלח אימייל אישור');
+  }
+  closeMo('mo-user');
+  loadUsers();
+}
+
+async function viewUser(userId) {
+  const user = allUsers.find(u => u.id === userId);
+  if (!user) return;
+  const { data: meetings } = await sb.from('meetings').select('*').eq('user_id', userId).order('meeting_date',{ascending:false}).limit(3);
+  const { data: cf } = await sb.from('cashflow').select('*').eq('user_id', userId);
+  const income = cf?.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0) || 0;
+  const expense = cf?.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0) || 0;
+  const planHe = {basic:'בסיסי',professional:'מקצועי',enterprise:'ארגוני'};
+  document.getElementById('ud-name').textContent = user.full_name || 'לקוח';
+  document.getElementById('user-detail-content').innerHTML = `
+    <div class="user-detail-grid" style="margin-bottom:16px;">
+      <div class="ud-item"><div class="ud-label">שם מלא</div><div class="ud-value">${user.full_name||'—'}</div></div>
+      <div class="ud-item"><div class="ud-label">טלפון</div><div class="ud-value">${user.phone||'—'}</div></div>
+      <div class="ud-item"><div class="ud-label">חברה</div><div class="ud-value">${user.company_name||'—'}</div></div>
+      <div class="ud-item"><div class="ud-label">תוכנית</div><div class="ud-value">${planHe[user.subscriptions?.[0]?.plan||'basic']}</div></div>
+      <div class="ud-item"><div class="ud-label">הצטרף</div><div class="ud-value">${formatDate(user.created_at)}</div></div>
+      <div class="ud-item"><div class="ud-label">יתרת תזרים</div><div class="ud-value" style="color:${income-expense>=0?'var(--green)':'var(--red)'};">${fmt(income-expense)}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:11px;color:var(--gray-400);">הכנסות</div>
+        <div style="font-size:20px;font-weight:900;color:var(--green);">${fmt(income)}</div>
+      </div>
+      <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:11px;color:var(--gray-400);">הוצאות</div>
+        <div style="font-size:20px;font-weight:900;color:var(--red);">${fmt(expense)}</div>
+      </div>
+    </div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px;">פגישות אחרונות:</div>
+    ${meetings?.length ? meetings.map(m=>`
+      <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--gray-100);border-radius:8px;margin-bottom:6px;">
+        <span style="font-size:13px;">${m.title}</span>
+        <span class="badge ${m.status==='confirmed'?'b-green':m.status==='cancelled'?'b-red':'b-amber'}">${statusHe(m.status)}</span>
+      </div>`).join('') : '<div style="font-size:13px;color:var(--gray-400);">אין פגישות</div>'}
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn-primary btn-sm" onclick="closeMo('mo-user-detail');editUser('${userId}')">✏️ ערוך</button>
+      <button class="btn btn-outline btn-sm" onclick="closeMo('mo-user-detail');openAddMeetingForUser('${userId}')">+ פגישה</button>
+    </div>`;
+  document.getElementById('mo-user-detail').classList.add('open');
+}
+
+// ===== MEETINGS =====
+async function loadMeetings(filter = 'all', btn) {
+  if (btn) { document.querySelectorAll('#panel-meetings .tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); }
+  let q = sb.from('meetings').select('*, profiles(full_name, phone)').order('meeting_date', {ascending: true});
+  if (filter !== 'all') q = q.eq('status', filter);
+  const { data: meetings } = await q;
+  document.getElementById('meetings-table').innerHTML = meetings?.length ? `
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>לקוח</th><th>נושא</th><th>תאריך</th><th>שעה</th><th>מיקום</th><th>סטטוס</th><th>פעולות</th></tr></thead>
+      <tbody>${meetings.map(m=>`<tr>
+        <td><div style="font-weight:600;">${m.profiles?.full_name||'—'}</div><div style="font-size:11px;color:var(--gray-400);">${m.profiles?.phone||''}</div></td>
+        <td style="font-weight:600;">${m.title}</td>
+        <td>${formatDate(m.meeting_date)}</td>
+        <td>${m.meeting_time||'—'}</td>
+        <td><span class="badge b-navy">${m.location}</span></td>
+        <td><span class="badge ${m.status==='confirmed'?'b-green':m.status==='cancelled'?'b-red':'b-amber'}">${statusHe(m.status)}</span></td>
+        <td>
+          <div style="display:flex;gap:4px;">
+            ${m.status==='pending'?`<button class="btn btn-success btn-sm" onclick="updateMeetingStatus('${m.id}','confirmed')">✓</button><button class="btn btn-danger btn-sm" onclick="updateMeetingStatus('${m.id}','cancelled')">✕</button>`:''}
+            <button class="btn btn-outline btn-sm" onclick="editMeeting(${JSON.stringify(m).replace(/"/g,'&quot;')})">✏️</button>
+          </div>
+        </td>
+      </tr>`).join('')}
+      </tbody>
+    </table></div>` : '<div class="empty"><div class="empty-icon">📅</div><div class="empty-text">אין פגישות</div></div>';
+}
+
+async function quickApprove(id) {
+  await sb.from('meetings').update({ status:'confirmed' }).eq('id', id);
+  showToast('✓ הפגישה אושרה');
+  loadDashboard();
+}
+
+async function updateMeetingStatus(id, status) {
+  await sb.from('meetings').update({ status }).eq('id', id);
+  showToast(status === 'confirmed' ? '✓ הפגישה אושרה' : '✓ הפגישה בוטלה');
+  loadMeetings(document.querySelector('#panel-meetings .tab.active')?.textContent === 'הכל' ? 'all' : status);
+  loadDashboard();
+}
+
+function openAddMeeting() {
+  document.getElementById('mo-meeting-title').textContent = 'הוסף פגישה';
+  document.getElementById('edit-meeting-id').value = '';
+  ['m-title','m-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('m-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('m-status').value = 'confirmed';
+  document.getElementById('mo-meeting').classList.add('open');
+}
+
+function openAddMeetingForUser(userId) {
+  openAddMeeting();
+  document.getElementById('m-user').value = userId;
+}
+
+function editMeeting(m) {
+  document.getElementById('mo-meeting-title').textContent = 'ערוך פגישה';
+  document.getElementById('edit-meeting-id').value = m.id;
+  document.getElementById('m-user').value = m.user_id;
+  document.getElementById('m-title').value = m.title;
+  document.getElementById('m-date').value = m.meeting_date;
+  document.getElementById('m-time').value = m.meeting_time || '';
+  document.getElementById('m-location').value = m.location;
+  document.getElementById('m-status').value = m.status;
+  document.getElementById('m-notes').value = m.notes || '';
+  document.getElementById('mo-meeting').classList.add('open');
+}
+
+async function saveMeeting() {
+  const editId = document.getElementById('edit-meeting-id').value;
+  const data = {
+    user_id: document.getElementById('m-user').value,
+    title: document.getElementById('m-title').value.trim(),
+    meeting_date: document.getElementById('m-date').value,
+    meeting_time: document.getElementById('m-time').value,
+    location: document.getElementById('m-location').value,
+    status: document.getElementById('m-status').value,
+    notes: document.getElementById('m-notes').value.trim()
+  };
+  if (!data.user_id || !data.title || !data.meeting_date) { showToast('נא למלא שדות חובה'); return; }
+  if (editId) {
+    await sb.from('meetings').update(data).eq('id', editId);
+  } else {
+    await sb.from('meetings').insert(data);
+  }
+  showToast('✓ הפגישה נשמרה');
+  closeMo('mo-meeting');
+  loadMeetings('all');
+  loadDashboard();
+}
+
+// ===== DOCUMENTS =====
+async function loadDocs() {
+  const { data: docs } = await sb.from('documents').select('*, profiles(full_name)').order('created_at',{ascending:false});
+  document.getElementById('docs-table').innerHTML = docs?.length ? `
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>לקוח</th><th>שם מסמך</th><th>סוג</th><th>קטגוריה</th><th>תאריך</th><th>פעולות</th></tr></thead>
+      <tbody>${docs.map(d=>`<tr>
+        <td style="font-weight:600;">${d.profiles?.full_name||'—'}</td>
+        <td style="font-weight:600;">${d.title}</td>
+        <td><span class="badge b-navy">${d.file_type?.toUpperCase()}</span></td>
+        <td>${d.category}</td>
+        <td style="color:var(--gray-400);font-size:12px;">${formatDate(d.created_at)}</td>
+        <td>
+          <div style="display:flex;gap:4px;">
+            ${d.file_url?`<a href="${d.file_url}" target="_blank"><button class="btn btn-blue btn-sm">⬇</button></a>`:''}
+            <button class="btn btn-danger btn-sm" onclick="deleteDoc('${d.id}')">🗑</button>
+          </div>
+        </td>
+      </tr>`).join('')}
+      </tbody>
+    </table></div>` : '<div class="empty"><div class="empty-icon">📁</div><div class="empty-text">אין מסמכים</div></div>';
+}
+
+function openAddDoc() {
+  ['d-title','d-url','d-size'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('mo-doc').classList.add('open');
+}
+
+async function saveDoc() {
+  const data = {
+    user_id: document.getElementById('d-user').value,
+    title: document.getElementById('d-title').value.trim(),
+    file_type: document.getElementById('d-type').value,
+    file_size: document.getElementById('d-size').value.trim(),
+    file_url: document.getElementById('d-url').value.trim(),
+    category: document.getElementById('d-cat').value,
+    uploaded_by: 'admin'
+  };
+  if (!data.user_id || !data.title) { showToast('נא למלא שדות חובה'); return; }
+  await sb.from('documents').insert(data);
+  showToast('✓ המסמך נוסף');
+  closeMo('mo-doc');
+  loadDocs();
+}
+
+async function deleteDoc(id) {
+  if (!confirm('למחוק מסמך זה?')) return;
+  await sb.from('documents').delete().eq('id', id);
+  showToast('✓ נמחק');
+  loadDocs();
+}
+
+// ===== CASHFLOW =====
+async function loadAllCashflow() {
+  const { data: cf } = await sb.from('cashflow').select('*, profiles(full_name)').order('date',{ascending:false}).limit(100);
+  const income = cf?.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0) || 0;
+  const expense = cf?.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0) || 0;
+  document.getElementById('cf-all-income').textContent = fmt(income);
+  document.getElementById('cf-all-expense').textContent = fmt(expense);
+  document.getElementById('cf-all-balance').textContent = fmt(income-expense);
+  document.getElementById('cf-all-table').innerHTML = cf?.length ? `
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>לקוח</th><th>תיאור</th><th>קטגוריה</th><th>תאריך</th><th>סוג</th><th>סכום</th></tr></thead>
+      <tbody>${cf.map(r=>`<tr>
+        <td style="font-weight:600;">${r.profiles?.full_name||'—'}</td>
+        <td>${r.description}</td>
+        <td><span class="badge b-navy">${r.category}</span></td>
+        <td style="color:var(--gray-400);font-size:12px;">${formatDate(r.date)}</td>
+        <td><span class="badge ${r.type==='income'?'b-green':'b-red'}">${r.type==='income'?'הכנסה':'הוצאה'}</span></td>
+        <td class="${r.type==='income'?'':''}"><strong style="color:${r.type==='income'?'var(--green)':'var(--red)'};">${r.type==='income'?'+':'-'}${fmt(r.amount)}</strong></td>
+      </tr>`).join('')}
+      </tbody>
+    </table></div>` : '<div class="empty"><div class="empty-icon">💹</div><div class="empty-text">אין נתונים</div></div>';
+}
+
+// ===== CONTACTS =====
+async function loadContacts(filter = 'all', btn) {
+  if (btn) { document.querySelectorAll('#panel-contacts .tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); }
+  let q = sb.from('contact_requests').select('*').order('created_at',{ascending:false});
+  if (filter !== 'all') q = q.eq('status', filter);
+  const { data: contacts } = await q;
+  document.getElementById('contacts-table').innerHTML = contacts?.length ? `
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>שם</th><th>אימייל</th><th>טלפון</th><th>הודעה</th><th>תאריך</th><th>סטטוס</th><th>פעולה</th></tr></thead>
+      <tbody>${contacts.map(c=>`<tr>
+        <td style="font-weight:700;">${c.full_name}</td>
+        <td><a href="mailto:${c.email}" style="color:var(--gold);">${c.email}</a></td>
+        <td>${c.phone||'—'}</td>
+        <td style="max-width:200px;font-size:12px;color:var(--gray-600);">${c.message?.substring(0,60)}${c.message?.length>60?'...':''}</td>
+        <td style="font-size:12px;color:var(--gray-400);">${timeAgo(c.created_at)}</td>
+        <td><span class="badge ${c.status==='new'?'b-red':c.status==='in_progress'?'b-amber':'b-green'}">${c.status==='new'?'חדש':c.status==='in_progress'?'בטיפול':'טופל'}</span></td>
+        <td>
+          <select class="fc" style="width:auto;padding:5px;font-size:12px;" onchange="markContact('${c.id}',this.value)">
+            <option value="new" ${c.status==='new'?'selected':''}>חדש</option>
+            <option value="in_progress" ${c.status==='in_progress'?'selected':''}>בטיפול</option>
+            <option value="resolved" ${c.status==='resolved'?'selected':''}>טופל</option>
+          </select>
+        </td>
+      </tr>`).join('')}
+      </tbody>
+    </table></div>` : '<div class="empty"><div class="empty-icon">📩</div><div class="empty-text">אין פניות</div></div>';
+}
+
+async function markContact(id, status) {
+  await sb.from('contact_requests').update({ status }).eq('id', id);
+  showToast('✓ סטטוס עודכן');
+  loadDashboard();
+}
+
+// ===== NEWSLETTER =====
+async function loadNewsletter() {
+  const { data: subs, count } = await sb.from('newsletter_subscribers').select('*', {count:'exact'}).order('created_at',{ascending:false});
+  document.getElementById('newsletter-table').innerHTML = `
+    <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:14px;font-weight:700;color:var(--navy);">${count || 0} מנויים פעילים</span>
+      <button class="btn btn-outline btn-sm" onclick="exportNewsletter()">📥 ייצא CSV</button>
+    </div>` + (subs?.length ? `
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>אימייל</th><th>שם</th><th>תאריך הרשמה</th><th>סטטוס</th></tr></thead>
+      <tbody>${subs.map(s=>`<tr>
+        <td><a href="mailto:${s.email}" style="color:var(--gold);">${s.email}</a></td>
+        <td>${s.name||'—'}</td>
+        <td style="font-size:12px;color:var(--gray-400);">${formatDate(s.created_at)}</td>
+        <td><span class="badge ${s.active?'b-green':'b-red'}">${s.active?'פעיל':'לא פעיל'}</span></td>
+      </tr>`).join('')}
+      </tbody>
+    </table></div>` : '<div class="empty"><div class="empty-icon">📧</div><div class="empty-text">אין מנויים</div></div>');
+}
+
+function exportNewsletter() { showToast('ייצוא CSV — בקרוב'); }
+
+// ===== NOTIFICATIONS =====
+async function loadSentNotifs() {
+  const { data: profiles } = await sb.from('profiles').select('id,full_name').eq('role','client').order('full_name');
+  const sel = document.getElementById('notif-recipient');
+  sel.innerHTML = '<option value="all">כל הלקוחות</option>' + (profiles||[]).map(p=>`<option value="${p.id}">${p.full_name||p.id.substring(0,8)}</option>`).join('');
+  const { data: notifs } = await sb.from('notifications').select('*, profiles(full_name)').order('created_at',{ascending:false}).limit(20);
+  document.getElementById('sent-notifs').innerHTML = notifs?.length ? notifs.map(n=>`
+    <div style="padding:12px 0;border-bottom:1px solid var(--gray-100);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;">${n.title}</span>
+        <span class="badge ${n.type==='warning'?'b-amber':n.type==='success'?'b-green':'b-blue'}">${n.type}</span>
+      </div>
+      <div style="font-size:12px;color:var(--gray-400);">${n.profiles?.full_name||'כל הלקוחות'} · ${timeAgo(n.created_at)}</div>
+      ${n.message?`<div style="font-size:12px;color:var(--gray-600);margin-top:3px;">${n.message}</div>`:''}
+    </div>`).join('') : '<div class="empty"><div class="empty-icon">🔔</div><div style="font-size:13px;">לא נשלחו התראות עדיין</div></div>';
+}
+
+async function sendNotification() {
+  const recipient = document.getElementById('notif-recipient').value;
+  const title = document.getElementById('notif-title').value.trim();
+  const message = document.getElementById('notif-message').value.trim();
+  const type = document.getElementById('notif-type').value;
+  if (!title) { showToast('נא להכניס כותרת'); return; }
+  if (recipient === 'all') {
+    const { data: users } = await sb.from('profiles').select('id').eq('role','client');
+    if (users?.length) {
+      await sb.from('notifications').insert(users.map(u => ({ user_id: u.id, title, message, type })));
+    }
+  } else {
+    await sb.from('notifications').insert({ user_id: recipient, title, message, type });
+  }
+  document.getElementById('notif-title').value = '';
+  document.getElementById('notif-message').value = '';
+  showToast(`✓ ההתראה נשלחה ל${recipient === 'all' ? 'כל הלקוחות' : 'הלקוח'}`);
+  loadSentNotifs();
+}
+
+// ===== ADMIN PASSWORD =====
+async function changeAdminPass() {
+  const newP = document.getElementById('new-pass').value;
+  if (!newP || newP.length < 6) { showToast('סיסמה חייבת להיות לפחות 6 תווים'); return; }
+  const { error } = await sb.auth.updateUser({ password: newP });
+  if (error) { showToast('שגיאה: ' + error.message); return; }
+  showToast('✓ סיסמת המנהל עודכנה');
+  document.getElementById('cur-pass').value = '';
+  document.getElementById('new-pass').value = '';
+}
+
+// ===== USERS FOR SELECTS =====
+async function loadUsersForSelects() {
+  const { data: profiles } = await sb.from('profiles').select('id,full_name').eq('role','client').order('full_name');
+  allUsers = profiles || [];
+  ['m-user','d-user'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) sel.innerHTML = (profiles||[]).map(p=>`<option value="${p.id}">${p.full_name||p.id.substring(0,8)}</option>`).join('');
+  });
+}
+
+// ===== HELPERS =====
+const months = ['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצ'];
+function fmt(n) { return '₪' + Math.round(n).toLocaleString('he-IL'); }
+function formatDate(d) { if (!d) return ''; const date = new Date(d); return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`; }
+function timeAgo(d) { const diff = (Date.now() - new Date(d)) / 1000; if (diff < 60) return 'עכשיו'; if (diff < 3600) return `לפני ${Math.floor(diff/60)} דק׳`; if (diff < 86400) return `לפני ${Math.floor(diff/3600)} שע׳`; return `לפני ${Math.floor(diff/86400)} ימים`; }
+function statusHe(s) { return {confirmed:'מאושר',pending:'ממתין',cancelled:'בוטל'}[s]||s; }
+function showErr(msg) { const e = document.getElementById('a-err'); e.style.display='block'; e.textContent='⚠ '+msg; }
+function showErrEl(el, msg) { el.style.display='block'; el.textContent='⚠ '+msg; }
+function showToast(msg) { const t = document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+function closeMo(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.mo').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+
+init();
+</script>
+</body>
+</html>
