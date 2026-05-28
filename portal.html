@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>פרוביז | פורטל לקוחות</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --navy:#0A1628; --navy-mid:#112240; --navy-light:#1E3A5F;
+  --gold:#C9A84C; --gold-light:#E8C870;
+  --white:#fff; --gray-100:#F8F9FA; --gray-200:#E9ECEF;
+  --gray-400:#9CA3AF; --gray-600:#6B7280;
+  --green:#10B981; --red:#EF4444; --amber:#F59E0B;
+  --shadow:0 4px 24px rgba(10,22,40,.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Assistant',sans-serif;background:var(--gray-100);color:var(--navy);}
+
+/* AUTH SCREEN */
+.auth-screen{min-height:100vh;background:var(--navy);display:flex;align-items:center;justify-content:center;padding:24px;}
+.auth-card{background:var(--white);border-radius:20px;padding:48px 40px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.auth-logo{text-align:center;margin-bottom:32px;}
+.auth-logo-icon{width:56px;height:56px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-family:'Heebo';font-size:26px;font-weight:900;color:var(--navy);margin-bottom:12px;}
+.auth-title{font-family:'Heebo';font-size:26px;font-weight:900;color:var(--navy);text-align:center;margin-bottom:6px;}
+.auth-sub{font-size:14px;color:var(--gray-400);text-align:center;margin-bottom:32px;}
+.auth-tabs{display:flex;background:var(--gray-100);border-radius:10px;padding:4px;margin-bottom:28px;}
+.auth-tab{flex:1;padding:10px;text-align:center;border-radius:7px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:'Assistant';}
+.auth-tab.active{background:var(--white);color:var(--navy);box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.form-group{margin-bottom:18px;}
+.form-label{display:block;font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+.form-input{width:100%;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:15px;font-family:'Assistant';outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:var(--gold);}
+.btn-auth{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Assistant';transition:all .2s;margin-top:4px;}
+.btn-auth:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(201,168,76,.4);}
+.btn-auth:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.auth-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:12px;font-size:13px;color:var(--red);margin-bottom:16px;display:none;}
+.auth-success{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:8px;padding:12px;font-size:13px;color:var(--green);margin-bottom:16px;display:none;}
+.forgot-link{text-align:center;font-size:13px;color:var(--gray-400);margin-top:16px;cursor:pointer;transition:color .2s;}
+.forgot-link:hover{color:var(--gold);}
+.back-to-site{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:20px;font-size:13px;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:none;}
+.back-to-site:hover{color:var(--gold);}
+
+/* APP LAYOUT */
+.app{display:none;min-height:100vh;}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:64px;background:var(--navy);border-bottom:1px solid rgba(201,168,76,.15);display:flex;align-items:center;justify-content:space-between;padding:0 24px;}
+.topbar-logo{display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none;}
+.tl-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Heebo';font-size:17px;font-weight:900;color:var(--navy);}
+.tl-text{font-family:'Heebo';font-size:18px;font-weight:800;color:var(--white);}
+.tl-text span{color:var(--gold);}
+.topbar-right{display:flex;align-items:center;gap:16px;}
+.notif-btn{position:relative;width:36px;height:36px;background:rgba(255,255,255,.06);border-radius:9px;border:none;color:var(--white);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.notif-btn:hover{background:rgba(201,168,76,.15);}
+.notif-badge{position:absolute;top:4px;right:4px;width:16px;height:16px;background:var(--red);border-radius:50%;font-size:9px;color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:700;}
+.user-menu{display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 12px;border-radius:10px;transition:background .2s;}
+.user-menu:hover{background:rgba(255,255,255,.06);}
+.user-avatar{width:32px;height:32px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--navy);}
+.user-name{font-size:13px;font-weight:600;color:var(--white);}
+.logout-btn{padding:6px 14px;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:7px;color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;font-family:'Assistant';transition:all .2s;}
+.logout-btn:hover{border-color:rgba(239,68,68,.5);color:var(--red);}
+
+/* SIDEBAR */
+.layout{display:flex;padding-top:64px;min-height:100vh;}
+.sidebar{width:240px;background:var(--white);border-left:1px solid var(--gray-200);position:fixed;top:64px;right:0;bottom:0;overflow-y:auto;z-index:50;padding:20px 12px;}
+.sidebar-section{margin-bottom:24px;}
+.sidebar-label{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);padding:0 8px;margin-bottom:8px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:all .2s;font-size:14px;font-weight:500;color:var(--gray-600);margin-bottom:2px;border:none;background:transparent;font-family:'Assistant';width:100%;text-align:right;}
+.nav-item:hover{background:var(--gray-100);color:var(--navy);}
+.nav-item.active{background:rgba(201,168,76,.1);color:var(--gold);font-weight:700;}
+.nav-item .ni-icon{width:32px;height:32px;border-radius:8px;background:var(--gray-100);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.nav-item.active .ni-icon{background:rgba(201,168,76,.15);}
+.nav-badge{margin-right:auto;background:var(--red);color:var(--white);font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;}
+
+/* MAIN CONTENT */
+.main{flex:1;margin-right:240px;padding:28px;max-width:calc(100% - 240px);}
+.page-header{margin-bottom:28px;}
+.page-title{font-family:'Heebo';font-size:26px;font-weight:900;color:var(--navy);}
+.page-sub{font-size:14px;color:var(--gray-400);margin-top:4px;}
+
+/* PANELS */
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--gray-200);border-radius:16px;padding:24px;}
+.card-title{font-family:'Heebo';font-size:17px;font-weight:700;color:var(--navy);margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
+
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.stat-card{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:20px;}
+.sc-label{font-size:12px;color:var(--gray-400);margin-bottom:8px;font-weight:600;}
+.sc-value{font-family:'Heebo';font-size:28px;font-weight:900;color:var(--navy);}
+.sc-sub{font-size:12px;margin-top:4px;}
+.sc-positive{color:var(--green);}
+.sc-negative{color:var(--red);}
+
+/* GRID LAYOUTS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:12px 16px;font-size:12px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--gray-200);}
+td{padding:14px 16px;font-size:14px;border-bottom:1px solid var(--gray-100);vertical-align:middle;}
+tr:hover td{background:rgba(201,168,76,.03);}
+tr:last-child td{border:none;}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-green{background:rgba(16,185,129,.1);color:var(--green);}
+.badge-amber{background:rgba(245,158,11,.1);color:var(--amber);}
+.badge-red{background:rgba(239,68,68,.1);color:var(--red);}
+.badge-navy{background:rgba(10,22,40,.08);color:var(--navy);}
+.badge-gold{background:rgba(201,168,76,.1);color:var(--gold);}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Assistant';border:none;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);}
+.btn-primary:hover{box-shadow:0 4px 16px rgba(201,168,76,.35);transform:translateY(-1px);}
+.btn-outline{background:transparent;border:1.5px solid var(--gray-200);color:var(--navy);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.btn-danger{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+.btn-danger:hover{background:var(--red);color:var(--white);}
+.btn-sm{padding:6px 12px;font-size:12px;}
+
+/* FORM */
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px;}
+.form-control{width:100%;padding:11px 14px;border:1.5px solid var(--gray-200);border-radius:9px;font-size:14px;font-family:'Assistant';outline:none;transition:border-color .2s;background:var(--white);}
+.form-control:focus{border-color:var(--gold);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+/* CASHFLOW */
+.cf-income{color:var(--green);font-weight:700;}
+.cf-expense{color:var(--red);font-weight:700;}
+.cf-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;}
+.cf-sum-card{border-radius:14px;padding:20px;text-align:center;}
+.cf-sum-card.income{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);}
+.cf-sum-card.expense{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);}
+.cf-sum-card.balance{background:var(--navy);color:var(--white);}
+.cf-sum-label{font-size:12px;font-weight:600;opacity:.7;margin-bottom:6px;}
+.cf-sum-value{font-family:'Heebo';font-size:26px;font-weight:900;}
+.cf-sum-card.income .cf-sum-value{color:var(--green);}
+.cf-sum-card.expense .cf-sum-value{color:var(--red);}
+.cf-sum-card.balance .cf-sum-value{color:var(--gold);}
+
+/* NOTIFICATIONS */
+.notif-panel{position:fixed;top:72px;left:24px;width:360px;background:var(--white);border:1px solid var(--gray-200);border-radius:16px;box-shadow:var(--shadow);z-index:200;display:none;}
+.notif-panel.open{display:block;}
+.notif-header{padding:16px 20px;border-bottom:1px solid var(--gray-200);display:flex;justify-content:space-between;align-items:center;}
+.notif-list{max-height:360px;overflow-y:auto;}
+.notif-item{padding:14px 20px;border-bottom:1px solid var(--gray-100);display:flex;gap:12px;align-items:flex-start;}
+.notif-item:last-child{border:none;}
+.notif-item.unread{background:rgba(201,168,76,.04);}
+.ni-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);margin-top:5px;flex-shrink:0;}
+.ni-title{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:3px;}
+.ni-time{font-size:11px;color:var(--gray-400);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,22,40,.6);backdrop-filter:blur(6px);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .25s;}
+.modal-overlay.open{opacity:1;visibility:visible;}
+.modal{background:var(--white);border-radius:18px;padding:36px;max-width:480px;width:90%;transform:translateY(16px);transition:transform .25s;}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-title{font-family:'Heebo';font-size:20px;font-weight:800;color:var(--navy);margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
+.modal-close{background:var(--gray-100);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy);color:var(--white);padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;z-index:400;transition:transform .3s;border:1px solid rgba(201,168,76,.3);white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* LOADING */
+.loading{display:flex;align-items:center;justify-content:center;padding:48px;color:var(--gray-400);font-size:14px;gap:10px;}
+.spinner{width:20px;height:20px;border:2px solid var(--gray-200);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:48px 24px;color:var(--gray-400);}
+.empty-icon{font-size:40px;margin-bottom:12px;}
+.empty-text{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:6px;}
+.empty-sub{font-size:13px;}
+
+/* SUBSCRIPTION CARD */
+.sub-plan-card{background:var(--navy);color:var(--white);border-radius:16px;padding:28px;margin-bottom:20px;}
+.spc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+.spc-plan{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:4px;}
+.spc-name{font-family:'Heebo';font-size:24px;font-weight:900;color:var(--gold);}
+.spc-status{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;}
+.spc-active{background:rgba(16,185,129,.15);color:var(--green);}
+.spc-details{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.spc-detail-label{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px;}
+.spc-detail-value{font-size:15px;font-weight:700;}
+
+/* PROFILE SETTINGS */
+.avatar-upload{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-light));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:var(--navy);cursor:pointer;margin-bottom:16px;}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .main{margin-right:0;max-width:100%;padding:16px;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .grid-2,.grid-3{grid-template-columns:1fr;}
+  .cf-summary{grid-template-columns:1fr;}
+  .form-row{grid-template-columns:1fr;}
+  .spc-details{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== AUTH SCREEN ===== -->
+<div id="auth-screen" class="auth-screen">
+  <div style="width:100%;max-width:420px;">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">P</div>
+        <div style="font-family:'Heebo';font-size:22px;font-weight:900;color:var(--navy);">פרו<span style="color:var(--gold);">ביז</span></div>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">כניסה</button>
+        <button class="auth-tab" id="tab-register" onclick="switchTab('register')">הרשמה</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="form-login">
+        <div class="auth-title">ברוכים הבאים</div>
+        <div class="auth-sub">הכנס לפורטל הלקוחות שלך</div>
+        <div class="auth-error" id="login-error"></div>
+        <div class="auth-success" id="login-success"></div>
+        <div class="form-group">
+          <label class="form-label">אימייל</label>
+          <input type="email" class="form-input" id="login-email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">סיסמה</label>
+          <input type="password" class="form-input" id="login-password" placeholder="הסיסמה שלך" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <button class="btn-auth" id="btn-login" onclick="doLogin()">כניסה לפורטל ←</button>
+        <div class="forgot-link" onclick="showForgot()">שכחתי סיסמה</div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div id="form-register" style="display:none;">
+        <div class="auth-title">הצטרפו אלינו</div>
+        <div class="auth-sub">צרו חשבון חדש בפורטל</div>
+        <div class="auth-error" id="reg-error"></div>
+        <div class="auth-success" id="reg-success"></div>
+        <div class="form-group">
+          <label class="form-label">שם מלא</label>
+          <input type="text" class="form-input" id="reg-name" placeholder="ישראל ישראלי">
+        </div>
+        <div class="form-group">
+          <label class="form-label">אימייל</label>
+          <input type="email" class="form-input" id="reg-email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">טלפון</label>
+          <input type="tel" class="form-input" id="reg-phone" placeholder="050-0000000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">שם חברה</label>
+          <input type="text" class="form-input" id="reg-company" placeholder="חברת ישראלי בע״מ">
+        </div>
+        <div class="form-group">
+          <label class="form-label">סיסמה (לפחות 6 תווים)</label>
+          <input type="password" class="form-input" id="reg-password" placeholder="בחר סיסמה חזקה">
+        </div>
+        <button class="btn-auth" id="btn-register" onclick="doRegister()">צור חשבון ←</button>
+      </div>
+
+      <!-- FORGOT PASSWORD -->
+      <div id="form-forgot" style="display:none;">
+        <div class="auth-title">איפוס סיסמה</div>
+        <div class="auth-sub">נשלח לך לינק לאיפוס</div>
+        <div class="auth-error" id="forgot-error"></div>
+        <div class="auth-success" id="forgot-success"></div>
+        <div class="form-group">
+          <label class="form-label">אימייל</label>
+          <input type="email" class="form-input" id="forgot-email" placeholder="you@example.com">
+        </div>
+        <button class="btn-auth" onclick="doForgot()">שלח לינק לאיפוס ←</button>
+        <div class="forgot-link" onclick="switchTab('login')">חזרה לכניסה</div>
+      </div>
+    </div>
+    <a href="website.html" class="back-to-site">← חזרה לאתר</a>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app" class="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="tl-icon">P</div>
+      <span class="tl-text">פרו<span>ביז</span> | פורטל</span>
+    </div>
+    <div class="topbar-right">
+      <button class="notif-btn" onclick="toggleNotifications()">
+        🔔
+        <span class="notif-badge" id="notif-count">3</span>
+      </button>
+      <div class="user-menu">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <span class="user-name" id="user-name-display">טוען...</span>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">יציאה</button>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS PANEL -->
+  <div class="notif-panel" id="notif-panel">
+    <div class="notif-header">
+      <span style="font-size:15px;font-weight:700;">התראות</span>
+      <button class="btn btn-sm btn-outline" onclick="markAllRead()">סמן הכל כנקרא</button>
+    </div>
+    <div class="notif-list" id="notif-list">
+      <div class="loading"><div class="spinner"></div> טוען...</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">ראשי</div>
+        <button class="nav-item active" onclick="showPanel('dashboard')">
+          <div class="ni-icon">📊</div> לוח בקרה
+        </button>
+        <button class="nav-item" onclick="showPanel('cashflow')">
+          <div class="ni-icon">💹</div> תזרים מזומנים
+        </button>
+        <button class="nav-item" onclick="showPanel('meetings')">
+          <div class="ni-icon">📅</div> פגישות
+          <span class="nav-badge" id="badge-meetings">2</span>
+        </button>
+        <button class="nav-item" onclick="showPanel('documents')">
+          <div class="ni-icon">📁</div> מסמכים
+        </button>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">חשבון</div>
+        <button class="nav-item" onclick="showPanel('subscription')">
+          <div class="ni-icon">⭐</div> מנוי ותשלום
+        </button>
+        <button class="nav-item" onclick="showPanel('profile')">
+          <div class="ni-icon">👤</div> פרופיל
+        </button>
+      </div>
+      <div class="sidebar-section" style="margin-top:auto;padding-top:16px;border-top:1px solid var(--gray-200);">
+        <a href="website.html" style="text-decoration:none;">
+          <button class="nav-item">
+            <div class="ni-icon">🌐</div> חזרה לאתר
+          </button>
+        </a>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- DASHBOARD -->
+      <div id="panel-dashboard" class="panel active">
+        <div class="page-header">
+          <div class="page-title" id="welcome-msg">שלום!</div>
+          <div class="page-sub">הנה סיכום הפעילות שלך</div>
+        </div>
+        <div class="stats-grid" id="dashboard-stats">
+          <div class="stat-card"><div class="sc-label">יתרת תזרים</div><div class="sc-value" id="ds-balance">—</div></div>
+          <div class="stat-card"><div class="sc-label">הכנסות החודש</div><div class="sc-value sc-positive" id="ds-income">—</div></div>
+          <div class="stat-card"><div class="sc-label">הוצאות החודש</div><div class="sc-value sc-negative" id="ds-expense">—</div></div>
+          <div class="stat-card"><div class="sc-label">פגישות קרובות</div><div class="sc-value" id="ds-meetings">—</div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">פגישות קרובות <button class="btn btn-sm btn-primary" onclick="showPanel('meetings')">הכל ←</button></div>
+            <div id="dash-meetings-list"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">תנועות אחרונות <button class="btn btn-sm btn-outline" onclick="showPanel('cashflow')">הכל ←</button></div>
+            <div id="dash-cf-list"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CASHFLOW -->
+      <div id="panel-cashflow" class="panel">
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div class="page-title">תזרים מזומנים</div>
+            <div class="page-sub">ניהול הכנסות והוצאות</div>
+          </div>
+          <button class="btn btn-primary" onclick="openCfModal()">+ הוסף תנועה</button>
+        </div>
+        <div class="cf-summary" id="cf-summary">
+          <div class="cf-sum-card income"><div class="cf-sum-label">הכנסות</div><div class="cf-sum-value" id="cf-total-income">—</div></div>
+          <div class="cf-sum-card expense"><div class="cf-sum-label">הוצאות</div><div class="cf-sum-value" id="cf-total-expense">—</div></div>
+          <div class="cf-sum-card balance"><div class="cf-sum-label">יתרה</div><div class="cf-sum-value" id="cf-total-balance">—</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            כל התנועות
+            <div style="display:flex;gap:8px;">
+              <select class="form-control" id="cf-filter" onchange="loadCashflow()" style="width:auto;padding:6px 10px;font-size:13px;">
+                <option value="all">הכל</option>
+                <option value="income">הכנסות</option>
+                <option value="expense">הוצאות</option>
+              </select>
+            </div>
+          </div>
+          <div id="cf-table"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+
+      <!-- MEETINGS -->
+      <div id="panel-meetings" class="panel">
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div class="page-title">פגישות</div>
+            <div class="page-sub">לוח הפגישות שלך</div>
+          </div>
+          <button class="btn btn-primary" onclick="openMeetingRequest()">+ בקש פגישה</button>
+        </div>
+        <div id="meetings-list"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div id="panel-documents" class="panel">
+        <div class="page-header">
+          <div class="page-title">המסמכים שלי</div>
+          <div class="page-sub">מסמכים שהועלו עבורך</div>
+        </div>
+        <div id="documents-list"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+
+      <!-- SUBSCRIPTION -->
+      <div id="panel-subscription" class="panel">
+        <div class="page-header">
+          <div class="page-title">מנוי ותשלום</div>
+          <div class="page-sub">סטטוס המנוי שלך</div>
+        </div>
+        <div id="subscription-content"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+
+      <!-- PROFILE -->
+      <div id="panel-profile" class="panel">
+        <div class="page-header">
+          <div class="page-title">הפרופיל שלי</div>
+          <div class="page-sub">עדכן את הפרטים שלך</div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">פרטים אישיים</div>
+            <div style="text-align:center;margin-bottom:20px;">
+              <div class="avatar-upload" id="profile-avatar" style="margin:0 auto;">?</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">שם מלא</label>
+              <input type="text" class="form-control" id="p-name">
+            </div>
+            <div class="form-group">
+              <label class="form-label">אימייל</label>
+              <input type="email" class="form-control" id="p-email" readonly style="opacity:.6;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">טלפון</label>
+              <input type="tel" class="form-control" id="p-phone">
+            </div>
+            <div class="form-group">
+              <label class="form-label">שם חברה</label>
+              <input type="text" class="form-control" id="p-company">
+            </div>
+            <button class="btn btn-primary" onclick="saveProfile()" style="width:100%;padding:12px;">שמור שינויים</button>
+          </div>
+          <div class="card">
+            <div class="card-title">שינוי סיסמה</div>
+            <div class="form-group">
+              <label class="form-label">סיסמה חדשה</label>
+              <input type="password" class="form-control" id="new-pass" placeholder="לפחות 6 תווים">
+            </div>
+            <div class="form-group">
+              <label class="form-label">אימות סיסמה</label>
+              <input type="password" class="form-control" id="confirm-pass" placeholder="חזור על הסיסמה">
+            </div>
+            <button class="btn btn-outline" onclick="changePassword()" style="width:100%;padding:12px;">עדכן סיסמה</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /layout -->
+</div><!-- /app -->
+
+<!-- CASHFLOW MODAL -->
+<div class="modal-overlay" id="cf-modal">
+  <div class="modal">
+    <div class="modal-title">
+      הוסף תנועה
+      <button class="modal-close" onclick="closeCfModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">סוג</label>
+      <select class="form-control" id="cf-type">
+        <option value="income">הכנסה</option>
+        <option value="expense">הוצאה</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">תיאור</label>
+      <input type="text" class="form-control" id="cf-desc" placeholder="למשל: חשבונית לקוח">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">סכום (₪)</label>
+        <input type="number" class="form-control" id="cf-amount" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">תאריך</label>
+        <input type="date" class="form-control" id="cf-date">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">קטגוריה</label>
+      <select class="form-control" id="cf-category">
+        <option value="general">כללי</option>
+        <option value="salary">שכר</option>
+        <option value="rent">שכירות</option>
+        <option value="marketing">שיווק</option>
+        <option value="supplies">ציוד</option>
+        <option value="tax">מיסים</option>
+        <option value="income_client">הכנסה מלקוח</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-primary" onclick="saveCashflow()" style="flex:1;padding:12px;">שמור</button>
+      <button class="btn btn-outline" onclick="closeCfModal()" style="padding:12px 20px;">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEETING REQUEST MODAL -->
+<div class="modal-overlay" id="meeting-modal">
+  <div class="modal">
+    <div class="modal-title">
+      בקשת פגישה
+      <button class="modal-close" onclick="document.getElementById('meeting-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">נושא הפגישה</label>
+      <input type="text" class="form-control" id="mtg-title" placeholder="למשל: ייעוץ חשבונאי">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">תאריך מועדף</label>
+        <input type="date" class="form-control" id="mtg-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">שעה מועדפת</label>
+        <input type="time" class="form-control" id="mtg-time">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">אופן הפגישה</label>
+      <select class="form-control" id="mtg-location">
+        <option value="זום">זום</option>
+        <option value="משרד">פגישה במשרד</option>
+        <option value="טלפון">טלפון</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">הערות</label>
+      <textarea class="form-control" id="mtg-notes" rows="3" placeholder="כל פרט נוסף..."></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="requestMeeting()" style="width:100%;padding:12px;">שלח בקשה</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== SUPABASE INIT =====
+const SUPABASE_URL = 'https://urpzikwromhwtuffkhyr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_DuDeBDU5Ee5d1xMkzi0Drg_kzFYYY44';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let currentProfile = null;
+
+// ===== INIT =====
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    await loadUser(session.user);
+  }
+  // Listen for auth changes
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      await loadUser(session.user);
+    } else if (event === 'SIGNED_OUT') {
+      showAuth();
+    }
+  });
+}
+
+async function loadUser(user) {
+  currentUser = user;
+  // Load profile
+  const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
+  currentProfile = profile;
+  showApp();
+}
+
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  const name = currentProfile?.full_name || currentUser?.email || 'משתמש';
+  document.getElementById('user-name-display').textContent = name.split(' ')[0];
+  document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('welcome-msg').textContent = `שלום, ${name.split(' ')[0]}! 👋`;
+  loadDashboard();
+}
+
+function showAuth() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  currentUser = null;
+  currentProfile = null;
+}
+
+// ===== AUTH FUNCTIONS =====
+function switchTab(tab) {
+  ['login','register','forgot'].forEach(t => {
+    document.getElementById('form-'+t).style.display = t === tab ? 'block' : 'none';
+    const btn = document.getElementById('tab-'+t);
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+}
+
+function showForgot() {
+  ['login','register','forgot'].forEach(t => {
+    document.getElementById('form-'+t).style.display = t === 'forgot' ? 'block' : 'none';
+    const btn = document.getElementById('tab-'+t);
+    if (btn) btn.classList.remove('active');
+  });
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+  if (!email || !password) { showErr(errEl, 'נא למלא אימייל וסיסמה'); return; }
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true; btn.textContent = 'מתחבר...';
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = 'כניסה לפורטל ←';
+  if (error) showErr(errEl, translateError(error.message));
+}
+
+async function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const company = document.getElementById('reg-company').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const errEl = document.getElementById('reg-error');
+  const sucEl = document.getElementById('reg-success');
+  errEl.style.display = 'none'; sucEl.style.display = 'none';
+  if (!name || !email || !password) { showErr(errEl, 'נא למלא שם, אימייל וסיסמה'); return; }
+  if (password.length < 6) { showErr(errEl, 'הסיסמה חייבת להיות לפחות 6 תווים'); return; }
+  const btn = document.getElementById('btn-register');
+  btn.disabled = true; btn.textContent = 'יוצר חשבון...';
+  const { data, error } = await sb.auth.signUp({
+    email, password,
+    options: { data: { full_name: name, phone, company_name: company } }
+  });
+  btn.disabled = false; btn.textContent = 'צור חשבון ←';
+  if (error) { showErr(errEl, translateError(error.message)); return; }
+  // Update profile with phone and company
+  if (data.user) {
+    await sb.from('profiles').update({ full_name: name, phone, company_name: company }).eq('id', data.user.id);
+  }
+  sucEl.style.display = 'block';
+  sucEl.textContent = '✓ החשבון נוצר! בדוק את האימייל שלך לאישור.';
+}
+
+async function doForgot() {
+  const email = document.getElementById('forgot-email').value.trim();
+  const errEl = document.getElementById('forgot-error');
+  const sucEl = document.getElementById('forgot-success');
+  if (!email) { showErr(errEl, 'נא להכניס אימייל'); return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/portal.html'
+  });
+  if (error) { showErr(errEl, translateError(error.message)); return; }
+  sucEl.style.display = 'block';
+  sucEl.textContent = '✓ קישור לאיפוס סיסמה נשלח לאימייל שלך!';
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  showToast('התנתקת בהצלחה');
+}
+
+// ===== PANELS =====
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  event?.currentTarget?.classList.add('active');
+  // Load data for panel
+  if (name === 'dashboard') loadDashboard();
+  else if (name === 'cashflow') loadCashflow();
+  else if (name === 'meetings') loadMeetings();
+  else if (name === 'documents') loadDocuments();
+  else if (name === 'subscription') loadSubscription();
+  else if (name === 'profile') loadProfile();
+}
+
+// ===== DASHBOARD =====
+async function loadDashboard() {
+  if (!currentUser) return;
+  // Load cashflow summary
+  const { data: cf } = await sb.from('cashflow').select('*').eq('user_id', currentUser.id);
+  if (cf) {
+    const now = new Date();
+    const thisMonth = cf.filter(r => new Date(r.date).getMonth() === now.getMonth());
+    const income = thisMonth.filter(r => r.type === 'income').reduce((s,r) => s + r.amount, 0);
+    const expense = thisMonth.filter(r => r.type === 'expense').reduce((s,r) => s + r.amount, 0);
+    const balance = cf.reduce((s,r) => s + (r.type === 'income' ? r.amount : -r.amount), 0);
+    document.getElementById('ds-balance').textContent = fmt(balance);
+    document.getElementById('ds-income').textContent = fmt(income);
+    document.getElementById('ds-expense').textContent = fmt(expense);
+    // Recent cashflow
+    const recent = [...cf].sort((a,b) => new Date(b.date)-new Date(a.date)).slice(0,5);
+    document.getElementById('dash-cf-list').innerHTML = recent.length ? recent.map(r => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--gray-100);">
+        <div>
+          <div style="font-size:13px;font-weight:600;">${r.description}</div>
+          <div style="font-size:11px;color:var(--gray-400);">${formatDate(r.date)} · ${r.category}</div>
+        </div>
+        <span class="${r.type==='income'?'cf-income':'cf-expense'}">${r.type==='income'?'+':'-'}${fmt(r.amount)}</span>
+      </div>`).join('') : '<div class="empty"><div class="empty-icon">💳</div><div class="empty-text">אין תנועות עדיין</div></div>';
+  }
+  // Meetings
+  const { data: meetings } = await sb.from('meetings').select('*').eq('user_id', currentUser.id).gte('meeting_date', new Date().toISOString().split('T')[0]).order('meeting_date').limit(3);
+  document.getElementById('ds-meetings').textContent = meetings?.length || 0;
+  document.getElementById('dash-meetings-list').innerHTML = meetings?.length ? meetings.map(m => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--gray-100);">
+      <div style="width:40px;height:40px;background:var(--navy);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--white);flex-shrink:0;">
+        <span style="font-size:15px;font-weight:900;line-height:1;">${new Date(m.meeting_date).getDate()}</span>
+        <span style="font-size:9px;opacity:.5;">${months[new Date(m.meeting_date).getMonth()]}</span>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;">${m.title}</div>
+        <div style="font-size:11px;color:var(--gray-400);">${m.meeting_time || ''} · ${m.location}</div>
+      </div>
+      <span class="badge ${m.status==='confirmed'?'badge-green':'badge-amber'}">${m.status==='confirmed'?'מאושר':'ממתין'}</span>
+    </div>`).join('') : '<div class="empty"><div class="empty-icon">📅</div><div class="empty-text">אין פגישות קרובות</div></div>';
+}
+
+// ===== CASHFLOW =====
+async function loadCashflow() {
+  if (!currentUser) return;
+  const filter = document.getElementById('cf-filter')?.value || 'all';
+  let query = sb.from('cashflow').select('*').eq('user_id', currentUser.id).order('date', {ascending: false});
+  if (filter !== 'all') query = query.eq('type', filter);
+  const { data: cf } = await query;
+  if (!cf) return;
+  const income = cf.filter(r=>r.type==='income').reduce((s,r)=>s+r.amount,0);
+  const expense = cf.filter(r=>r.type==='expense').reduce((s,r)=>s+r.amount,0);
+  document.getElementById('cf-total-income').textContent = fmt(income);
+  document.getElementById('cf-total-expense').textContent = fmt(expense);
+  document.getElementById('cf-total-balance').textContent = fmt(income - expense);
+  if (!cf.length) {
+    document.getElementById('cf-table').innerHTML = '<div class="empty"><div class="empty-icon">💹</div><div class="empty-text">אין תנועות עדיין</div><div class="empty-sub">הוסף את התנועה הראשונה שלך</div></div>';
+    return;
+  }
+  document.getElementById('cf-table').innerHTML = `
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>תאריך</th><th>תיאור</th><th>קטגוריה</th><th>סוג</th><th>סכום</th><th></th></tr></thead>
+      <tbody>${cf.map(r=>`
+        <tr>
+          <td style="color:var(--gray-600);font-size:13px;">${formatDate(r.date)}</td>
+          <td style="font-weight:600;">${r.description}</td>
+          <td><span class="badge badge-navy">${r.category}</span></td>
+          <td><span class="badge ${r.type==='income'?'badge-green':'badge-red'}">${r.type==='income'?'הכנסה':'הוצאה'}</span></td>
+          <td class="${r.type==='income'?'cf-income':'cf-expense'}">${r.type==='income'?'+':'-'}${fmt(r.amount)}</td>
+          <td><button class="btn btn-sm btn-danger" onclick="deleteCf('${r.id}')">🗑</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table></div>`;
+}
+
+function openCfModal() {
+  document.getElementById('cf-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('cf-modal').classList.add('open');
+}
+function closeCfModal() { document.getElementById('cf-modal').classList.remove('open'); }
+
+async function saveCashflow() {
+  const type = document.getElementById('cf-type').value;
+  const description = document.getElementById('cf-desc').value.trim();
+  const amount = parseFloat(document.getElementById('cf-amount').value);
+  const date = document.getElementById('cf-date').value;
+  const category = document.getElementById('cf-category').value;
+  if (!description || !amount || !date) { showToast('נא למלא את כל השדות'); return; }
+  const { error } = await sb.from('cashflow').insert({ user_id: currentUser.id, type, description, amount, date, category });
+  if (error) { showToast('שגיאה בשמירה: ' + error.message); return; }
+  closeCfModal();
+  showToast('✓ התנועה נשמרה!');
+  loadCashflow();
+  loadDashboard();
+}
+
+async function deleteCf(id) {
+  if (!confirm('למחוק תנועה זו?')) return;
+  await sb.from('cashflow').delete().eq('id', id);
+  loadCashflow();
+  showToast('✓ נמחק');
+}
+
+// ===== MEETINGS =====
+async function loadMeetings() {
+  if (!currentUser) return;
+  const { data: meetings } = await sb.from('meetings').select('*').eq('user_id', currentUser.id).order('meeting_date', {ascending: true});
+  if (!meetings?.length) {
+    document.getElementById('meetings-list').innerHTML = '<div class="empty"><div class="empty-icon">📅</div><div class="empty-text">אין פגישות עדיין</div><div class="empty-sub">שלח בקשת פגישה ונקבע לך זמן</div></div>';
+    return;
+  }
+  document.getElementById('meetings-list').innerHTML = meetings.map(m => `
+    <div style="display:flex;align-items:center;gap:16px;padding:18px;background:var(--white);border:1px solid var(--gray-200);border-radius:14px;margin-bottom:12px;border-right:4px solid ${m.status==='confirmed'?'var(--green)':'var(--amber)'};">
+      <div style="width:52px;height:52px;background:var(--navy);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--white);flex-shrink:0;">
+        <span style="font-size:20px;font-weight:900;line-height:1;">${new Date(m.meeting_date).getDate()}</span>
+        <span style="font-size:10px;opacity:.5;">${months[new Date(m.meeting_date).getMonth()]}</span>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:700;">${m.title}</div>
+        <div style="font-size:13px;color:var(--gray-400);margin-top:3px;">${m.meeting_time || 'שעה לא נקבעה'} · ${m.location}</div>
+        ${m.notes ? `<div style="font-size:12px;color:var(--gray-600);margin-top:4px;">${m.notes}</div>` : ''}
+      </div>
+      <span class="badge ${m.status==='confirmed'?'badge-green':m.status==='cancelled'?'badge-red':'badge-amber'}">${statusHe(m.status)}</span>
+    </div>`).join('');
+  document.getElementById('badge-meetings').textContent = meetings.filter(m=>m.status==='pending').length || '';
+}
+
+function openMeetingRequest() {
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  document.getElementById('mtg-date').value = tomorrow.toISOString().split('T')[0];
+  document.getElementById('meeting-modal').classList.add('open');
+}
+
+async function requestMeeting() {
+  const title = document.getElementById('mtg-title').value.trim();
+  const date = document.getElementById('mtg-date').value;
+  const time = document.getElementById('mtg-time').value;
+  const location = document.getElementById('mtg-location').value;
+  const notes = document.getElementById('mtg-notes').value.trim();
+  if (!title || !date) { showToast('נא למלא נושא ותאריך'); return; }
+  const { error } = await sb.from('meetings').insert({ user_id: currentUser.id, title, meeting_date: date, meeting_time: time, location, notes, status: 'pending' });
+  if (error) { showToast('שגיאה: ' + error.message); return; }
+  document.getElementById('meeting-modal').classList.remove('open');
+  showToast('✓ בקשת הפגישה נשלחה! נחזור אליך לאישור.');
+  loadMeetings();
+}
+
+// ===== DOCUMENTS =====
+async function loadDocuments() {
+  if (!currentUser) return;
+  const { data: docs } = await sb.from('documents').select('*').eq('user_id', currentUser.id).order('created_at', {ascending: false});
+  if (!docs?.length) {
+    document.getElementById('documents-list').innerHTML = '<div class="empty"><div class="empty-icon">📁</div><div class="empty-text">אין מסמכים עדיין</div><div class="empty-sub">המנהל יעלה מסמכים עבורך</div></div>';
+    return;
+  }
+  document.getElementById('documents-list').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;">
+    ${docs.map(d => `
+      <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:20px;">
+        <div style="font-size:28px;margin-bottom:10px;">${fileIcon(d.file_type)}</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px;">${d.title}</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-bottom:14px;">${formatDate(d.created_at)} · ${d.file_size || ''}</div>
+        ${d.file_url ? `<a href="${d.file_url}" target="_blank" style="text-decoration:none;"><button class="btn btn-primary btn-sm" style="width:100%;">⬇ הורדה</button></a>` : '<button class="btn btn-outline btn-sm" style="width:100%;" disabled>לא זמין להורדה</button>'}
+      </div>`).join('')}
+    </div>`;
+}
+
+// ===== SUBSCRIPTION =====
+async function loadSubscription() {
+  if (!currentUser) return;
+  const { data: sub } = await sb.from('subscriptions').select('*').eq('user_id', currentUser.id).single();
+  const plans = { basic: 'בסיסי', professional: 'מקצועי', enterprise: 'ארגוני' };
+  const prices = { basic: 899, professional: 1999, enterprise: 0 };
+  document.getElementById('subscription-content').innerHTML = `
+    <div class="sub-plan-card">
+      <div class="spc-top">
+        <div>
+          <div class="spc-plan">התוכנית הנוכחית שלך</div>
+          <div class="spc-name">${plans[sub?.plan||'basic']} ⭐</div>
+        </div>
+        <span class="spc-status spc-active">● פעיל</span>
+      </div>
+      <div class="spc-details">
+        <div><div class="spc-detail-label">תשלום חודשי</div><div class="spc-detail-value">₪${prices[sub?.plan||'basic'].toLocaleString()}</div></div>
+        <div><div class="spc-detail-label">תאריך הצטרפות</div><div class="spc-detail-value">${sub?.start_date ? formatDate(sub.start_date) : '—'}</div></div>
+        <div><div class="spc-detail-label">חידוש הבא</div><div class="spc-detail-value">${sub?.renewal_date ? formatDate(sub.renewal_date) : '—'}</div></div>
+      </div>
+    </div>
+    <div class="grid-3">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">📊</div>
+        <div style="font-weight:700;margin-bottom:4px;">הנהלת חשבונות</div>
+        <span class="badge badge-green">פעיל</span>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">💰</div>
+        <div style="font-weight:700;margin-bottom:4px;">חשבות שכר</div>
+        <span class="badge ${sub?.plan!=='basic'?'badge-green':'badge-amber'}">${sub?.plan!=='basic'?'פעיל':'בסיסי'}</span>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">💼</div>
+        <div style="font-weight:700;margin-bottom:4px;">יעוץ עסקי</div>
+        <span class="badge ${sub?.plan==='professional'||sub?.plan==='enterprise'?'badge-green':'badge-navy'}">${sub?.plan==='professional'||sub?.plan==='enterprise'?'פעיל':'לא פעיל'}</span>
+      </div>
+    </div>
+    <div class="card" style="margin-top:20px;text-align:center;">
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px;">רוצים לשדרג?</div>
+      <div style="font-size:14px;color:var(--gray-600);margin-bottom:16px;">עברו לתוכנית מקצועית וקבלו עוד שירותים</div>
+      <button class="btn btn-primary" onclick="showToast('נציג יצור קשר לשדרוג ✓')">שדרג תוכנית</button>
+    </div>`;
+}
+
+// ===== PROFILE =====
+async function loadProfile() {
+  if (!currentUser || !currentProfile) return;
+  document.getElementById('p-name').value = currentProfile.full_name || '';
+  document.getElementById('p-email').value = currentUser.email || '';
+  document.getElementById('p-phone').value = currentProfile.phone || '';
+  document.getElementById('p-company').value = currentProfile.company_name || '';
+  const initials = (currentProfile.full_name || '?').charAt(0).toUpperCase();
+  document.getElementById('profile-avatar').textContent = initials;
+}
+
+async function saveProfile() {
+  const full_name = document.getElementById('p-name').value.trim();
+  const phone = document.getElementById('p-phone').value.trim();
+  const company_name = document.getElementById('p-company').value.trim();
+  const { error } = await sb.from('profiles').update({ full_name, phone, company_name, updated_at: new Date().toISOString() }).eq('id', currentUser.id);
+  if (error) { showToast('שגיאה: ' + error.message); return; }
+  currentProfile = { ...currentProfile, full_name, phone, company_name };
+  document.getElementById('user-name-display').textContent = full_name.split(' ')[0];
+  showToast('✓ הפרופיל עודכן בהצלחה!');
+}
+
+async function changePassword() {
+  const p1 = document.getElementById('new-pass').value;
+  const p2 = document.getElementById('confirm-pass').value;
+  if (!p1 || p1.length < 6) { showToast('הסיסמה חייבת להיות לפחות 6 תווים'); return; }
+  if (p1 !== p2) { showToast('הסיסמאות אינן תואמות'); return; }
+  const { error } = await sb.auth.updateUser({ password: p1 });
+  if (error) { showToast('שגיאה: ' + error.message); return; }
+  showToast('✓ הסיסמה עודכנה!');
+  document.getElementById('new-pass').value = '';
+  document.getElementById('confirm-pass').value = '';
+}
+
+// ===== NOTIFICATIONS =====
+function toggleNotifications() {
+  document.getElementById('notif-panel').classList.toggle('open');
+}
+
+async function loadNotifications() {
+  if (!currentUser) return;
+  const { data: notifs } = await sb.from('notifications').select('*').eq('user_id', currentUser.id).order('created_at', {ascending: false}).limit(20);
+  const unread = notifs?.filter(n => !n.read).length || 0;
+  document.getElementById('notif-count').textContent = unread || '';
+  document.getElementById('notif-count').style.display = unread ? 'flex' : 'none';
+  document.getElementById('notif-list').innerHTML = notifs?.length ? notifs.map(n => `
+    <div class="notif-item ${n.read?'':'unread'}">
+      <div class="ni-dot" style="${n.read?'opacity:0':''}"></div>
+      <div>
+        <div class="ni-title">${n.title}</div>
+        ${n.message ? `<div style="font-size:12px;color:var(--gray-600);margin-bottom:3px;">${n.message}</div>` : ''}
+        <div class="ni-time">${timeAgo(n.created_at)}</div>
+      </div>
+    </div>`).join('') : '<div class="empty"><div class="empty-icon">🔔</div><div class="empty-text">אין התראות</div></div>';
+}
+
+async function markAllRead() {
+  if (!currentUser) return;
+  await sb.from('notifications').update({ read: true }).eq('user_id', currentUser.id);
+  loadNotifications();
+}
+
+// ===== HELPERS =====
+const months = ['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצ'];
+
+function fmt(n) { return '₪' + Math.round(n).toLocaleString('he-IL'); }
+
+function formatDate(d) {
+  if (!d) return '';
+  const date = new Date(d);
+  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+function timeAgo(d) {
+  const diff = (Date.now() - new Date(d)) / 1000;
+  if (diff < 60) return 'עכשיו';
+  if (diff < 3600) return `לפני ${Math.floor(diff/60)} דקות`;
+  if (diff < 86400) return `לפני ${Math.floor(diff/3600)} שעות`;
+  return `לפני ${Math.floor(diff/86400)} ימים`;
+}
+
+function statusHe(s) {
+  return { confirmed:'מאושר', pending:'ממתין', cancelled:'בוטל' }[s] || s;
+}
+
+function fileIcon(type) {
+  return { pdf:'📄', docx:'📝', xlsx:'📊', jpg:'🖼', png:'🖼' }[type] || '📎';
+}
+
+function showErr(el, msg) { el.style.display = 'block'; el.textContent = '⚠ ' + msg; }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function translateError(msg) {
+  const map = {
+    'Invalid login credentials': 'אימייל או סיסמה שגויים',
+    'Email not confirmed': 'נא לאשר את האימייל שלך',
+    'User already registered': 'משתמש עם אימייל זה כבר קיים',
+    'Password should be at least 6 characters': 'הסיסמה חייבת להיות לפחות 6 תווים',
+    'Email rate limit exceeded': 'יותר מדי ניסיונות. נסה שוב מאוחר יותר',
+  };
+  for (const [k,v] of Object.entries(map)) { if (msg.includes(k)) return v; }
+  return msg;
+}
+
+// Close notifications on outside click
+document.addEventListener('click', e => {
+  const panel = document.getElementById('notif-panel');
+  if (!panel.contains(e.target) && !e.target.closest('.notif-btn')) {
+    panel.classList.remove('open');
+  }
+});
+
+// ===== START =====
+init();
+</script>
+</body>
+</html>
