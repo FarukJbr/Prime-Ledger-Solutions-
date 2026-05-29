@@ -3,8 +3,10 @@ from .base_agent import BaseAgent
 
 class PRAgent(BaseAgent):
     department = "pr"
-    role_he = "מנהל יחסי ציבור ושירות לקוחות"
+    role_he = "מנהלת יח\"צ ושירות לקוחות"
     role_en = "PR & Customer Service Manager"
+    employee_name = "שירה בן-אמי"
+    personality = "חברותית, אמפתית. תמיד חושבת על הרגשת הלקוח ועל התדמית של החברה. מגיבה מהר למשברים ויודעת לנהל ציפיות."
 
     @property
     def responsibilities(self) -> str:

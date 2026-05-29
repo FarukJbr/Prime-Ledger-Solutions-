@@ -210,5 +210,168 @@ class DatabaseClient:
         )
         return result.data[0]
 
+    # ─── BOARD MEMBERS ───────────────────────────────────────────────────────
+
+    def get_board_members(self) -> list:
+        try:
+            result = (
+                self.client.table("board_members")
+                .select("*")
+                .order("created_at")
+                .execute()
+            )
+            return result.data
+        except Exception:
+            return []
+
+    # ─── DEPARTMENTS ─────────────────────────────────────────────────────────
+
+    def get_departments(self) -> list:
+        try:
+            result = (
+                self.client.table("departments")
+                .select("*")
+                .order("code")
+                .execute()
+            )
+            return result.data
+        except Exception:
+            return []
+
+    # ─── EMPLOYEES ───────────────────────────────────────────────────────────
+
+    def get_employees(self, department: str = None) -> list:
+        try:
+            query = self.client.table("employees").select("*")
+            if department:
+                query = query.eq("department_code", department)
+            result = query.order("is_manager", desc=True).order("name").execute()
+            return result.data
+        except Exception:
+            return []
+
+    # ─── DISCUSSIONS ─────────────────────────────────────────────────────────
+
+    def get_discussions(self, limit: int = 50) -> list:
+        try:
+            result = (
+                self.client.table("discussions")
+                .select("*")
+                .order("updated_at", desc=True)
+                .limit(limit)
+                .execute()
+            )
+            return result.data
+        except Exception:
+            return []
+
+    def create_discussion(self, title: str, discussion_type: str = "team",
+                          task_id: str = None, participants: list = None) -> dict:
+        data = {
+            "title": title,
+            "discussion_type": discussion_type,
+            "participants": participants or [],
+            "messages": [],
+            "status": "active"
+        }
+        if task_id:
+            data["task_id"] = task_id
+        result = self.client.table("discussions").insert(data).execute()
+        return result.data[0]
+
+    def add_discussion_message(self, discussion_id: str, sender: str,
+                                message: str, role: str = "") -> dict:
+        discussion = (
+            self.client.table("discussions")
+            .select("messages")
+            .eq("id", discussion_id)
+            .single()
+            .execute()
+        )
+        messages = discussion.data.get("messages", []) or []
+        messages.append({
+            "sender": sender,
+            "role": role,
+            "message": message,
+            "timestamp": datetime.utcnow().isoformat()
+        })
+        result = (
+            self.client.table("discussions")
+            .update({"messages": messages})
+            .eq("id", discussion_id)
+            .execute()
+        )
+        return result.data[0]
+
+    # ─── ACTIVITIES ──────────────────────────────────────────────────────────
+
+    def get_activities(self, limit: int = 50, department: str = None) -> list:
+        try:
+            query = (
+                self.client.table("activities")
+                .select("*")
+                .order("created_at", desc=True)
+                .limit(limit)
+            )
+            if department:
+                query = query.eq("department", department)
+            result = query.execute()
+            return result.data
+        except Exception:
+            return []
+
+    def log_activity(self, activity_type: str, title: str,
+                     description: str = None, department: str = None,
+                     employee_name: str = None, task_id: str = None,
+                     deliverable_id: str = None, meeting_id: str = None,
+                     metadata: dict = None) -> dict:
+        try:
+            data = {
+                "activity_type": activity_type,
+                "title": title,
+                "description": description,
+                "department": department,
+                "employee_name": employee_name,
+                "metadata": metadata or {}
+            }
+            if task_id:
+                data["task_id"] = task_id
+            if deliverable_id:
+                data["deliverable_id"] = deliverable_id
+            if meeting_id:
+                data["meeting_id"] = meeting_id
+            result = self.client.table("activities").insert(data).execute()
+            return result.data[0]
+        except Exception as e:
+            return {}
+
+    def get_meetings(self, limit: int = 20) -> list:
+        try:
+            result = (
+                self.client.table("meetings")
+                .select("*")
+                .order("created_at", desc=True)
+                .limit(limit)
+                .execute()
+            )
+            return result.data
+        except Exception:
+            return []
+
+    def get_all_deliverables(self, status: str = None, limit: int = 50) -> list:
+        try:
+            query = (
+                self.client.table("deliverables")
+                .select("*, tasks(title, assigned_to, priority)")
+                .order("created_at", desc=True)
+                .limit(limit)
+            )
+            if status:
+                query = query.eq("status", status)
+            result = query.execute()
+            return result.data
+        except Exception:
+            return []
+
 
 db = DatabaseClient()

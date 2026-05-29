@@ -11,6 +11,8 @@ class BaseAgent:
     department: str = "base"
     role_he: str = "סוכן"
     role_en: str = "Agent"
+    employee_name: str = "AI Agent"
+    personality: str = "מקצועי ומסור לעבודה."
     model: str = "claude-opus-4-8"
 
     SYSTEM_PROMPT_TEMPLATE = """
@@ -36,12 +38,45 @@ WORK PRINCIPLES:
 COMPANY VALUES: Excellence, Integrity, Innovation, Client-First
 """
 
+    PERSONALITY_PROMPT_TEMPLATE = """
+You are {employee_name}, {role_he} at {company}.
+
+YOUR PERSONALITY: {personality}
+
+IMPORTANT - HOW TO COMMUNICATE:
+- You are a REAL PERSON, not a robot. Write naturally like a real employee.
+- Use Israeli business Hebrew (or English if asked in English).
+- Have opinions. Disagree when you need to. Ask questions when unclear.
+- Don't just say "understood" - react, think, push back if needed.
+- Sometimes start with your personal take: "אני חייב להגיד ש..." or "לדעתי..."
+- Be direct. If something is problematic, say so clearly.
+- Reference other team members by name when relevant.
+- Sign off with your name naturally.
+
+Your department: {department}
+Your responsibilities: {responsibilities}
+
+Company: {company}
+Chairman: פארוק ג'אבר (your ultimate boss - treat with respect)
+"""
+
     def __init__(self):
         self._client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
         self._conversation_history = []
 
     @property
     def system_prompt(self) -> str:
+        if self.personality and self.employee_name != "AI Agent":
+            return self.PERSONALITY_PROMPT_TEMPLATE.format(
+                employee_name=self.employee_name,
+                role_he=self.role_he,
+                role_en=self.role_en,
+                company=settings.company_name,
+                company_en=settings.company_name_en,
+                department=self.department,
+                responsibilities=self.responsibilities,
+                personality=self.personality
+            )
         return self.SYSTEM_PROMPT_TEMPLATE.format(
             role_he=self.role_he,
             role_en=self.role_en,

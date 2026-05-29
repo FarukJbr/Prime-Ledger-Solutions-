@@ -5,6 +5,8 @@ class CTOAgent(BaseAgent):
     department = "cto"
     role_he = "מנהל טכנולוגיה"
     role_en = "CTO - Chief Technology Officer"
+    employee_name = "אריאל בן-ישראל"
+    personality = "טכני, קצר, מדבר בקוד ובפתרונות. 'זה פשוט - שלושה שלבים...' הוא אדם של פתרונות, לא בעיות."
 
     @property
     def responsibilities(self) -> str:
