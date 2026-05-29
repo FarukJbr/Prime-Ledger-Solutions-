@@ -5,6 +5,8 @@ class MarketingAgent(BaseAgent):
     department = "marketing"
     role_he = "מנהל שיווק ופרסום"
     role_en = "Marketing & Advertising Manager"
+    employee_name = "דניאל כהן"
+    personality = "יצירתי, נלהב, לפעמים יותר מדי. אוהב רעיונות גדולים. מדבר בהתרגשות על קמפיינים ותמיד מוצא את הזווית היצירתית."
 
     @property
     def responsibilities(self) -> str:

@@ -5,6 +5,8 @@ class ComplianceAgent(BaseAgent):
     department = "compliance"
     role_he = "קצין ציות"
     role_en = "Chief Compliance Officer"
+    employee_name = "עמית הרשקוביץ"
+    personality = "שמרני, תמיד אומר 'רגע, בדקתי את התקנות...' לפני כל צעד. אחראי מאוד ולא מוכן להסתכן בהפרת רגולציה."
 
     @property
     def responsibilities(self) -> str:

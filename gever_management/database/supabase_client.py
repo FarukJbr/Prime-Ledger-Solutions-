@@ -6,10 +6,19 @@ from datetime import datetime
 
 class DatabaseClient:
     def __init__(self):
-        self._client: Client = create_client(
-            settings.supabase_url,
-            settings.supabase_service_key
-        )
+        self._client: Client = None
+
+    def _get_client(self) -> Client:
+        if self._client is None:
+            self._client = create_client(
+                settings.supabase_url,
+                settings.supabase_service_key
+            )
+        return self._client
+
+    @property
+    def client(self) -> Client:
+        return self._get_client()
 
     # ─── TASKS ───────────────────────────────────────────────────────────────
 
@@ -25,12 +34,12 @@ class DatabaseClient:
             "metadata": metadata or {},
             "status": "pending"
         }
-        result = self._client.table("tasks").insert(data).execute()
+        result = self.client.table("tasks").insert(data).execute()
         return result.data[0]
 
     def update_task_status(self, task_id: str, status: str) -> dict:
         result = (
-            self._client.table("tasks")
+            self.client.table("tasks")
             .update({"status": status})
             .eq("id", task_id)
             .execute()
@@ -39,7 +48,7 @@ class DatabaseClient:
 
     def get_task(self, task_id: str) -> dict:
         result = (
-            self._client.table("tasks")
+            self.client.table("tasks")
             .select("*")
             .eq("id", task_id)
             .single()
@@ -49,7 +58,7 @@ class DatabaseClient:
 
     def get_tasks_by_status(self, status: str) -> list:
         result = (
-            self._client.table("tasks")
+            self.client.table("tasks")
             .select("*")
             .eq("status", status)
             .order("created_at", desc=True)
@@ -69,7 +78,7 @@ class DatabaseClient:
             "content_type": content_type,
             "status": "pending_review"
         }
-        result = self._client.table("deliverables").insert(data).execute()
+        result = self.client.table("deliverables").insert(data).execute()
         return result.data[0]
 
     def update_deliverable_status(self, deliverable_id: str, status: str,
@@ -78,7 +87,7 @@ class DatabaseClient:
         if feedback:
             update_data["chairman_feedback"] = feedback
         result = (
-            self._client.table("deliverables")
+            self.client.table("deliverables")
             .update(update_data)
             .eq("id", deliverable_id)
             .execute()
@@ -87,7 +96,7 @@ class DatabaseClient:
 
     def get_deliverables_for_task(self, task_id: str) -> list:
         result = (
-            self._client.table("deliverables")
+            self.client.table("deliverables")
             .select("*")
             .eq("task_id", task_id)
             .order("created_at", desc=True)
@@ -97,7 +106,7 @@ class DatabaseClient:
 
     def get_pending_review(self) -> list:
         result = (
-            self._client.table("deliverables")
+            self.client.table("deliverables")
             .select("*, tasks(title, assigned_to)")
             .eq("status", "pending_review")
             .order("created_at", desc=True)
@@ -116,13 +125,13 @@ class DatabaseClient:
             "agenda": agenda,
             "status": "in_progress"
         }
-        result = self._client.table("meetings").insert(data).execute()
+        result = self.client.table("meetings").insert(data).execute()
         return result.data[0]
 
     def update_meeting(self, meeting_id: str, transcript: list,
                        decisions: list, action_items: list) -> dict:
         result = (
-            self._client.table("meetings")
+            self.client.table("meetings")
             .update({
                 "transcript": transcript,
                 "decisions": decisions,
@@ -147,7 +156,7 @@ class DatabaseClient:
             "message": message,
             "message_type": message_type
         }
-        result = self._client.table("agent_messages").insert(data).execute()
+        result = self.client.table("agent_messages").insert(data).execute()
         return result.data[0]
 
     # ─── CHAIRMAN INSTRUCTIONS ───────────────────────────────────────────────
@@ -155,7 +164,7 @@ class DatabaseClient:
     def save_instruction(self, instruction: str, language: str = "he") -> dict:
         data = {"instruction": instruction, "language": language}
         result = (
-            self._client.table("chairman_instructions")
+            self.client.table("chairman_instructions")
             .insert(data)
             .execute()
         )
@@ -164,7 +173,7 @@ class DatabaseClient:
     def mark_instruction_processed(self, instruction_id: str,
                                     task_id: str) -> dict:
         result = (
-            self._client.table("chairman_instructions")
+            self.client.table("chairman_instructions")
             .update({"processed": True, "task_id": task_id})
             .eq("id", instruction_id)
             .execute()
@@ -184,13 +193,13 @@ class DatabaseClient:
             "scheduled_at": scheduled_at,
             "status": "scheduled"
         }
-        result = self._client.table("publications").insert(data).execute()
+        result = self.client.table("publications").insert(data).execute()
         return result.data[0]
 
     def mark_published(self, publication_id: str,
                        platform_post_id: str = None) -> dict:
         result = (
-            self._client.table("publications")
+            self.client.table("publications")
             .update({
                 "status": "published",
                 "published_at": datetime.utcnow().isoformat(),
@@ -200,6 +209,169 @@ class DatabaseClient:
             .execute()
         )
         return result.data[0]
+
+    # ─── BOARD MEMBERS ───────────────────────────────────────────────────────
+
+    def get_board_members(self) -> list:
+        try:
+            result = (
+                self.client.table("board_members")
+                .select("*")
+                .order("created_at")
+                .execute()
+            )
+            return result.data
+        except Exception:
+            return []
+
+    # ─── DEPARTMENTS ─────────────────────────────────────────────────────────
+
+    def get_departments(self) -> list:
+        try:
+            result = (
+                self.client.table("departments")
+                .select("*")
+                .order("code")
+                .execute()
+            )
+            return result.data
+        except Exception:
+            return []
+
+    # ─── EMPLOYEES ───────────────────────────────────────────────────────────
+
+    def get_employees(self, department: str = None) -> list:
+        try:
+            query = self.client.table("employees").select("*")
+            if department:
+                query = query.eq("department_code", department)
+            result = query.order("is_manager", desc=True).order("name").execute()
+            return result.data
+        except Exception:
+            return []
+
+    # ─── DISCUSSIONS ─────────────────────────────────────────────────────────
+
+    def get_discussions(self, limit: int = 50) -> list:
+        try:
+            result = (
+                self.client.table("discussions")
+                .select("*")
+                .order("updated_at", desc=True)
+                .limit(limit)
+                .execute()
+            )
+            return result.data
+        except Exception:
+            return []
+
+    def create_discussion(self, title: str, discussion_type: str = "team",
+                          task_id: str = None, participants: list = None) -> dict:
+        data = {
+            "title": title,
+            "discussion_type": discussion_type,
+            "participants": participants or [],
+            "messages": [],
+            "status": "active"
+        }
+        if task_id:
+            data["task_id"] = task_id
+        result = self.client.table("discussions").insert(data).execute()
+        return result.data[0]
+
+    def add_discussion_message(self, discussion_id: str, sender: str,
+                                message: str, role: str = "") -> dict:
+        discussion = (
+            self.client.table("discussions")
+            .select("messages")
+            .eq("id", discussion_id)
+            .single()
+            .execute()
+        )
+        messages = discussion.data.get("messages", []) or []
+        messages.append({
+            "sender": sender,
+            "role": role,
+            "message": message,
+            "timestamp": datetime.utcnow().isoformat()
+        })
+        result = (
+            self.client.table("discussions")
+            .update({"messages": messages})
+            .eq("id", discussion_id)
+            .execute()
+        )
+        return result.data[0]
+
+    # ─── ACTIVITIES ──────────────────────────────────────────────────────────
+
+    def get_activities(self, limit: int = 50, department: str = None) -> list:
+        try:
+            query = (
+                self.client.table("activities")
+                .select("*")
+                .order("created_at", desc=True)
+                .limit(limit)
+            )
+            if department:
+                query = query.eq("department", department)
+            result = query.execute()
+            return result.data
+        except Exception:
+            return []
+
+    def log_activity(self, activity_type: str, title: str,
+                     description: str = None, department: str = None,
+                     employee_name: str = None, task_id: str = None,
+                     deliverable_id: str = None, meeting_id: str = None,
+                     metadata: dict = None) -> dict:
+        try:
+            data = {
+                "activity_type": activity_type,
+                "title": title,
+                "description": description,
+                "department": department,
+                "employee_name": employee_name,
+                "metadata": metadata or {}
+            }
+            if task_id:
+                data["task_id"] = task_id
+            if deliverable_id:
+                data["deliverable_id"] = deliverable_id
+            if meeting_id:
+                data["meeting_id"] = meeting_id
+            result = self.client.table("activities").insert(data).execute()
+            return result.data[0]
+        except Exception as e:
+            return {}
+
+    def get_meetings(self, limit: int = 20) -> list:
+        try:
+            result = (
+                self.client.table("meetings")
+                .select("*")
+                .order("created_at", desc=True)
+                .limit(limit)
+                .execute()
+            )
+            return result.data
+        except Exception:
+            return []
+
+    def get_all_deliverables(self, status: str = None, limit: int = 50) -> list:
+        try:
+            query = (
+                self.client.table("deliverables")
+                .select("*, tasks(title, assigned_to, priority)")
+                .order("created_at", desc=True)
+                .limit(limit)
+            )
+            if status:
+                query = query.eq("status", status)
+            result = query.execute()
+            return result.data
+        except Exception:
+            return []
 
 
 db = DatabaseClient()

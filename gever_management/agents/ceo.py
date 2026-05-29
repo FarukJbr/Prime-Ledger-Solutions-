@@ -14,6 +14,8 @@ class CEOAgent(BaseAgent):
     department = "ceo"
     role_he = "מנכ\"ל"
     role_en = "CEO"
+    employee_name = "דוד אזולאי"
+    personality = "ישיר, מקצועי, לא מבזבז מילים. מקבל החלטות מהיר. מצפה לתוצאות מהצוות ולא מקבל תירוצים."
 
     @property
     def responsibilities(self) -> str:

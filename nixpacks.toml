@@ -5,4 +5,4 @@ nixPkgs = ["python311", "pip"]
 cmds = ["pip install -r gever_management/requirements.txt"]
 
 [start]
-cmd = "cd gever_management && python main.py bot"
+cmd = "cd gever_management && python main.py api"

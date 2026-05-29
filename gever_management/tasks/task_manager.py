@@ -43,6 +43,17 @@ class TaskManager:
             depts = ", ".join(plan["departments_needed"])
             on_progress(f"📋 Delegating to: {depts}")
 
+        # Log task creation activity
+        db.log_activity(
+            activity_type="task_created",
+            title=f"משימה חדשה: {plan['task_title']}",
+            description=plan.get("task_description", ""),
+            department="ceo",
+            employee_name="דוד אזולאי",
+            task_id=task_id,
+            metadata={"departments": plan["departments_needed"]}
+        )
+
         results = {}
         for department in plan["departments_needed"]:
             agent = self._get_agent(department)
@@ -65,6 +76,16 @@ class TaskManager:
                     message="Task completed successfully",
                     message_type="report"
                 )
+                # Log activity for each department completing their work
+                employee_name = getattr(agent, "employee_name", department)
+                db.log_activity(
+                    activity_type="deliverable_submitted",
+                    title=f"תוצר הוגש: {plan['task_title']}",
+                    description=f"המחלקה {department} השלימה את העבודה",
+                    department=department,
+                    employee_name=employee_name,
+                    task_id=task_id
+                )
             except Exception as e:
                 logger.error(f"Error in {department}: {e}")
                 results[department] = f"Error: {str(e)}"
@@ -84,6 +105,17 @@ class TaskManager:
 
         db.update_task_status(task_id, "review")
 
+        # Log task completed activity
+        db.log_activity(
+            activity_type="task_completed",
+            title=f"משימה הושלמה: {plan['task_title']}",
+            description="כל המחלקות השלימו את עבודתן. המשימה ממתינה לאישור יו\"ר.",
+            department="ceo",
+            employee_name="דוד אזולאי",
+            task_id=task_id,
+            metadata={"departments": plan["departments_needed"]}
+        )
+
         return {
             "task_id": task_id,
             "task_title": task["title"],
@@ -94,15 +126,33 @@ class TaskManager:
 
     def approve_deliverable(self, deliverable_id: str,
                              feedback: str = None) -> dict:
-        return db.update_deliverable_status(
+        result = db.update_deliverable_status(
             deliverable_id, "approved", feedback
         )
+        db.log_activity(
+            activity_type="deliverable_approved",
+            title="תוצר אושר על ידי יו\"ר",
+            description=feedback or "היו\"ר אישר את התוצר",
+            employee_name="פארוק ג'אבר",
+            deliverable_id=deliverable_id,
+            metadata={"feedback": feedback}
+        )
+        return result
 
     def reject_deliverable(self, deliverable_id: str,
                             feedback: str) -> dict:
-        return db.update_deliverable_status(
+        result = db.update_deliverable_status(
             deliverable_id, "rejected", feedback
         )
+        db.log_activity(
+            activity_type="deliverable_submitted",
+            title="תוצר נדחה על ידי יו\"ר",
+            description=feedback,
+            employee_name="פארוק ג'אבר",
+            deliverable_id=deliverable_id,
+            metadata={"feedback": feedback, "action": "rejected"}
+        )
+        return result
 
     def request_revision(self, deliverable_id: str,
                           feedback: str) -> str:

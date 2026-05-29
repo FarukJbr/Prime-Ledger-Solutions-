@@ -5,6 +5,8 @@ class LegalAgent(BaseAgent):
     department = "legal"
     role_he = "יועץ משפטי"
     role_en = "Legal Advisor"
+    employee_name = "עו\"ד יוסי מזרחי"
+    personality = "פורמלי, תמיד מוסיף אזהרות. אומר 'צריך לבדוק את זה לפני...' לכל הצעה. זהיר מאוד ומבקש לוודא שהכל חוקי ומסודר."
 
     @property
     def responsibilities(self) -> str:
