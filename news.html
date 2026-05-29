@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>חדשות ועדכונים | Prime Ledger Solutions</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0A1628;--navy-mid:#112240;--navy-light:#1E3A5F;
+  --gold:#C9A84C;--gold-light:#E8C870;
+  --white:#fff;--gray-100:#F8F9FA;--gray-200:#E9ECEF;
+  --gray-400:#9CA3AF;--gray-600:#6B7280;
+  --green:#10B981;--red:#EF4444;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Assistant',sans-serif;background:var(--gray-100);color:var(--navy);direction:rtl;}
+
+/* NAVBAR */
+.navbar{position:fixed;top:0;left:0;right:0;z-index:100;height:66px;background:rgba(10,22,40,.96);backdrop-filter:blur(12px);border-bottom:1px solid rgba(201,168,76,.15);display:flex;align-items:center;justify-content:space-between;padding:0 5vw;}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Heebo';font-size:14px;font-weight:900;color:var(--navy);}
+.nav-logo-text{font-family:'Heebo';font-size:15px;font-weight:900;color:var(--white);}
+.nav-logo-text span{color:var(--gold);}
+.nav-links{display:flex;align-items:center;gap:6px;}
+.nav-link{color:rgba(255,255,255,.7);text-decoration:none;font-size:13px;font-weight:500;padding:7px 13px;border-radius:8px;transition:all .2s;}
+.nav-link:hover{color:var(--white);background:rgba(255,255,255,.06);}
+.nav-link.active{color:var(--gold);font-weight:700;}
+.nav-btn{padding:8px 18px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;font-family:'Assistant';}
+.nav-burger{display:none;background:none;border:none;color:var(--white);font-size:22px;cursor:pointer;padding:4px;}
+
+/* HERO */
+.hero{padding:130px 5vw 80px;background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);position:relative;overflow:hidden;text-align:center;}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.1) 0%,transparent 65%);pointer-events:none;}
+.hero::after{content:'';position:absolute;bottom:-60px;left:-60px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.07) 0%,transparent 65%);pointer-events:none;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);color:var(--gold);padding:5px 16px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:20px;}
+.hero-title{font-family:'Heebo';font-size:clamp(30px,5vw,50px);font-weight:900;color:var(--white);margin-bottom:16px;line-height:1.2;}
+.hero-sub{font-size:clamp(14px,2vw,17px);color:rgba(255,255,255,.6);max-width:560px;margin:0 auto 30px;line-height:1.7;}
+.hero-stats{display:flex;justify-content:center;gap:40px;padding-top:30px;border-top:1px solid rgba(255,255,255,.08);flex-wrap:wrap;}
+.hs{text-align:center;}
+.hs-v{font-family:'Heebo';font-size:26px;font-weight:900;color:var(--gold);}
+.hs-l{font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+
+/* FILTER BAR */
+.filter-bar{background:var(--white);border-bottom:1px solid var(--gray-200);padding:14px 5vw;position:sticky;top:66px;z-index:50;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.filter-bar-label{font-size:12px;font-weight:700;color:var(--gray-400);margin-left:6px;}
+.filter-btn{padding:7px 16px;border-radius:20px;border:1.5px solid var(--gray-200);background:transparent;color:var(--gray-600);cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;font-family:'Assistant';}
+.filter-btn:hover{border-color:var(--gold);color:var(--gold);}
+.filter-btn.active{background:var(--navy);border-color:var(--navy);color:var(--white);}
+
+/* MAIN CONTENT */
+.container{max-width:1200px;margin:0 auto;padding:50px 5vw 80px;}
+
+/* FEATURED ARTICLE */
+.featured{background:var(--white);border-radius:18px;overflow:hidden;margin-bottom:40px;display:grid;grid-template-columns:1fr 1fr;box-shadow:0 4px 30px rgba(0,0,0,.07);border:1px solid var(--gray-200);}
+.featured-img{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);display:flex;align-items:center;justify-content:center;font-size:80px;min-height:280px;}
+.featured-body{padding:36px 32px;display:flex;flex-direction:column;justify-content:center;}
+.featured-label{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
+.featured-title{font-family:'Heebo';font-size:22px;font-weight:900;color:var(--navy);margin-bottom:12px;line-height:1.4;}
+.featured-excerpt{font-size:14px;color:var(--gray-600);line-height:1.8;margin-bottom:20px;}
+.featured-meta{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--gray-400);margin-bottom:20px;flex-wrap:wrap;}
+
+/* ARTICLES GRID */
+.articles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px;}
+.article-card{background:var(--white);border-radius:16px;overflow:hidden;border:1px solid var(--gray-200);transition:all .25s;cursor:pointer;}
+.article-card:hover{transform:translateY(-5px);box-shadow:0 12px 40px rgba(0,0,0,.12);border-color:rgba(201,168,76,.3);}
+.article-card.hidden{display:none;}
+.card-img{height:160px;display:flex;align-items:center;justify-content:center;font-size:56px;background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);}
+.card-body{padding:22px;}
+.card-category{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:10px;}
+.cat-tax{background:rgba(239,68,68,.1);color:var(--red);}
+.cat-vat{background:rgba(59,130,246,.1);color:#3B82F6;}
+.cat-salary{background:rgba(139,92,246,.1);color:#8B5CF6;}
+.cat-business{background:rgba(16,185,129,.1);color:var(--green);}
+.cat-reg{background:rgba(245,158,11,.1);color:#F59E0B;}
+.cat-general{background:rgba(10,22,40,.08);color:var(--navy);}
+.card-title{font-family:'Heebo';font-size:16px;font-weight:800;color:var(--navy);margin-bottom:9px;line-height:1.4;}
+.card-excerpt{font-size:13px;color:var(--gray-600);line-height:1.7;margin-bottom:16px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.card-meta{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--gray-400);margin-bottom:14px;flex-wrap:wrap;gap:6px;}
+.card-meta-item{display:flex;align-items:center;gap:4px;}
+.read-more{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Assistant';transition:all .2s;text-decoration:none;}
+.read-more:hover{box-shadow:0 3px 12px rgba(201,168,76,.35);transform:translateY(-1px);}
+
+/* SECTION TITLE */
+.section-title{font-family:'Heebo';font-size:20px;font-weight:900;color:var(--navy);margin-bottom:24px;display:flex;align-items:center;gap:10px;}
+.section-title::after{content:'';flex:1;height:2px;background:var(--gray-200);}
+
+/* NO RESULTS */
+.no-results{text-align:center;padding:60px 20px;color:var(--gray-400);display:none;}
+.no-results-icon{font-size:48px;margin-bottom:12px;}
+.no-results-text{font-size:16px;font-weight:600;}
+
+/* NEWSLETTER */
+.newsletter{background:linear-gradient(135deg,var(--navy),var(--navy-light));padding:70px 5vw;position:relative;overflow:hidden;}
+.newsletter::before{content:'';position:absolute;top:-60px;right:-60px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.1) 0%,transparent 65%);pointer-events:none;}
+.nl-inner{max-width:600px;margin:0 auto;text-align:center;position:relative;}
+.nl-title{font-family:'Heebo';font-size:clamp(22px,4vw,32px);font-weight:900;color:var(--white);margin-bottom:10px;}
+.nl-sub{font-size:15px;color:rgba(255,255,255,.55);margin-bottom:30px;line-height:1.7;}
+.nl-form{display:flex;gap:10px;max-width:460px;margin:0 auto;}
+.nl-input{flex:1;padding:13px 16px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);border-radius:10px;font-size:14px;font-family:'Assistant';color:var(--white);outline:none;transition:border-color .2s;}
+.nl-input::placeholder{color:rgba(255,255,255,.35);}
+.nl-input:focus{border-color:var(--gold);}
+.nl-btn{padding:13px 22px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Assistant';white-space:nowrap;transition:all .2s;}
+.nl-btn:hover{box-shadow:0 4px 16px rgba(201,168,76,.4);transform:translateY(-1px);}
+.nl-ok{display:none;font-size:14px;color:var(--gold);font-weight:700;margin-top:14px;}
+.nl-privacy{font-size:11px;color:rgba(255,255,255,.3);margin-top:14px;}
+
+/* FOOTER */
+.footer{background:var(--navy);padding:30px 5vw;text-align:center;border-top:1px solid rgba(201,168,76,.12);}
+.footer-text{font-size:13px;color:rgba(255,255,255,.35);}
+.footer-text a{color:var(--gold);text-decoration:none;}
+.footer-text a:hover{text-decoration:underline;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--navy);color:var(--white);padding:10px 22px;border-radius:9px;font-size:13px;font-weight:600;z-index:400;transition:transform .3s;border:1px solid rgba(201,168,76,.3);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* MOBILE */
+@media(max-width:768px){
+  .nav-links{display:none;}
+  .nav-links.open{display:flex;flex-direction:column;position:fixed;top:66px;left:0;right:0;background:var(--navy);padding:16px;gap:4px;border-bottom:1px solid rgba(201,168,76,.15);}
+  .nav-burger{display:block;}
+  .featured{grid-template-columns:1fr;}
+  .featured-img{min-height:180px;}
+  .hero-stats{gap:24px;}
+  .nl-form{flex-direction:column;}
+}
+@media(max-width:500px){
+  .articles-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="website.html" class="nav-logo">
+    <div class="nav-logo-icon">PL</div>
+    <span class="nav-logo-text">Prime <span>Ledger</span> Solutions</span>
+  </a>
+  <div class="nav-links" id="nav-links">
+    <a href="website.html" class="nav-link">ראשי</a>
+    <a href="news.html" class="nav-link active">חדשות</a>
+    <a href="website.html#contact" class="nav-link">צור קשר</a>
+    <a href="portal.html" class="nav-btn">כניסה לפורטל →</a>
+  </div>
+  <button class="nav-burger" onclick="toggleNav()" id="burger">☰</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">📰 עדכונים שוטפים</div>
+  <h1 class="hero-title">עדכונים ומאמרים מקצועיים</h1>
+  <p class="hero-sub">הישארו מעודכנים עם המידע החשוב ביותר בתחומי המס, שכר, מע"מ ויעוץ עסקי — ישירות מהמומחים של Prime Ledger Solutions</p>
+  <div class="hero-stats">
+    <div class="hs"><div class="hs-v">50+</div><div class="hs-l">מאמרים</div></div>
+    <div class="hs"><div class="hs-v">חודשי</div><div class="hs-l">עדכונים</div></div>
+    <div class="hs"><div class="hs-v">2025</div><div class="hs-l">מידע עכשווי</div></div>
+  </div>
+</section>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <span class="filter-bar-label">סנן:</span>
+  <button class="filter-btn active" onclick="filterArticles('all',this)">כל הנושאים</button>
+  <button class="filter-btn" onclick="filterArticles('tax',this)">מס הכנסה</button>
+  <button class="filter-btn" onclick="filterArticles('vat',this)">מע"מ</button>
+  <button class="filter-btn" onclick="filterArticles('salary',this)">שכר</button>
+  <button class="filter-btn" onclick="filterArticles('business',this)">ייעוץ עסקי</button>
+  <button class="filter-btn" onclick="filterArticles('reg',this)">חדשות רגולציה</button>
+</div>
+
+<!-- MAIN -->
+<div class="container">
+
+  <!-- FEATURED -->
+  <div class="featured" data-category="vat">
+    <div class="featured-img">💼</div>
+    <div class="featured-body">
+      <div class="featured-label">מאמר מומלץ · מע"מ</div>
+      <h2 class="featured-title">שינויי מע"מ 2025 — כל מה שעסקים חייבים לדעת</h2>
+      <p class="featured-excerpt">החל מינואר 2025 נכנסו לתוקף שינויים משמעותיים בחוק מע"מ. מאמר זה מסכם את השינויים הרלוונטיים לעסקים קטנים ובינוניים, כולל שיעורי מע"מ מעודכנים, חובות דיווח חדשות, ואופן ההתאמה לתוכנות החשבונאות.</p>
+      <div class="featured-meta">
+        <span class="card-meta-item">📅 15 ינואר 2025</span>
+        <span class="card-meta-item">⏱ 7 דקות קריאה</span>
+        <span class="card-meta-item">✍️ צוות Prime Ledger</span>
+      </div>
+      <a href="#" class="read-more" onclick="showToast('המאמר המלא בקרוב!');return false;">קרא עוד ←</a>
+    </div>
+  </div>
+
+  <div class="section-title">מאמרים ועדכונים אחרונים</div>
+
+  <!-- ARTICLES GRID -->
+  <div class="articles-grid" id="articles-grid">
+
+    <!-- Article 1: ביטוח לאומי עצמאים -->
+    <div class="article-card" data-category="salary">
+      <div class="card-img">🛡️</div>
+      <div class="card-body">
+        <span class="card-category cat-salary">שכר וביטוח</span>
+        <h3 class="card-title">ביטוח לאומי לעצמאים 2025 — מדריך מלא</h3>
+        <p class="card-excerpt">כל עצמאי בישראל חייב לשלם דמי ביטוח לאומי. במאמר זה נסביר איך מחשבים, מתי משלמים ואיך להימנע מקנסות. כולל טבלת מדרגות מעודכנת ודוגמאות חישוב.</p>
+        <div class="card-meta">
+          <span class="card-meta-item">📅 8 פברואר 2025</span>
+          <span class="card-meta-item">⏱ 5 דקות</span>
+        </div>
+        <a href="#" class="read-more" onclick="showToast('המאמר המלא בקרוב!');return false;">קרא עוד ←</a>
+      </div>
+    </div>
+
+    <!-- Article 2: תזרים מזומנים -->
+    <div class="article-card" data-category="business">
+      <div class="card-img">💹</div>
+      <div class="card-body">
+        <span class="card-category cat-business">ייעוץ עסקי</span>
+        <h3 class="card-title">ניהול תזרים מזומנים — 7 טיפים שישנו את העסק שלך</h3>
+        <p class="card-excerpt">תזרים מזומנים שלילי הוא אחת הסיבות העיקריות לקריסת עסקים. במאמר זה נשתף 7 אסטרטגיות מוכחות לניהול תזרים נכון — מתכנון לפורעניות ועד ניצול מסגרות אשראי בחוכמה.</p>
+        <div class="card-meta">
+          <span class="card-meta-item">📅 20 ינואר 2025</span>
+          <span class="card-meta-item">⏱ 6 דקות</span>
+        </div>
+        <a href="#" class="read-more" onclick="showToast('המאמר המלא בקרוב!');return false;">קרא עוד ←</a>
+      </div>
+    </div>
+
+    <!-- Article 3: מס הכנסה חברות -->
+    <div class="article-card" data-category="tax">
+      <div class="card-img">🏢</div>
+      <div class="card-body">
+        <span class="card-category cat-tax">מס הכנסה</span>
+        <h3 class="card-title">מס חברות 2025 — שיעורים, פטורים ואופטימיזציה</h3>
+        <p class="card-excerpt">שיעור מס החברות בישראל עומד על 23%. אך יש מסלולי הטבה, הוצאות מוכרות וניכויים שיכולים להפחית משמעותית את נטל המס החברה שלכם. מאמר מקיף עם דוגמאות מעשיות.</p>
+        <div class="card-meta">
+          <span class="card-meta-item">📅 3 מרץ 2025</span>
+          <span class="card-meta-item">⏱ 8 דקות</span>
+        </div>
+        <a href="#" class="read-more" onclick="showToast('המאמר המלא בקרוב!');return false;">קרא עוד ←</a>
+      </div>
+    </div>
+
+    <!-- Article 4: הוצאות מוכרות -->
+    <div class="article-card" data-category="tax">
+      <div class="card-img">🧾</div>
+      <div class="card-body">
+        <span class="card-category cat-tax">מס הכנסה</span>
+        <h3 class="card-title">הוצאות מוכרות לעסק — רשימה מלאה ומעודכנת</h3>
+        <p class="card-excerpt">האם ידעת שאפשר לנכות הוצאות רכב, טלפון, ביגוד מקצועי ואפילו חלק מהוצאות הבית? מדריך מקיף לכל ההוצאות המוכרות כולל אחוזי ניכוי ותנאים.</p>
+        <div class="card-meta">
+          <span class="card-meta-item">📅 12 פברואר 2025</span>
+          <span class="card-meta-item">⏱ 10 דקות</span>
+        </div>
+        <a href="#" class="read-more" onclick="showToast('המאמר המלא בקרוב!');return false;">קרא עוד ←</a>
+      </div>
+    </div>
+
+    <!-- Article 5: פתיחת עסק -->
+    <div class="article-card" data-category="business">
+      <div class="card-img">🚀</div>
+      <div class="card-body">
+        <span class="card-category cat-business">ייעוץ עסקי</span>
+        <h3 class="card-title">פותחים עסק חדש? המדריך המלא ל-2025</h3>
+        <p class="card-excerpt">פתיחת עסק כוללת עוסק פטור, עוסק מורשה או חברה בע"מ — כל אחד עם יתרונות ומגבלות. מה ההבדלים, מתי כדאי כל מסלול, וכמה זה עולה? הסבר פשוט וברור.</p>
+        <div class="card-meta">
+          <span class="card-meta-item">📅 25 ינואר 2025</span>
+          <span class="card-meta-item">⏱ 9 דקות</span>
+        </div>
+        <a href="#" class="read-more" onclick="showToast('המאמר המלא בקרוב!');return false;">קרא עוד ←</a>
+      </div>
+    </div>
+
+    <!-- Article 6: רגולציה -->
+    <div class="article-card" data-category="reg">
+      <div class="card-img">📋</div>
+      <div class="card-body">
+        <span class="card-category cat-reg">חדשות רגולציה</span>
+        <h3 class="card-title">חשבונית דיגיטלית חובה — מה השתנה ומתי?</h3>
+        <p class="card-excerpt">רשות המסים מקדמת מהפכת החשבונית הדיגיטלית. החל ממועדים ספציפיים, כל עסק יידרש להפיק חשבוניות מס דיגיטליות בפורמט מוגדר. מה שצריך לדעת ואיך להיערך.</p>
+        <div class="card-meta">
+          <span class="card-meta-item">📅 1 מרץ 2025</span>
+          <span class="card-meta-item">⏱ 4 דקות</span>
+        </div>
+        <a href="#" class="read-more" onclick="showToast('המאמר המלא בקרוב!');return false;">קרא עוד ←</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- NO RESULTS -->
+  <div class="no-results" id="no-results">
+    <div class="no-results-icon">🔍</div>
+    <div class="no-results-text">אין מאמרים בקטגוריה זו כרגע</div>
+    <div style="font-size:13px;margin-top:6px;color:var(--gray-400);">נסה קטגוריה אחרת או חזור בקרוב</div>
+  </div>
+
+</div>
+
+<!-- NEWSLETTER -->
+<section class="newsletter">
+  <div class="nl-inner">
+    <div style="font-size:40px;margin-bottom:14px;">📬</div>
+    <h2 class="nl-title">קבל עדכונים למייל שלך</h2>
+    <p class="nl-sub">הצטרף לאלפי בעלי עסקים שמקבלים עדכוני מס, שכר ורגולציה ישירות לתיבת הדואר — בחינם, פעם בחודש</p>
+    <form class="nl-form" onsubmit="subscribeNL(event)">
+      <input type="email" class="nl-input" id="nl-email" placeholder="המייל שלך..." required>
+      <button type="submit" class="nl-btn">הצטרף עכשיו ←</button>
+    </form>
+    <div class="nl-ok" id="nl-ok">✅ נרשמת בהצלחה! נשמח לעדכן אותך.</div>
+    <div class="nl-privacy">אנחנו שונאים ספאם. המייל שלך מאובטח אצלנו.</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-text">
+    © 2025 Prime Ledger Solutions | <a href="website.html">חזרה לאתר הראשי</a> | <a href="portal.html">פורטל לקוחות</a> | info@primesolutionfinance.com
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function toggleNav() {
+  const links = document.getElementById('nav-links');
+  links.classList.toggle('open');
+  document.getElementById('burger').textContent = links.classList.contains('open') ? '✕' : '☰';
+}
+
+function filterArticles(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const cards = document.querySelectorAll('.article-card');
+  const featured = document.querySelector('.featured');
+  let visible = 0;
+  cards.forEach(card => {
+    const cardCat = card.getAttribute('data-category');
+    if (cat === 'all' || cardCat === cat) {
+      card.classList.remove('hidden');
+      visible++;
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+  if (featured) {
+    const featCat = featured.getAttribute('data-category');
+    featured.style.display = (cat === 'all' || featCat === cat) ? '' : 'none';
+  }
+  const noRes = document.getElementById('no-results');
+  noRes.style.display = visible === 0 ? 'block' : 'none';
+}
+
+function subscribeNL(e) {
+  e.preventDefault();
+  const email = document.getElementById('nl-email').value;
+  if (!email) return;
+  document.getElementById('nl-ok').style.display = 'block';
+  document.getElementById('nl-email').value = '';
+  showToast('✓ נרשמת לניוזלטר!');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

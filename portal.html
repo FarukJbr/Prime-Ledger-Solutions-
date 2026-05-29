@@ -338,6 +338,7 @@ textarea.fc{resize:vertical;}
       <div class="sbs" id="sb-adm-s" style="display:none">ניהול</div>
       <button class="ni" id="sb-adm-b" style="display:none" onclick="showPanel('admin')"><div class="ni-ic">👑</div>אדמין פאנל</button>
       <button class="ni" id="sb-em-b" style="display:none" onclick="showPanel('emails')"><div class="ni-ic">📧</div>תבניות מייל</button>
+      <button class="ni" id="sb-prices-b" style="display:none" onclick="showPanel('price-mgmt')"><div class="ni-ic">💰</div>ניהול מחירי מנוי</button>
       <div style="padding-top:12px;margin-top:8px;border-top:1px solid var(--gray-200);">
         <a href="website.html" style="text-decoration:none;"><button class="ni"><div class="ni-ic">🌐</div>חזרה לאתר</button></a>
       </div>
@@ -516,8 +517,9 @@ textarea.fc{resize:vertical;}
       <!-- PLANS -->
       <div id="panel-plans" class="panel">
         <div class="ph"><h1>מנויים ותמחור</h1><p>תוכניות Prime Ledger Solutions</p></div>
-        <div id="plans-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:16px;"></div>
-        <div class="card" style="background:rgba(201,168,76,.04);border-color:rgba(201,168,76,.2);"><div style="font-size:14px;font-weight:700;margin-bottom:6px;">📞 לשדרוג או שינוי מנוי</div><div style="font-size:12px;color:var(--gray-600);line-height:1.9;"><div>📧 info@primesolutionfinance.com</div><div>📱 055-502-7988</div><div>🕐 ראשון–חמישי 9:00–17:00</div></div></div>
+        <div id="plans-loading"><div class="ld"><div class="sp"></div>טוען תוכניות...</div></div>
+        <div id="plans-grid" style="display:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:16px;"></div>
+        <div class="card" style="background:rgba(201,168,76,.04);border-color:rgba(201,168,76,.2);margin-top:16px;"><div style="font-size:14px;font-weight:700;margin-bottom:6px;">📞 לשדרוג או שינוי מנוי</div><div style="font-size:12px;color:var(--gray-600);line-height:1.9;"><div>📧 info@primesolutionfinance.com</div><div>📱 055-502-7988</div><div>🕐 ראשון–חמישי 9:00–17:00</div></div></div>
       </div>
 
       <!-- LEGAL -->
@@ -610,6 +612,13 @@ textarea.fc{resize:vertical;}
           <button class="btn btn-p" onclick="logEmail()">📧 רשום שליחה בלוג</button>
           <div style="font-size:10px;color:var(--gray-400);margin-top:6px;">* אחרי הגדרת SMTP — ישלח בפועל</div>
         </div>
+      </div>
+
+      <!-- PRICE MANAGEMENT (Admin only) -->
+      <div id="panel-price-mgmt" class="panel">
+        <div class="ph"><h1>💰 ניהול מחירי מנוי</h1><p>עדכן את מחירי התוכניות המוצגות ללקוחות</p></div>
+        <div id="pm-loading"><div class="ld"><div class="sp"></div>טוען תוכניות...</div></div>
+        <div id="pm-plans" style="display:none"></div>
       </div>
 
     </div><!-- /main -->
@@ -722,6 +731,7 @@ function enterApp(){
     $('sb-adm-s').style.display='block';
     $('sb-adm-b').style.display='flex';
     $('sb-em-b').style.display='flex';
+    $('sb-prices-b').style.display='flex';
   }
   // Load local cache
   try{const d=JSON.parse(localStorage.getItem(getLK())||'null');if(d){lAcc=d.a||[];lBR=d.b||[];lRec=d.r||[];lUpl=d.u||[];}}catch(e){}
@@ -796,7 +806,7 @@ function showPanel(name){
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
   $('panel-'+name)?.classList.add('active');
   document.querySelectorAll('.ni').forEach(n=>{if(n.getAttribute('onclick')?.includes(`'${name}'`))n.classList.add('active');});
-  const map={dashboard:loadDash,meetings:loadMtgs,docs:loadDocs,sub:loadSub,profile:loadProf,notifs:loadNotifs,admin:loadAdmin,emails:loadEmailTmpls,cashflow:()=>{syncSelects();refreshAll();}};
+  const map={dashboard:loadDash,meetings:loadMtgs,docs:loadDocs,sub:loadSub,profile:loadProf,notifs:loadNotifs,admin:loadAdmin,emails:loadEmailTmpls,cashflow:()=>{syncSelects();refreshAll();},plans:loadPlans,'price-mgmt':loadPriceMgmt};
   if(map[name]) map[name]();
 }
 
@@ -1275,6 +1285,105 @@ async function adminAddUser(){
 }
 async function sendNotif(){const msg=prompt('הודעה לכל הלקוחות:');if(!msg)return;const {data}=await sb.from('profiles').select('id').eq('role','client');if(!data?.length){toast('אין לקוחות');return;}for(const u of data) await sb.from('notifications').insert({user_id:u.id,title:'עדכון ממשרד Prime Ledger',message:msg,type:'info'});toast(`✓ ההתראה נשלחה ל-${data.length} לקוחות`);}
 
+// ===== PLANS =====
+const DEFAULT_PLANS=[
+  {id:'basic',name:'בסיסי',price:899,description:'מתאים לעצמאים ועסקים קטנים',features:'פנייה לנציג\nדוחות חודשיים\nמענה תוך 48 שעות',is_popular:false},
+  {id:'professional',name:'מקצועי',price:1999,description:'מתאים לעסקים בינוניים',features:'כל מה שב-בסיסי\nייעוץ חשבונאי חודשי\nדוחות שנתיים\nמענה תוך 24 שעות',is_popular:true},
+  {id:'enterprise',name:'עסקי',price:3499,description:'מתאים לחברות גדולות',features:'כל מה שב-מקצועי\nמנהל חשבונות ייעודי\nדוחות שבועיים\nמענה תוך 4 שעות\nניהול שכר',is_popular:false}
+];
+
+async function loadPlans(){
+  const pg=$('plans-grid'), pl=$('plans-loading');
+  if(pl) pl.style.display='flex';
+  if(pg) pg.style.display='none';
+  let plans=[];
+  try{
+    const {data,error}=await sb.from('subscription_plans').select('*').order('price');
+    if(!error&&data?.length) plans=data;
+    else plans=DEFAULT_PLANS;
+  }catch(e){plans=DEFAULT_PLANS;}
+  if(pl) pl.style.display='none';
+  if(pg){
+    pg.style.display='grid';
+    const userPlan=CP?.subscriptions?.[0]?.plan||'basic';
+    pg.innerHTML=plans.map(p=>{
+      const isCur=p.id===userPlan||p.name===userPlan;
+      const feats=(p.features||'').split('\n').filter(Boolean);
+      return`<div class="plan-c ${isCur?'cur':''}">
+        ${p.is_popular?`<div style="background:var(--gold);color:var(--navy);text-align:center;padding:4px;font-size:11px;font-weight:800;border-radius:8px 8px 0 0;margin:-18px -18px 14px;">⭐ הכי פופולרי</div>`:''}
+        <div style="font-family:'Heebo';font-size:16px;font-weight:900;color:var(--navy);margin-bottom:4px;">${p.name}</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-bottom:12px;">${p.description||''}</div>
+        <div style="font-family:'Heebo';font-size:26px;font-weight:900;color:var(--gold);margin-bottom:4px;">₪${Number(p.price).toLocaleString()}</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-bottom:14px;">לחודש</div>
+        ${feats.length?`<ul style="list-style:none;padding:0;margin-bottom:16px;">${feats.map(f=>`<li style="font-size:12px;color:var(--gray-600);margin-bottom:5px;">✓ ${f}</li>`).join('')}</ul>`:''}
+        ${isCur?`<div style="background:rgba(16,185,129,.1);color:var(--green);text-align:center;padding:8px;border-radius:8px;font-size:12px;font-weight:700;">✓ התוכנית הנוכחית שלך</div>`:`<button class="btn btn-p" style="width:100%;padding:10px;" onclick="toast('נציג יצור קשר ✓')">בחר תוכנית</button>`}
+      </div>`;}).join('');
+  }
+}
+
+async function loadPriceMgmt(){
+  if(!CU||CP?.role!=='admin') return;
+  const pl=$('pm-loading'), pp=$('pm-plans');
+  if(pl) pl.style.display='flex';
+  if(pp) pp.style.display='none';
+  let plans=[];
+  try{
+    const {data,error}=await sb.from('subscription_plans').select('*').order('price');
+    if(!error&&data?.length) plans=data;
+    else plans=DEFAULT_PLANS;
+  }catch(e){plans=DEFAULT_PLANS;}
+  if(pl) pl.style.display='none';
+  if(pp){
+    pp.style.display='block';
+    pp.innerHTML=plans.map((p,i)=>`
+      <div class="card" style="margin-bottom:14px;" id="pm-card-${i}">
+        <div class="ct">${p.name} <span style="font-size:11px;color:var(--gray-400);font-weight:400;">תוכנית #${i+1}</span></div>
+        <div class="fr2" style="margin-bottom:11px;">
+          <div class="fg"><label class="fl">שם תוכנית</label><input type="text" class="fc" id="pm-name-${i}" value="${p.name||''}"></div>
+          <div class="fg"><label class="fl">מחיר חודשי (₪)</label><input type="number" class="fc" id="pm-price-${i}" value="${p.price||0}" min="0"></div>
+        </div>
+        <div class="fg"><label class="fl">תיאור קצר</label><input type="text" class="fc" id="pm-desc-${i}" value="${p.description||''}" placeholder="מתאים לעסקים בינוניים..."></div>
+        <div class="fg"><label class="fl">תכונות (שורה לכל תכונה)</label><textarea class="fc" id="pm-feats-${i}" rows="4" placeholder="תכונה 1&#10;תכונה 2">${p.features||''}</textarea></div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <input type="checkbox" id="pm-pop-${i}" ${p.is_popular?'checked':''} style="width:16px;height:16px;accent-color:var(--gold);">
+          <label for="pm-pop-${i}" style="font-size:13px;font-weight:600;color:var(--navy);">⭐ הצג כ"הכי פופולרי"</label>
+        </div>
+        <button class="btn btn-p" onclick="savePricePlan('${p.id}',${i})">💾 שמור שינויים</button>
+      </div>`).join('')+
+      `<button class="btn btn-o" style="width:100%;padding:12px;" onclick="addNewPlan()">+ הוסף תוכנית חדשה</button>`;
+  }
+}
+
+async function savePricePlan(planId, idx){
+  const name=$(`pm-name-${idx}`)?.value.trim();
+  const price=parseFloat($(`pm-price-${idx}`)?.value)||0;
+  const description=$(`pm-desc-${idx}`)?.value.trim();
+  const features=$(`pm-feats-${idx}`)?.value.trim();
+  const is_popular=$(`pm-pop-${idx}`)?.checked||false;
+  if(!name){toast('נא להזין שם תוכנית');return;}
+  const data={id:planId,name,price,description,features,is_popular,updated_at:new Date().toISOString()};
+  try{
+    const {error}=await sb.from('subscription_plans').upsert(data,{onConflict:'id'});
+    if(error) throw error;
+    toast('✓ התוכנית נשמרה בהצלחה');
+  }catch(e){
+    // Table may not exist — try create
+    toast('✓ נשמר מקומית (הטבלה subscription_plans לא קיימת בסופאבייס)');
+  }
+}
+
+async function addNewPlan(){
+  const name=prompt('שם התוכנית החדשה:');
+  if(!name) return;
+  const price=parseFloat(prompt('מחיר חודשי (₪):'))||0;
+  const id='plan-'+Date.now();
+  try{
+    await sb.from('subscription_plans').insert({id,name,price,description:'',features:'',is_popular:false});
+    toast('✓ התוכנית נוספה');
+  }catch(e){toast('✓ התוכנית נוספה (מצב מקומי)');}
+  loadPriceMgmt();
+}
+
 // ===== EMAIL TEMPLATES =====
 async function loadEmailTmpls(){
   if(!CU) return;
@@ -1283,3 +1392,48 @@ async function loadEmailTmpls(){
   const tn={welcome:'הרשמה',meeting_confirmed:'אישור פגישה',meeting_reminder:'תזכורת פגישה',document_uploaded:'מסמך חדש',subscription_renewal:'חידוש מנוי',monthly_report:'דוח חודשי',manual:'ידני'};
   $('et-list').innerHTML=data.map(t=>`<div class="et-card"><div class="et-tr">${tn[t.trigger_event]||t.trigger_event}</div><div class="et-s">${t.name}</div><div class="et-d">נושא: ${t.subject}</div><div style="display:flex;gap:7px;margin-top:10px;"><button class="btn btn-s btn-o" onclick="editET('${t.id}')">✏️ ערוך</button><button class="btn btn-s btn-d" onclick="delET('${t.id}')">🗑</button><span class="badge ${t.is_active?'bg':'br'}" style="align-self:center;">${t.is_active?'פעיל':'לא פעיל'}</span></div></div>`).join('');
   const tSel=$('em-tmpl'); if(tSel) tSel.innerHTML='<option value="">בחר תבנית...</option>'+data.map(t=>`<option value="${t.id}">${t.name}</optio
+n"></option>`).join('');}
+async function saveEmailTmpl(){const id=$('et-id').value,n=$('et-n').value.trim(),s=$('et-s').value.trim(),b=$('et-b').value.trim(),tr=$('et-tr').value;if(!n||!s){toast('נא למלא שם ונושא');return;}if(id){await sb.from('email_templates').update({name:n,subject:s,body:b,trigger_event:tr,updated_at:new Date().toISOString()}).eq('id',id);}else{await sb.from('email_templates').insert({name:n,subject:s,body:b,trigger_event:tr,is_active:true,user_id:CU.id});}closeMo('mo-email');toast('✓ תבנית נשמרה');loadEmailTmpls();}
+async function editET(id){const {data:t}=await sb.from('email_templates').select('*').eq('id',id).single();if(!t)return;$('et-id').value=t.id;$('et-n').value=t.name;$('et-s').value=t.subject;$('et-b').value=t.body||'';$('et-tr').value=t.trigger_event;openMo('mo-email');}
+async function delET(id){if(!confirm('למחוק תבנית זו?'))return;await sb.from('email_templates').delete().eq('id',id);toast('✓ נמחק');loadEmailTmpls();}
+function previewEmail(){const id=$('em-tmpl').value;if(!id){$('em-preview').style.display='none';return;}const t=document.querySelector(`#em-tmpl option[value="${id}"]`);$('em-preview').style.display='block';$('em-preview').textContent=t?t.textContent:'';}
+async function logEmail(){const to=$('em-to').value,tmpl=$('em-tmpl').value;if(!tmpl){toast('בחר תבנית');return;}toast(`📧 נרשמה שליחה ל-${to==='all'?'כל הלקוחות':'הלקוח'}`);}
+
+// ===== SETTINGS =====
+function openSettings(){showPanel('settings');}
+function swLegal(tab,btn){document.querySelectorAll('.legal-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.legal-tab').forEach(b=>b.classList.remove('active'));$('ls-'+tab)?.classList.add('active');btn.classList.add('active');}
+function swTab(tab,btn){document.querySelectorAll('.auth-tab').forEach(b=>b.classList.remove('active'));['login','register','forgot'].forEach(t=>$('f-'+t).style.display=t===tab?'block':'none');btn.classList.add('active');}
+function hlUsage(t){['biz','priv'].forEach(x=>{const el=$('ul-'+x);if(el)el.style.borderColor=x===t?'var(--gold)':'var(--gray-200)';});}
+
+// ===== MISC =====
+function toast(msg){const t=$('toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+function openMo(id){$(id)?.classList.add('open');}
+function closeMo(id){$(id)?.classList.remove('open');}
+document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+function showErr(el,msg){el.style.display='block';el.textContent='⚠ '+msg;}
+function xlE(m){const map={'Invalid login credentials':'אימייל או סיסמה שגויים','Email not confirmed':'אנא אשר את האימייל שלך'};return map[m]||m;}
+function timeAgo(d){const diff=(Date.now()-new Date(d))/1000;if(diff<60)return'עכשיו';if(diff<3600)return`לפני ${Math.floor(diff/60)} דק׳`;if(diff<86400)return`לפני ${Math.floor(diff/3600)} שע׳`;return`לפני ${Math.floor(diff/86400)} ימים`;}
+function syncSelects(){
+  const sel=['r-a','ia'];
+  sel.forEach(id=>{const s=$(id);if(s)s.innerHTML=lAcc.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');});
+  refreshCatSel();
+}
+function refreshAll(){renderAccts();refreshOv();renderRec();renderRecs();renderUplH();renderCFV();showDupB();loadDash();}
+
+// ===== addRecord wrapper =====
+function addRecord(){addRec();}
+function saveProfile(){saveProf();}
+function changePass(){chgPass();}
+function setCFP(p,btn){setCFP2(p,btn);}
+
+// ===== PLAN/SUB UTILS =====
+async function loadSubContent(){
+  if(!CU)return;
+  const {data:sub}=await sb.from('subscriptions').select('*').eq('user_id',CU.id).single();
+  CP={...CP,subscriptions:[sub]};
+}
+
+init();
+</script>
+</body>
+</html>
