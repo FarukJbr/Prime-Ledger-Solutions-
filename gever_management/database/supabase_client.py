@@ -250,6 +250,43 @@ class DatabaseClient:
         except Exception:
             return []
 
+    def create_employee(self, name: str, title_he: str, title_en: str,
+                        department_code: str, is_manager: bool = False,
+                        personality: str = "", expertise: str = "") -> dict:
+        data = {
+            "name": name, "title_he": title_he, "title_en": title_en,
+            "department_code": department_code, "is_manager": is_manager,
+            "is_ai": True, "personality": personality, "expertise": expertise,
+        }
+        result = self.client.table("employees").insert(data).execute()
+        return result.data[0]
+
+    def update_employee(self, employee_id: str, **fields) -> dict:
+        allowed = {"name", "title_he", "title_en", "department_code",
+                   "is_manager", "personality", "expertise"}
+        update_data = {k: v for k, v in fields.items() if k in allowed}
+        result = (
+            self.client.table("employees")
+            .update(update_data)
+            .eq("id", employee_id)
+            .execute()
+        )
+        return result.data[0]
+
+    def delete_employee(self, employee_id: str) -> bool:
+        self.client.table("employees").delete().eq("id", employee_id).execute()
+        return True
+
+    def get_employee(self, employee_id: str) -> dict:
+        result = (
+            self.client.table("employees")
+            .select("*")
+            .eq("id", employee_id)
+            .single()
+            .execute()
+        )
+        return result.data
+
     # ─── DISCUSSIONS ─────────────────────────────────────────────────────────
 
     def get_discussions(self, limit: int = 50) -> list:

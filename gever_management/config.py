@@ -39,10 +39,18 @@ class Settings(BaseSettings):
     dashboard_user: str = "chairman"
     dashboard_password: str = "gever2024"
 
-    # Email notifications (Gmail)
-    # Create app password at: https://myaccount.google.com/apppasswords
+    # Email notifications
+    # OPTION 1 (Recommended – no password needed): Resend.com
+    #   Sign up free at resend.com → get API key → add domain or use @resend.dev
+    resend_api_key: str = ""
+    sender_email: str = "notifications@resend.dev"   # or your business email after domain verified
+
+    # OPTION 2 (Gmail fallback): Gmail App Password
+    #   Create at: myaccount.google.com/apppasswords
     gmail_user: str = ""
     gmail_app_password: str = ""
+
+    # Chairman receives all notifications (change to your business email)
     chairman_email: str = "farukjaber34@gmail.com"
 
     class Config:

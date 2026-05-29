@@ -100,6 +100,26 @@ class PublishRequest(BaseModel):
     task_title: Optional[str] = None
 
 
+class EmployeeCreateRequest(BaseModel):
+    name: str
+    title_he: str
+    title_en: str
+    department_code: str
+    is_manager: bool = False
+    personality: Optional[str] = ""
+    expertise: Optional[str] = ""
+
+
+class EmployeeUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    title_he: Optional[str] = None
+    title_en: Optional[str] = None
+    department_code: Optional[str] = None
+    is_manager: Optional[bool] = None
+    personality: Optional[str] = None
+    expertise: Optional[str] = None
+
+
 # ─── TASK ENDPOINTS ──────────────────────────────────────────────────────────
 
 @app.post("/api/tasks/new")
@@ -193,6 +213,57 @@ async def list_departments():
 @app.get("/api/employees")
 async def list_employees(department: Optional[str] = None):
     return db.get_employees(department=department)
+
+
+@app.get("/api/employees/{employee_id}")
+async def get_employee(employee_id: str):
+    return db.get_employee(employee_id)
+
+
+@app.post("/api/employees/new")
+async def create_employee(req: EmployeeCreateRequest,
+                           user: str = Depends(require_auth)):
+    emp = db.create_employee(
+        name=req.name, title_he=req.title_he, title_en=req.title_en,
+        department_code=req.department_code, is_manager=req.is_manager,
+        personality=req.personality or "", expertise=req.expertise or ""
+    )
+    db.log_activity(activity_type="task_created", title=f"עובד חדש גויס: {req.name}",
+                    description=f"מחלקה: {req.department_code}", department=req.department_code,
+                    employee_name=req.name)
+    try:
+        from services.email_service import notify_employee_change
+        notify_employee_change("גיוס עובד חדש", req.name, f"{req.title_he} | {req.department_code}")
+    except Exception:
+        pass
+    return {"success": True, "employee": emp}
+
+
+@app.put("/api/employees/{employee_id}")
+async def update_employee(employee_id: str, req: EmployeeUpdateRequest,
+                           user: str = Depends(require_auth)):
+    fields = {k: v for k, v in req.model_dump().items() if v is not None}
+    emp = db.update_employee(employee_id, **fields)
+    db.log_activity(activity_type="task_created", title=f"פרטי עובד עודכנו: {emp.get('name','')}",
+                    department=emp.get("department_code", ""), employee_name=emp.get("name", ""))
+    return {"success": True, "employee": emp}
+
+
+@app.delete("/api/employees/{employee_id}")
+async def delete_employee(employee_id: str, user: str = Depends(require_auth)):
+    try:
+        emp = db.get_employee(employee_id)
+        db.delete_employee(employee_id)
+        db.log_activity(activity_type="task_created", title=f"עובד הופסק: {emp.get('name','')}",
+                        department=emp.get("department_code", ""), employee_name=emp.get("name", ""))
+        try:
+            from services.email_service import notify_employee_change
+            notify_employee_change("סיום העסקה", emp.get("name", ""), emp.get("title_he", ""))
+        except Exception:
+            pass
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/api/board")
@@ -843,17 +914,35 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
   <!-- DEPARTMENTS TAB -->
   <div class="tab-panel" id="panel-departments">
-    <div class="section-title">🏢 כל המחלקות</div>
 
     <!-- Board Section -->
-    <div class="section-title" style="margin-top:0">👑 דירקטוריון החברה</div>
+    <div class="section-title">👑 דירקטוריון החברה</div>
     <div class="board-grid" id="board-grid">
       <div class="loading"><div class="spinner"></div></div>
     </div>
 
-    <div class="section-title">🏢 מחלקות ועובדים</div>
+    <!-- Departments + drill-down -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <div class="section-title" style="margin-bottom:0;border:none;">🏢 מחלקות ועובדים</div>
+      <button class="btn btn-sm btn-success" onclick="showHireModal()">➕ גייס עובד חדש</button>
+    </div>
+
+    <!-- Dept filter tabs -->
+    <div class="filter-bar" id="dept-filter" style="margin-bottom:16px;">
+      <button class="filter-btn active" onclick="filterDept('all',this)">הכל</button>
+    </div>
+
     <div class="departments-grid" id="departments-grid">
       <div class="loading"><div class="spinner"></div></div>
+    </div>
+
+    <!-- Selected dept employees -->
+    <div id="dept-employees-section" style="display:none;margin-top:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div class="section-title" style="margin-bottom:0;border:none;" id="dept-employees-title">עובדי המחלקה</div>
+        <button class="filter-btn" onclick="closeDeptDetail()">✕ סגור</button>
+      </div>
+      <div id="dept-employees-grid" class="departments-grid"></div>
     </div>
   </div>
 
@@ -937,6 +1026,60 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   </div>
 
 </div><!-- /content -->
+
+<!-- ── Hire Employee Modal ────────────────────────────────────────────────── -->
+<div id="hire-modal" class="modal-overlay" onclick="if(event.target===this)closeHireModal()">
+  <div class="modal-box" style="max-width:520px;">
+    <div class="modal-header">
+      <div><div class="modal-title">➕ גייס עובד חדש</div></div>
+      <button class="modal-close" onclick="closeHireModal()">✕</button>
+    </div>
+    <div class="modal-body" style="white-space:normal;">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <input id="hire-name"     type="text" placeholder="שם מלא *"              class="instruction-textarea" style="min-height:auto;height:42px;padding:8px 12px;">
+        <input id="hire-title-he" type="text" placeholder="תפקיד בעברית *"         class="instruction-textarea" style="min-height:auto;height:42px;padding:8px 12px;">
+        <input id="hire-title-en" type="text" placeholder="Title in English *"     class="instruction-textarea" style="min-height:auto;height:42px;padding:8px 12px;">
+        <select id="hire-dept" class="instruction-textarea" style="min-height:auto;height:42px;padding:8px 12px;">
+          <option value="">בחר מחלקה *</option>
+          <option value="ceo">הנהלה</option><option value="cfo">כספים</option>
+          <option value="marketing">שיווק</option><option value="sales">מכירות</option>
+          <option value="legal">משפטי</option><option value="cto">טכנולוגיה</option>
+          <option value="content">תוכן ועיצוב</option><option value="pr">יח"צ</option>
+          <option value="compliance">ציות</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;cursor:pointer;">
+          <input type="checkbox" id="hire-manager" style="width:16px;height:16px;"> מנהל/ת מחלקה
+        </label>
+        <textarea id="hire-expertise"   class="instruction-textarea" placeholder="תחומי מומחיות"           style="min-height:60px;"></textarea>
+        <textarea id="hire-personality" class="instruction-textarea" placeholder="אופי ואישיות (לסוכן AI)" style="min-height:60px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-success btn-sm" onclick="submitHire()">✅ גייס</button>
+      <button class="filter-btn" onclick="closeHireModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Employee Detail Modal ──────────────────────────────────────────────── -->
+<div id="emp-modal" class="modal-overlay" onclick="if(event.target===this)closeEmpModal()">
+  <div class="modal-box" style="max-width:520px;">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="emp-modal-name">עובד</div>
+        <div class="modal-subtitle" id="emp-modal-dept"></div>
+      </div>
+      <button class="modal-close" onclick="closeEmpModal()">✕</button>
+    </div>
+    <div class="modal-body" style="white-space:normal;" id="emp-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-sm" onclick="promoteEmployee()">⬆️ קדם</button>
+      <button class="btn btn-sm" onclick="editEmployee()">✏️ ערוך</button>
+      <div class="spacer"></div>
+      <button class="btn btn-danger btn-sm" onclick="fireEmployee()">🔴 פטר</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── Content Modal ─────────────────────────────────────────────────── -->
 <div id="content-modal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
@@ -1220,6 +1363,165 @@ async function loadHome() {
   }
 }
 
+// ── Employee Management ────────────────────────────────────────────────────
+let _currentEmpId = null;
+let _currentEmpData = null;
+
+function showHireModal() {
+  document.getElementById('hire-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeHireModal() {
+  document.getElementById('hire-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function submitHire() {
+  const name    = document.getElementById('hire-name').value.trim();
+  const titleHe = document.getElementById('hire-title-he').value.trim();
+  const titleEn = document.getElementById('hire-title-en').value.trim();
+  const dept    = document.getElementById('hire-dept').value;
+  if (!name || !titleHe || !titleEn || !dept) { toast('מלא את כל השדות החובה', 'error'); return; }
+  try {
+    const r = await fetch('/api/employees/new', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        name, title_he: titleHe, title_en: titleEn, department_code: dept,
+        is_manager: document.getElementById('hire-manager').checked,
+        expertise: document.getElementById('hire-expertise').value.trim(),
+        personality: document.getElementById('hire-personality').value.trim(),
+      })
+    }).then(x => x.json());
+    if (r.success) {
+      toast(`✅ ${name} גויס/ה בהצלחה!`, 'success');
+      closeHireModal();
+      loadDepartments();
+    } else { toast('שגיאה בגיוס', 'error'); }
+  } catch(e) { toast('שגיאה: ' + e.message, 'error'); }
+}
+
+function openEmpModal(emp) {
+  _currentEmpId = emp.id;
+  _currentEmpData = emp;
+  document.getElementById('emp-modal-name').textContent = emp.name;
+  document.getElementById('emp-modal-dept').textContent =
+    `${emp.title_he} • ${emp.department_code}${emp.is_manager ? ' • מנהל/ת' : ''}`;
+  document.getElementById('emp-modal-body').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;justify-content:space-between;">
+        <span style="color:var(--muted);font-size:0.85rem;">תפקיד</span>
+        <span style="font-size:0.85rem;">${emp.title_he}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span style="color:var(--muted);font-size:0.85rem;">מחלקה</span>
+        <span style="font-size:0.85rem;">${deptIcon(emp.department_code)} ${emp.department_code}</span>
+      </div>
+      ${emp.expertise ? `<div style="margin-top:4px;"><div style="color:var(--muted);font-size:0.82rem;margin-bottom:4px;">מומחיות</div><div style="font-size:0.85rem;">${emp.expertise}</div></div>` : ''}
+      ${emp.personality ? `<div style="margin-top:4px;"><div style="color:var(--muted);font-size:0.82rem;margin-bottom:4px;">אופי</div><div style="font-size:0.85rem;color:var(--muted);">${emp.personality}</div></div>` : ''}
+      ${emp.is_ai ? '<span class="badge badge-blue" style="width:fit-content;">🤖 AI Agent</span>' : '<span class="badge badge-yellow" style="width:fit-content;">👤 Human</span>'}
+    </div>
+  `;
+  document.getElementById('emp-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEmpModal() {
+  document.getElementById('emp-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  _currentEmpId = null;
+}
+
+async function promoteEmployee() {
+  if (!_currentEmpId || !_currentEmpData) return;
+  const newTitle = prompt('תפקיד חדש (עברית):', _currentEmpData.title_he);
+  if (!newTitle) return;
+  const newTitleEn = prompt('New Title (English):', _currentEmpData.title_en);
+  const isManager = confirm('למנות כמנהל/ת מחלקה?');
+  try {
+    await fetch(`/api/employees/${_currentEmpId}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ title_he: newTitle, title_en: newTitleEn || _currentEmpData.title_en, is_manager: isManager })
+    });
+    toast(`${_currentEmpData.name} קודם/ה בהצלחה! ✓`, 'success');
+    closeEmpModal();
+    loadDepartments();
+  } catch(e) { toast('שגיאה', 'error'); }
+}
+
+async function editEmployee() {
+  if (!_currentEmpId || !_currentEmpData) return;
+  const dept = prompt('מחלקה (ceo/cfo/marketing/sales/legal/cto/content/pr/compliance):', _currentEmpData.department_code);
+  if (!dept) return;
+  const expertise = prompt('מומחיות:', _currentEmpData.expertise || '');
+  try {
+    await fetch(`/api/employees/${_currentEmpId}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ department_code: dept, expertise: expertise || '' })
+    });
+    toast('עודכן בהצלחה ✓', 'success');
+    closeEmpModal();
+    loadDepartments();
+  } catch(e) { toast('שגיאה', 'error'); }
+}
+
+async function fireEmployee() {
+  if (!_currentEmpId || !_currentEmpData) return;
+  if (!confirm(`האם לפטר את ${_currentEmpData.name}?\nפעולה זו אינה ניתנת לביטול.`)) return;
+  try {
+    await fetch(`/api/employees/${_currentEmpId}`, { method: 'DELETE' });
+    toast(`${_currentEmpData.name} הוסר/ה מהמערכת`, 'error');
+    closeEmpModal();
+    loadDepartments();
+  } catch(e) { toast('שגיאה', 'error'); }
+}
+
+let _allDepartments = [];
+
+function filterDept(code, btn) {
+  document.querySelectorAll('#dept-filter .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (code === 'all') {
+    renderDepartmentsGrid(_allDepartments);
+    document.getElementById('dept-employees-section').style.display = 'none';
+  } else {
+    const dept = _allDepartments.find(d => d.code === code);
+    if (dept) showDeptDetail(dept);
+  }
+}
+
+function showDeptDetail(dept) {
+  document.getElementById('dept-employees-section').style.display = 'block';
+  document.getElementById('dept-employees-title').textContent =
+    `${deptIcon(dept.code)} עובדי ${dept.name_he}`;
+  const emps = dept.employees || [];
+  if (emps.length === 0) {
+    document.getElementById('dept-employees-grid').innerHTML =
+      '<div class="empty-state"><p>אין עובדים במחלקה זו</p></div>';
+    return;
+  }
+  document.getElementById('dept-employees-grid').innerHTML = emps.map(e => `
+    <div class="dept-card" onclick="openEmpModal(${JSON.stringify(e).replace(/"/g,'&quot;')})">
+      <div class="dept-header">
+        <div class="dept-icon">${e.is_manager ? '⭐' : '👤'}</div>
+        <div>
+          <div class="dept-name">${e.name}</div>
+          <div class="dept-manager">${e.title_he}</div>
+        </div>
+      </div>
+      ${e.expertise ? `<div style="font-size:0.78rem;color:var(--muted);margin-top:6px;">${e.expertise}</div>` : ''}
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+        ${e.is_manager ? '<span class="badge badge-yellow">מנהל/ת</span>' : ''}
+        ${e.is_ai ? '<span class="badge badge-blue">🤖 AI</span>' : '<span class="badge badge-gray">👤 Human</span>'}
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('dept-employees-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeDeptDetail() {
+  document.getElementById('dept-employees-section').style.display = 'none';
+}
+
 // ── Departments Tab ────────────────────────────────────────────────────────
 async function loadDepartments() {
   try {
@@ -1247,37 +1549,49 @@ async function loadDepartments() {
     }
 
     // Departments
-    const deptsEl = document.getElementById('departments-grid');
-    if (!departments || departments.length === 0) {
-      deptsEl.innerHTML = '<p style="color:var(--muted)">אין מחלקות</p>';
-    } else {
-      deptsEl.innerHTML = departments.map(d => {
-        const emps = d.employees || [];
-        const manager = emps.find(e => e.is_manager);
-        const others = emps.filter(e => !e.is_manager);
-        return `
-          <div class="dept-card">
-            <div class="dept-header">
-              <div class="dept-icon">${deptIcon(d.code)}</div>
-              <div>
-                <div class="dept-name">${d.name_he}</div>
-                <div class="dept-manager">👤 ${d.manager_name} • ${d.manager_title}</div>
-              </div>
-            </div>
-            ${d.description ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:10px;">${d.description}</div>` : ''}
-            <div class="dept-employees">
-              <div style="font-size:0.75rem;color:var(--muted);margin-bottom:6px;">${emps.length} עובדים</div>
-              ${manager ? `<div class="employee-chip manager">⭐ ${manager.name}</div>` : ''}
-              ${others.map(e => `<div class="employee-chip"><div class="dot"></div>${e.name}</div>`).join('')}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
+    _allDepartments = departments || [];
+    // Build filter tabs
+    const filterEl = document.getElementById('dept-filter');
+    filterEl.innerHTML = '<button class="filter-btn active" onclick="filterDept(\'all\',this)">הכל</button>' +
+      (_allDepartments.map(d =>
+        `<button class="filter-btn" onclick="filterDept('${d.code}',this)">${deptIcon(d.code)} ${d.name_he}</button>`
+      ).join(''));
+    renderDepartmentsGrid(_allDepartments);
   } catch(e) {
     console.error(e);
     document.getElementById('departments-grid').innerHTML = '<p style="color:var(--danger)">שגיאה בטעינת מחלקות</p>';
   }
+}
+
+function renderDepartmentsGrid(departments) {
+  const deptsEl = document.getElementById('departments-grid');
+  if (!departments || departments.length === 0) {
+    deptsEl.innerHTML = '<p style="color:var(--muted)">אין מחלקות</p>';
+    return;
+  }
+  deptsEl.innerHTML = departments.map(d => {
+    const emps = d.employees || [];
+    const manager = emps.find(e => e.is_manager);
+    const others = emps.filter(e => !e.is_manager);
+    return `
+      <div class="dept-card" onclick="showDeptDetail(${JSON.stringify(d).replace(/"/g,'&quot;')})">
+        <div class="dept-header">
+          <div class="dept-icon">${deptIcon(d.code)}</div>
+          <div>
+            <div class="dept-name">${d.name_he}</div>
+            <div class="dept-manager">👤 ${d.manager_name} • ${d.manager_title}</div>
+          </div>
+        </div>
+        ${d.description ? `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:10px;">${d.description}</div>` : ''}
+        <div class="dept-employees">
+          <div style="font-size:0.75rem;color:var(--muted);margin-bottom:6px;">${emps.length} עובדים • לחץ לפרטים</div>
+          ${manager ? `<div class="employee-chip manager">⭐ ${manager.name}</div>` : ''}
+          ${others.slice(0,3).map(e => `<div class="employee-chip"><div class="dot"></div>${e.name}</div>`).join('')}
+          ${others.length > 3 ? `<div class="employee-chip">+${others.length - 3}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 // ── Meetings Tab ───────────────────────────────────────────────────────────
