@@ -1,0 +1,8 @@
+[build]
+builder = "nixpacks"
+buildCommand = "pip install -r gever_management/requirements.txt"
+
+[deploy]
+startCommand = "cd gever_management && python main.py bot"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
