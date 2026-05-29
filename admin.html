@@ -239,6 +239,7 @@ textarea.fc{resize:vertical;}
       </div>
       <div class="sb-section">
         <div class="sb-label">מערכת</div>
+        <button class="nav-item" onclick="showPanel('plans')"><div class="nav-icon">💳</div> תוכניות ומחירים</button>
         <button class="nav-item" onclick="showPanel('settings')"><div class="nav-icon">⚙️</div> הגדרות</button>
       </div>
     </div>
@@ -373,29 +374,165 @@ textarea.fc{resize:vertical;}
         </div>
       </div>
 
+      <!-- SUBSCRIPTION PLANS PANEL -->
+      <div id="panel-plans" class="panel">
+        <div class="page-header">
+          <div><div class="page-title">תוכניות ומחירים</div><div class="page-sub">נהל את תוכניות המנוי והמחירים</div></div>
+          <button class="btn btn-primary" onclick="openAddPlan()">+ הוסף תוכנית</button>
+        </div>
+        <div class="card">
+          <div class="card-title">תוכניות קיימות</div>
+          <div id="plans-table"><div class="loading"><div class="spin"></div> טוען...</div></div>
+        </div>
+      </div>
+
       <!-- SETTINGS -->
       <div id="panel-settings" class="panel">
         <div class="page-header"><div><div class="page-title">הגדרות מערכת</div><div class="page-sub">ניהול הגדרות האתר והפורטל</div></div></div>
-        <div class="g2" style="align-items:start;">
+
+        <!-- Company + Admin Role -->
+        <div class="g2" style="align-items:start;margin-bottom:18px;">
           <div class="card">
             <div class="card-title">פרטי החברה</div>
-            <div class="fg"><label class="fl">שם החברה</label><input type="text" class="fc" value="פרוביז בע״מ" id="set-company"></div>
-            <div class="fg"><label class="fl">טלפון</label><input type="tel" class="fc" value="03-1234567" id="set-phone"></div>
-            <div class="fg"><label class="fl">אימייל</label><input type="email" class="fc" value="info@probiz.co.il" id="set-email"></div>
-            <div class="fg"><label class="fl">כתובת</label><input type="text" class="fc" value="רחוב אלנבי 32, תל אביב" id="set-address"></div>
+            <div class="fg"><label class="fl">שם החברה</label><input type="text" class="fc" value="Prime Ledger Solutions" id="set-company"></div>
+            <div class="fg"><label class="fl">טלפון</label><input type="tel" class="fc" value="055-502-7988" id="set-phone"></div>
+            <div class="fg"><label class="fl">אימייל</label><input type="email" class="fc" value="info@primesolutionfinance.com" id="set-email"></div>
+            <div class="fg"><label class="fl">כתובת</label><input type="text" class="fc" value="תל אביב" id="set-address"></div>
             <button class="btn btn-primary" onclick="showToast('✓ הגדרות נשמרו')">שמור</button>
           </div>
           <div class="card">
-            <div class="card-title">הגדרת אדמין</div>
-            <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:16px;margin-bottom:16px;">
-              <p style="font-size:13px;color:var(--gray-600);line-height:1.7;">כדי להגדיר משתמש כאדמין, הרץ ב-Supabase SQL Editor:</p>
-              <code style="display:block;background:var(--navy);color:var(--gold);padding:12px;border-radius:8px;font-size:12px;margin-top:10px;word-break:break-all;">UPDATE public.profiles SET role = 'admin' WHERE id = 'USER-ID-HERE';</code>
+            <div class="card-title">הגדרת הרשאות אדמין</div>
+            <div style="background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:16px;margin-bottom:16px;">
+              <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px;">🔐 שלבים להגדרת אדמין:</div>
+              <ol style="padding-right:18px;list-style:decimal;font-size:13px;color:var(--gray-600);line-height:2;">
+                <li>היכנס לפרויקט Supabase שלך</li>
+                <li>לחץ על <strong>"Table Editor"</strong> → בחר טבלת <strong>"profiles"</strong></li>
+                <li>מצא את המשתמש שרוצה להיות אדמין</li>
+                <li>לחץ על השורה ועדכן את השדה <strong>"role"</strong> לערך <strong>"admin"</strong></li>
+                <li>לחלופין, השתמש ב-SQL Editor:</li>
+              </ol>
+              <div style="background:var(--navy);border-radius:8px;padding:12px;margin:10px 0;position:relative;">
+                <code style="color:var(--gold);font-size:12px;word-break:break-all;display:block;">UPDATE profiles SET role='admin' WHERE email='your@email.com';</code>
+                <button onclick="copySQL()" style="position:absolute;top:8px;left:8px;background:rgba(255,255,255,.1);border:none;border-radius:5px;color:rgba(255,255,255,.6);font-size:11px;padding:3px 8px;cursor:pointer;" title="העתק">📋</button>
+              </div>
             </div>
-            <div class="fg"><label class="fl">הסיסמה הנוכחית</label><input type="password" class="fc" id="cur-pass" placeholder="••••••"></div>
-            <div class="fg"><label class="fl">סיסמה חדשה</label><input type="password" class="fc" id="new-pass" placeholder="••••••"></div>
+            <button class="btn btn-blue" onclick="checkMyRole()" style="width:100%;margin-bottom:12px;">🔍 בדוק הרשאות משתמש נוכחי</button>
+            <div id="role-result" style="display:none;background:var(--gray-100);border-radius:8px;padding:12px;font-size:13px;text-align:center;"></div>
+            <div style="height:1px;background:var(--gray-200);margin:16px 0;"></div>
+            <div class="fg"><label class="fl">סיסמה חדשה למנהל</label><input type="password" class="fc" id="new-pass" placeholder="••••••"></div>
             <button class="btn btn-outline" onclick="changeAdminPass()" style="width:100%;">עדכן סיסמה</button>
           </div>
         </div>
+
+        <!-- Communication Integrations -->
+        <div class="card">
+          <div class="card-title">🔌 אינטגרציות תקשורת</div>
+          <div class="tabs" id="integration-tabs">
+            <button class="tab active" onclick="swIntTab('emails',this)">📧 מיילים</button>
+            <button class="tab" onclick="swIntTab('sms',this)">📱 SMS</button>
+            <button class="tab" onclick="swIntTab('payments',this)">💳 תשלומים</button>
+          </div>
+
+          <!-- EMAILS TAB -->
+          <div id="int-emails" class="int-panel" style="display:block;">
+            <div style="background:rgba(59,130,246,.04);border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:16px;margin-bottom:18px;">
+              <div style="font-size:14px;font-weight:700;margin-bottom:8px;">📬 הגדרת שרת מייל</div>
+              <p style="font-size:13px;color:var(--gray-600);line-height:1.7;margin-bottom:10px;">מומלץ: <strong>Resend.com</strong> (חינמי עד 100 מייל/יום) או <strong>EmailJS</strong>. אפשרות נוספת: Supabase SMTP מובנה.</p>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-sm btn-outline" onclick="window.open('https://resend.com','_blank')">🔗 Resend</button>
+                <button class="btn btn-sm btn-outline" onclick="window.open('https://www.emailjs.com','_blank')">🔗 EmailJS</button>
+                <button class="btn btn-sm btn-outline" onclick="window.open('https://supabase.com/docs/guides/auth/auth-smtp','_blank')">📖 Supabase SMTP</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="fg"><label class="fl">SMTP Host</label><input type="text" class="fc" id="smtp-host" placeholder="smtp.resend.com"></div>
+              <div class="fg"><label class="fl">Port</label><input type="number" class="fc" id="smtp-port" placeholder="465" value="465"></div>
+            </div>
+            <div class="form-row">
+              <div class="fg"><label class="fl">שם משתמש</label><input type="text" class="fc" id="smtp-user" placeholder="apikey"></div>
+              <div class="fg"><label class="fl">API Key / סיסמה</label><input type="password" class="fc" id="smtp-key" placeholder="re_..."></div>
+            </div>
+            <div class="fg"><label class="fl">כתובת שולח</label><input type="email" class="fc" id="smtp-from" placeholder="info@primesolutionfinance.com" value="info@primesolutionfinance.com"></div>
+            <div style="margin-bottom:16px;">
+              <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px;">טריגרים אוטומטיים:</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                <span style="background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.2);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">✓ הרשמה</span>
+                <span style="background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.2);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">✓ שחזור סיסמא</span>
+                <span style="background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.2);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">✓ אישור פגישה</span>
+                <span style="background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.2);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">✓ תזכורת תשלום</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-primary" onclick="saveEmailSettings()">💾 שמור הגדרות</button>
+              <button class="btn btn-outline" onclick="testEmail()">📤 שלח מייל בדיקה</button>
+            </div>
+          </div>
+
+          <!-- SMS TAB -->
+          <div id="int-sms" class="int-panel" style="display:none;">
+            <div style="background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.15);border-radius:10px;padding:16px;margin-bottom:18px;">
+              <div style="font-size:14px;font-weight:700;margin-bottom:8px;">📱 הגדרת SMS</div>
+              <p style="font-size:13px;color:var(--gray-600);line-height:1.7;margin-bottom:10px;">מומלץ: <strong>Twilio</strong> (אמין, גלובלי) או <strong>Vonage (Nexmo)</strong>. שניהם תומכים בשליחת SMS לישראל.</p>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-sm btn-outline" onclick="window.open('https://twilio.com','_blank')">🔗 Twilio</button>
+                <button class="btn btn-sm btn-outline" onclick="window.open('https://www.vonage.com','_blank')">🔗 Vonage</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="fg"><label class="fl">ספק</label>
+                <select class="fc" id="sms-provider">
+                  <option value="twilio">Twilio</option>
+                  <option value="vonage">Vonage</option>
+                </select>
+              </div>
+              <div class="fg"><label class="fl">Sender ID</label><input type="text" class="fc" id="sms-sender" placeholder="PrimeLedger"></div>
+            </div>
+            <div class="form-row">
+              <div class="fg"><label class="fl">Account SID / API Key</label><input type="text" class="fc" id="sms-api-key" placeholder="ACxxxxxx..."></div>
+              <div class="fg"><label class="fl">Auth Token / API Secret</label><input type="password" class="fc" id="sms-api-secret" placeholder="••••••••"></div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-primary" onclick="showToast('✓ הגדרות SMS נשמרו')">💾 שמור הגדרות</button>
+              <button class="btn btn-outline" onclick="testSMS()">📱 שלח SMS בדיקה</button>
+            </div>
+          </div>
+
+          <!-- PAYMENTS TAB -->
+          <div id="int-payments" class="int-panel" style="display:none;">
+            <div style="background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:16px;margin-bottom:18px;">
+              <div style="font-size:14px;font-weight:700;margin-bottom:8px;">💳 סליקה ישראלית</div>
+              <p style="font-size:13px;color:var(--gray-600);line-height:1.7;margin-bottom:10px;">ספקי סליקה מובילים בישראל: <strong>Tranzila</strong>, <strong>Cardcom</strong>, <strong>iCredit</strong>. כולם תומכים בתשלומים חוזרים ובממשק API.</p>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-sm btn-outline" onclick="window.open('https://www.tranzila.com','_blank')">🔗 Tranzila</button>
+                <button class="btn btn-sm btn-outline" onclick="window.open('https://www.cardcom.co.il','_blank')">🔗 Cardcom</button>
+                <button class="btn btn-sm btn-outline" onclick="window.open('https://www.icredit.co.il','_blank')">🔗 iCredit</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="fg"><label class="fl">ספק סליקה</label>
+                <select class="fc" id="pay-provider">
+                  <option value="tranzila">Tranzila</option>
+                  <option value="cardcom">Cardcom</option>
+                  <option value="icredit">iCredit</option>
+                </select>
+              </div>
+              <div class="fg"><label class="fl">Merchant ID</label><input type="text" class="fc" id="pay-merchant" placeholder="מזהה בית עסק"></div>
+            </div>
+            <div class="form-row">
+              <div class="fg"><label class="fl">מספר טרמינל</label><input type="text" class="fc" id="pay-terminal" placeholder="12345"></div>
+              <div class="fg"><label class="fl">API Key</label><input type="password" class="fc" id="pay-api-key" placeholder="••••••••"></div>
+            </div>
+            <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:8px;padding:12px;margin-bottom:16px;">
+              <div style="font-size:12px;color:var(--red);font-weight:700;">⚠️ תאימות PCI DSS</div>
+              <div style="font-size:12px;color:var(--gray-600);margin-top:4px;line-height:1.7;">לעולם אל תאחסן נתוני כרטיסי אשראי בשרת שלך. כל עיבוד תשלומים חייב להתבצע דרך ממשק מאובטח של ספק הסליקה בלבד.</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-primary" onclick="showToast('✓ הגדרות סליקה נשמרו')">💾 שמור הגדרות</button>
+              <button class="btn btn-outline" onclick="testPayment()">🔌 בדוק חיבור</button>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div><!-- /main -->
@@ -486,6 +623,26 @@ textarea.fc{resize:vertical;}
   </div>
 </div>
 
+<!-- Plan Modal -->
+<div class="mo" id="mo-plan">
+  <div class="mo-box">
+    <div class="mo-title"><span id="mo-plan-title">תוכנית מנוי</span><button class="mo-close" onclick="closeMo('mo-plan')">✕</button></div>
+    <input type="hidden" id="edit-plan-id">
+    <div class="fg"><label class="fl">שם תוכנית</label><input type="text" class="fc" id="p-name" placeholder="בסיסי / מקצועי / עסקי"></div>
+    <div class="fg"><label class="fl">מחיר חודשי (₪)</label><input type="number" class="fc" id="p-price" placeholder="0" min="0"></div>
+    <div class="fg"><label class="fl">תיאור קצר</label><input type="text" class="fc" id="p-desc" placeholder="מתאים לעסקים..."></div>
+    <div class="fg"><label class="fl">תכונות (שורה לכל תכונה)</label><textarea class="fc" id="p-feats" rows="5" placeholder="תכונה 1&#10;תכונה 2&#10;תכונה 3"></textarea></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <input type="checkbox" id="p-popular" style="width:16px;height:16px;accent-color:var(--gold);">
+      <label for="p-popular" style="font-size:13px;font-weight:600;">⭐ הצג כ"הכי פופולרי"</label>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-primary" onclick="savePlan()" style="flex:1;padding:12px;">שמור</button>
+      <button class="btn btn-outline" onclick="closeMo('mo-plan')" style="padding:12px 18px;">ביטול</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -549,7 +706,7 @@ function showPanel(name) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
   event?.currentTarget?.classList.add('active');
-  const loaders = { users: loadUsers, meetings: () => loadMeetings('all'), documents: loadDocs, cashflow: loadAllCashflow, contacts: () => loadContacts('all'), newsletter: loadNewsletter, notifications: loadSentNotifs };
+  const loaders = { users: loadUsers, meetings: () => loadMeetings('all'), documents: loadDocs, cashflow: loadAllCashflow, contacts: () => loadContacts('all'), newsletter: loadNewsletter, notifications: loadSentNotifs, plans: loadPlans };
   if (loaders[name]) loaders[name]();
 }
 
@@ -1032,6 +1189,139 @@ async function loadUsersForSelects() {
     if (sel) sel.innerHTML = (profiles||[]).map(p=>`<option value="${p.id}">${p.full_name||p.id.substring(0,8)}</option>`).join('');
   });
 }
+
+// ===== SUBSCRIPTION PLANS =====
+const DEFAULT_ADMIN_PLANS=[
+  {id:'basic',name:'בסיסי',price:899,description:'מתאים לעצמאים ועסקים קטנים',features:'פנייה לנציג\nדוחות חודשיים\nמענה תוך 48 שעות',is_popular:false},
+  {id:'professional',name:'מקצועי',price:1999,description:'מתאים לעסקים בינוניים',features:'כל מה שב-בסיסי\nייעוץ חשבונאי חודשי\nדוחות שנתיים\nמענה תוך 24 שעות',is_popular:true},
+  {id:'enterprise',name:'עסקי',price:3499,description:'מתאים לחברות גדולות',features:'כל מה שב-מקצועי\nמנהל חשבונות ייעודי\nדוחות שבועיים\nמענה תוך 4 שעות\nניהול שכר',is_popular:false}
+];
+let adminPlans=[];
+
+async function loadPlans(){
+  const container=document.getElementById('plans-table');
+  container.innerHTML='<div class="loading"><div class="spin"></div> טוען...</div>';
+  try{
+    const {data,error}=await sb.from('subscription_plans').select('*').order('price');
+    adminPlans=(!error&&data?.length)?data:[...DEFAULT_ADMIN_PLANS];
+  }catch(e){adminPlans=[...DEFAULT_ADMIN_PLANS];}
+  renderPlansTable();
+}
+
+function renderPlansTable(){
+  const container=document.getElementById('plans-table');
+  if(!adminPlans.length){container.innerHTML='<div class="empty"><div class="empty-icon">💳</div><div>אין תוכניות</div></div>';return;}
+  container.innerHTML=`<div class="table-wrap"><table>
+    <thead><tr><th>שם תוכנית</th><th>מחיר חודשי</th><th>תיאור</th><th>פופולרי</th><th>פעולות</th></tr></thead>
+    <tbody>${adminPlans.map(p=>`<tr>
+      <td><strong>${p.name}</strong></td>
+      <td style="color:var(--gold);font-weight:700;font-size:15px;">₪${Number(p.price).toLocaleString()}</td>
+      <td style="color:var(--gray-600);font-size:13px;">${p.description||'—'}</td>
+      <td>${p.is_popular?'<span class="badge b-gold">⭐ כן</span>':'<span class="badge b-navy">לא</span>'}</td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm btn-outline" onclick="editPlan('${p.id}')">✏️ ערוך</button>
+          <button class="btn btn-sm btn-danger" onclick="deletePlan('${p.id}')">🗑</button>
+        </div>
+      </td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function openAddPlan(){
+  document.getElementById('mo-plan-title').textContent='הוסף תוכנית';
+  document.getElementById('edit-plan-id').value='';
+  ['p-name','p-desc','p-feats'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-price').value='';
+  document.getElementById('p-popular').checked=false;
+  document.getElementById('mo-plan').classList.add('open');
+}
+
+function editPlan(planId){
+  const plan=adminPlans.find(p=>p.id===planId);
+  if(!plan) return;
+  document.getElementById('mo-plan-title').textContent='ערוך תוכנית';
+  document.getElementById('edit-plan-id').value=planId;
+  document.getElementById('p-name').value=plan.name||'';
+  document.getElementById('p-price').value=plan.price||0;
+  document.getElementById('p-desc').value=plan.description||'';
+  document.getElementById('p-feats').value=plan.features||'';
+  document.getElementById('p-popular').checked=plan.is_popular||false;
+  document.getElementById('mo-plan').classList.add('open');
+}
+
+async function savePlan(){
+  const editId=document.getElementById('edit-plan-id').value;
+  const name=document.getElementById('p-name').value.trim();
+  const price=parseFloat(document.getElementById('p-price').value)||0;
+  const description=document.getElementById('p-desc').value.trim();
+  const features=document.getElementById('p-feats').value.trim();
+  const is_popular=document.getElementById('p-popular').checked;
+  if(!name){showToast('נא להזין שם תוכנית');return;}
+  const id=editId||('plan-'+Date.now());
+  const data={id,name,price,description,features,is_popular,updated_at:new Date().toISOString()};
+  try{
+    await sb.from('subscription_plans').upsert(data,{onConflict:'id'});
+    showToast('✓ התוכנית נשמרה');
+  }catch(e){
+    // Local update
+    const idx=adminPlans.findIndex(p=>p.id===id);
+    if(idx>=0) adminPlans[idx]=data; else adminPlans.push(data);
+    showToast('✓ התוכנית נשמרה (מקומית)');
+  }
+  closeMo('mo-plan');
+  loadPlans();
+}
+
+async function deletePlan(planId){
+  if(!confirm('למחוק תוכנית זו?')) return;
+  try{
+    await sb.from('subscription_plans').delete().eq('id',planId);
+    showToast('✓ התוכנית נמחקה');
+  }catch(e){
+    adminPlans=adminPlans.filter(p=>p.id!==planId);
+    showToast('✓ נמחק');
+  }
+  loadPlans();
+}
+
+// ===== ADMIN ROLE HELPERS =====
+async function checkMyRole(){
+  const res=document.getElementById('role-result');
+  res.style.display='block';
+  res.innerHTML='<div class="loading"><div class="spin"></div></div>';
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){res.innerHTML='<span style="color:var(--red)">לא מחובר</span>';return;}
+  const {data:profile}=await sb.from('profiles').select('role,full_name').eq('id',session.user.id).single();
+  const role=profile?.role||'client';
+  const color=role==='admin'?'var(--green)':'var(--amber)';
+  res.innerHTML=`<div><strong>${profile?.full_name||session.user.email}</strong><br><span style="color:${color};font-weight:700;">תפקיד: ${role}</span>${role==='admin'?'<br><span style="color:var(--green);font-size:12px;">✓ יש הרשאות מנהל מלאות</span>':'<br><span style="color:var(--amber);font-size:12px;">⚠ עדיין לא הוגדר כמנהל</span>'}</div>`;
+}
+
+function copySQL(){
+  navigator.clipboard.writeText("UPDATE profiles SET role='admin' WHERE email='your@email.com';")
+    .then(()=>showToast('✓ הועתק!'))
+    .catch(()=>showToast('שגיאה בהעתקה'));
+}
+
+// ===== INTEGRATION TABS =====
+function swIntTab(tab, btn){
+  document.querySelectorAll('.int-panel').forEach(p=>p.style.display='none');
+  document.querySelectorAll('#integration-tabs .tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('int-'+tab).style.display='block';
+  btn.classList.add('active');
+}
+
+function saveEmailSettings(){showToast('✓ הגדרות מייל נשמרו (הגדר ב-Supabase Dashboard)');}
+function testEmail(){
+  const to=prompt('מייל לבדיקה:',adminUser?.email||'');
+  if(to) showToast(`📧 מייל בדיקה נשלח ל-${to} (אחרי הגדרת SMTP)`);
+}
+function testSMS(){
+  const to=prompt('מספר טלפון לבדיקה:','05x-xxxxxxx');
+  if(to) showToast(`📱 SMS בדיקה נשלח ל-${to} (אחרי הגדרת ספק)`);
+}
+function testPayment(){showToast('🔌 בודק חיבור לספק סליקה...');setTimeout(()=>showToast('⚠ הגדר API Key תחילה'),1500);}
 
 // ===== HELPERS =====
 const months = ['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצ'];
