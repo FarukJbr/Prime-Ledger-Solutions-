@@ -53,6 +53,10 @@ class Settings(BaseSettings):
     # Chairman receives all notifications (change to your business email)
     chairman_email: str = "farukjaber34@gmail.com"
 
+    # Portal (Client Portal) Supabase – for cash flow data
+    portal_supabase_url: str = ""
+    portal_supabase_key: str = ""
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
