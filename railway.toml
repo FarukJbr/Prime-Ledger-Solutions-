@@ -1,8 +1,7 @@
 [build]
-builder = "nixpacks"
-buildCommand = "pip install -r gever_management/requirements.txt"
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "cd gever_management && python main.py api"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
