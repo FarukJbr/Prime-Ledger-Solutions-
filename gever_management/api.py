@@ -20,8 +20,20 @@ app = FastAPI(
 )
 
 security = HTTPBasic()
-task_manager = TaskManager()
-meeting_room = MeetingRoom()
+_task_manager = None
+_meeting_room = None
+
+def get_task_manager():
+    global _task_manager
+    if _task_manager is None:
+        _task_manager = TaskManager()
+    return _task_manager
+
+def get_meeting_room():
+    global _meeting_room
+    if _meeting_room is None:
+        _meeting_room = MeetingRoom()
+    return _meeting_room
 
 
 def require_auth(credentials: HTTPBasicCredentials = Depends(security)):
@@ -70,7 +82,7 @@ class ConsultRequest(BaseModel):
 @app.post("/api/tasks/new")
 async def create_task(req: InstructionRequest, user: str = Depends(require_auth)):
     saved = db.save_instruction(req.instruction, req.language)
-    result = task_manager.process_chairman_instruction(
+    result = get_task_manager().process_chairman_instruction(
         req.instruction, saved["id"]
     )
     return {"success": True, "result": result}
@@ -88,31 +100,31 @@ async def list_tasks(status: Optional[str] = None):
 
 @app.get("/api/tasks/{task_id}")
 async def get_task(task_id: str):
-    return task_manager.get_task_summary(task_id)
+    return get_task_manager().get_task_summary(task_id)
 
 
 @app.get("/api/review/pending")
 async def pending_review():
-    return task_manager.get_pending_reviews()
+    return get_task_manager().get_pending_reviews()
 
 
 @app.post("/api/deliverables/{deliverable_id}/approve")
 async def approve(deliverable_id: str, req: Optional[FeedbackRequest] = None):
-    return task_manager.approve_deliverable(
+    return get_task_manager().approve_deliverable(
         deliverable_id, req.feedback if req else None
     )
 
 
 @app.post("/api/deliverables/{deliverable_id}/reject")
 async def reject(deliverable_id: str, req: FeedbackRequest):
-    return task_manager.reject_deliverable(deliverable_id, req.feedback)
+    return get_task_manager().reject_deliverable(deliverable_id, req.feedback)
 
 
 # ─── MEETING ENDPOINTS ───────────────────────────────────────────────────────
 
 @app.post("/api/meetings/new")
 async def create_meeting(req: MeetingRequest):
-    result = meeting_room.hold_meeting(
+    result = get_meeting_room().hold_meeting(
         title=req.title,
         topic=req.topic,
         participants=req.participants,
@@ -123,14 +135,14 @@ async def create_meeting(req: MeetingRequest):
 
 @app.post("/api/consult")
 async def consult(req: ConsultRequest):
-    return meeting_room.quick_consult(req.question, req.departments)
+    return get_meeting_room().quick_consult(req.question, req.departments)
 
 
 # ─── DASHBOARD HTML ──────────────────────────────────────────────────────────
 
 @app.get("/", response_class=HTMLResponse)
 async def dashboard(user: str = Depends(require_auth)):
-    pending = task_manager.get_pending_reviews()
+    pending = get_task_manager().get_pending_reviews()
     in_progress = db.get_tasks_by_status("in_progress")
     completed = db.get_tasks_by_status("review")
 

@@ -6,10 +6,19 @@ from datetime import datetime
 
 class DatabaseClient:
     def __init__(self):
-        self._client: Client = create_client(
-            settings.supabase_url,
-            settings.supabase_service_key
-        )
+        self._client: Client = None
+
+    def _get_client(self) -> Client:
+        if self._client is None:
+            self._client = create_client(
+                settings.supabase_url,
+                settings.supabase_service_key
+            )
+        return self._client
+
+    @property
+    def client(self) -> Client:
+        return self._get_client()
 
     # ─── TASKS ───────────────────────────────────────────────────────────────
 
@@ -25,12 +34,12 @@ class DatabaseClient:
             "metadata": metadata or {},
             "status": "pending"
         }
-        result = self._client.table("tasks").insert(data).execute()
+        result = self.client.table("tasks").insert(data).execute()
         return result.data[0]
 
     def update_task_status(self, task_id: str, status: str) -> dict:
         result = (
-            self._client.table("tasks")
+            self.client.table("tasks")
             .update({"status": status})
             .eq("id", task_id)
             .execute()
@@ -39,7 +48,7 @@ class DatabaseClient:
 
     def get_task(self, task_id: str) -> dict:
         result = (
-            self._client.table("tasks")
+            self.client.table("tasks")
             .select("*")
             .eq("id", task_id)
             .single()
@@ -49,7 +58,7 @@ class DatabaseClient:
 
     def get_tasks_by_status(self, status: str) -> list:
         result = (
-            self._client.table("tasks")
+            self.client.table("tasks")
             .select("*")
             .eq("status", status)
             .order("created_at", desc=True)
@@ -69,7 +78,7 @@ class DatabaseClient:
             "content_type": content_type,
             "status": "pending_review"
         }
-        result = self._client.table("deliverables").insert(data).execute()
+        result = self.client.table("deliverables").insert(data).execute()
         return result.data[0]
 
     def update_deliverable_status(self, deliverable_id: str, status: str,
@@ -78,7 +87,7 @@ class DatabaseClient:
         if feedback:
             update_data["chairman_feedback"] = feedback
         result = (
-            self._client.table("deliverables")
+            self.client.table("deliverables")
             .update(update_data)
             .eq("id", deliverable_id)
             .execute()
@@ -87,7 +96,7 @@ class DatabaseClient:
 
     def get_deliverables_for_task(self, task_id: str) -> list:
         result = (
-            self._client.table("deliverables")
+            self.client.table("deliverables")
             .select("*")
             .eq("task_id", task_id)
             .order("created_at", desc=True)
@@ -97,7 +106,7 @@ class DatabaseClient:
 
     def get_pending_review(self) -> list:
         result = (
-            self._client.table("deliverables")
+            self.client.table("deliverables")
             .select("*, tasks(title, assigned_to)")
             .eq("status", "pending_review")
             .order("created_at", desc=True)
@@ -116,13 +125,13 @@ class DatabaseClient:
             "agenda": agenda,
             "status": "in_progress"
         }
-        result = self._client.table("meetings").insert(data).execute()
+        result = self.client.table("meetings").insert(data).execute()
         return result.data[0]
 
     def update_meeting(self, meeting_id: str, transcript: list,
                        decisions: list, action_items: list) -> dict:
         result = (
-            self._client.table("meetings")
+            self.client.table("meetings")
             .update({
                 "transcript": transcript,
                 "decisions": decisions,
@@ -147,7 +156,7 @@ class DatabaseClient:
             "message": message,
             "message_type": message_type
         }
-        result = self._client.table("agent_messages").insert(data).execute()
+        result = self.client.table("agent_messages").insert(data).execute()
         return result.data[0]
 
     # ─── CHAIRMAN INSTRUCTIONS ───────────────────────────────────────────────
@@ -155,7 +164,7 @@ class DatabaseClient:
     def save_instruction(self, instruction: str, language: str = "he") -> dict:
         data = {"instruction": instruction, "language": language}
         result = (
-            self._client.table("chairman_instructions")
+            self.client.table("chairman_instructions")
             .insert(data)
             .execute()
         )
@@ -164,7 +173,7 @@ class DatabaseClient:
     def mark_instruction_processed(self, instruction_id: str,
                                     task_id: str) -> dict:
         result = (
-            self._client.table("chairman_instructions")
+            self.client.table("chairman_instructions")
             .update({"processed": True, "task_id": task_id})
             .eq("id", instruction_id)
             .execute()
@@ -184,13 +193,13 @@ class DatabaseClient:
             "scheduled_at": scheduled_at,
             "status": "scheduled"
         }
-        result = self._client.table("publications").insert(data).execute()
+        result = self.client.table("publications").insert(data).execute()
         return result.data[0]
 
     def mark_published(self, publication_id: str,
                        platform_post_id: str = None) -> dict:
         result = (
-            self._client.table("publications")
+            self.client.table("publications")
             .update({
                 "status": "published",
                 "published_at": datetime.utcnow().isoformat(),
