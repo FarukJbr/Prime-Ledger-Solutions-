@@ -4,3 +4,1969 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Prime Ledger Solutions | הנהלת חשבונות וייעוץ עסקי</title>
+<meta name="description" content="Prime Ledger Solutions - שירותי הנהלת חשבונות מקצועיים, ייעוץ עסקי אסטרטגי, הגשת דוחות מע״מ ושכר לעסקים בישראל.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0A1628;
+    --navy-mid: #112240;
+    --navy-light: #1E3A5F;
+    --gold: #C9A84C;
+    --gold-light: #E8C870;
+    --gold-pale: #F5E6C0;
+    --white: #FFFFFF;
+    --gray-100: #F8F9FA;
+    --gray-200: #E9ECEF;
+    --gray-400: #9CA3AF;
+    --gray-600: #6B7280;
+    --text: #1A1A2E;
+    --radius: 12px;
+    --radius-lg: 20px;
+    --shadow: 0 4px 24px rgba(10,22,40,0.12);
+    --shadow-lg: 0 8px 48px rgba(10,22,40,0.18);
+    --transition: all 0.3s ease;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Assistant', sans-serif;
+    background: var(--white);
+    color: var(--text);
+    overflow-x: hidden;
+    line-height: 1.7;
+  }
+
+  /* ===== NAVBAR ===== */
+  .navbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    background: rgba(10,22,40,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    transition: var(--transition);
+  }
+  .navbar.scrolled {
+    background: rgba(10,22,40,0.98);
+    box-shadow: var(--shadow-lg);
+  }
+  .nav-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+    gap: 24px;
+  }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .nav-logo-icon {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--navy);
+    font-family: 'Heebo', sans-serif;
+  }
+  .nav-logo-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+  .nav-logo-en {
+    font-family: 'Heebo', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gold-light);
+    letter-spacing: 0.5px;
+  }
+  .nav-logo-he {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 400;
+  }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: var(--transition);
+  }
+  .nav-links a:hover {
+    color: var(--gold-light);
+    background: rgba(201,168,76,0.1);
+  }
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .btn-portal {
+    padding: 9px 18px;
+    border: 1.5px solid rgba(201,168,76,0.5);
+    border-radius: 8px;
+    color: var(--gold-light);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+    font-family: 'Assistant', sans-serif;
+  }
+  .btn-portal:hover {
+    background: rgba(201,168,76,0.15);
+    border-color: var(--gold);
+  }
+  .btn-cta-nav {
+    padding: 9px 20px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border: none;
+    border-radius: 8px;
+    color: var(--navy);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'Assistant', sans-serif;
+  }
+  .btn-cta-nav:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(201,168,76,0.4);
+  }
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 8px;
+    background: none;
+    border: none;
+    aria-label: "פתח תפריט";
+  }
+  .hamburger span {
+    width: 24px;
+    height: 2px;
+    background: var(--gold-light);
+    border-radius: 2px;
+    transition: var(--transition);
+    display: block;
+  }
+  .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+  .hamburger.active span:nth-child(2) { opacity: 0; }
+  .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    top: 72px; left: 0; right: 0;
+    background: var(--navy);
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    padding: 16px 24px 24px;
+    z-index: 999;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    font-size: 17px;
+    font-weight: 500;
+    padding: 12px 16px;
+    border-radius: 8px;
+    transition: var(--transition);
+  }
+  .mobile-menu a:hover { background: rgba(201,168,76,0.1); color: var(--gold-light); }
+  .mobile-menu-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 50%, var(--navy-light) 100%);
+    display: flex;
+    align-items: center;
+    padding-top: 72px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+  .hero-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    animation: pulse-orb 6s ease-in-out infinite;
+  }
+  .hero-orb-1 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+    top: -100px; left: -100px;
+  }
+  .hero-orb-2 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(30,58,95,0.4) 0%, transparent 70%);
+    bottom: -50px; right: 100px;
+    animation-delay: 3s;
+  }
+  @keyframes pulse-orb {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+  }
+  .hero-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 80px 24px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 40px;
+    padding: 6px 16px;
+    margin-bottom: 24px;
+    color: var(--gold-light);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .hero-badge-dot {
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: blink 2s ease-in-out infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .hero-title {
+    font-family: 'Heebo', sans-serif;
+    font-size: clamp(36px, 5vw, 62px);
+    font-weight: 900;
+    color: var(--white);
+    line-height: 1.15;
+    margin-bottom: 20px;
+  }
+  .hero-title span {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-subtitle {
+    font-size: clamp(16px, 2vw, 20px);
+    color: rgba(255,255,255,0.72);
+    margin-bottom: 36px;
+    font-weight: 400;
+    max-width: 520px;
+    line-height: 1.8;
+  }
+  .hero-ctas {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 15px 32px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border: none;
+    border-radius: var(--radius);
+    color: var(--navy);
+    font-size: 17px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'Assistant', sans-serif;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(201,168,76,0.45);
+  }
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 30px;
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: var(--radius);
+    color: var(--white);
+    font-size: 17px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'Assistant', sans-serif;
+  }
+  .btn-secondary:hover {
+    border-color: var(--gold);
+    color: var(--gold-light);
+    background: rgba(201,168,76,0.08);
+  }
+  .hero-value-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .hero-value-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: var(--radius);
+    padding: 18px 14px;
+    text-align: center;
+    transition: var(--transition);
+  }
+  .hero-value-card:hover {
+    background: rgba(201,168,76,0.08);
+    border-color: rgba(201,168,76,0.3);
+    transform: translateY(-3px);
+  }
+  .hero-value-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .hero-value-title {
+    font-family: 'Heebo', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gold-light);
+    margin-bottom: 4px;
+  }
+  .hero-value-desc {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.5;
+  }
+  /* Hero Visual */
+  .hero-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .hero-visual-main {
+    width: 380px;
+    height: 380px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    animation: rotate-slow 30s linear infinite;
+  }
+  @keyframes rotate-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .hero-visual-center {
+    width: 200px;
+    height: 200px;
+    background: linear-gradient(135deg, var(--navy-mid), var(--navy-light));
+    border: 2px solid rgba(201,168,76,0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: rotate-slow 30s linear infinite reverse;
+    font-size: 64px;
+    flex-shrink: 0;
+  }
+  .hero-orbit-item {
+    position: absolute;
+    width: 52px;
+    height: 52px;
+    background: var(--navy-mid);
+    border: 1.5px solid rgba(201,168,76,0.35);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    animation: rotate-slow 30s linear infinite reverse;
+  }
+  .hero-orbit-item:nth-child(2) { top: 10px; left: 50%; transform: translateX(-50%); }
+  .hero-orbit-item:nth-child(3) { bottom: 10px; left: 50%; transform: translateX(-50%); }
+  .hero-orbit-item:nth-child(4) { top: 50%; right: 10px; transform: translateY(-50%); }
+  .hero-orbit-item:nth-child(5) { top: 50%; left: 10px; transform: translateY(-50%); }
+  .hero-float-card {
+    position: absolute;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 12px;
+    padding: 12px 16px;
+    min-width: 140px;
+    animation: float 4s ease-in-out infinite;
+  }
+  .hero-float-card:nth-of-type(1) { top: -20px; right: -40px; animation-delay: 0s; }
+  .hero-float-card:nth-of-type(2) { bottom: 10px; left: -50px; animation-delay: 2s; }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  .hero-float-label { font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 2px; }
+  .hero-float-value { font-size: 18px; font-weight: 700; color: var(--gold-light); font-family: 'Heebo', sans-serif; }
+  .hero-float-sub { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+  /* ===== SECTION COMMON ===== */
+  section { padding: 100px 0; }
+  .container {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .section-tag {
+    display: inline-block;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 40px;
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+  }
+  .section-title {
+    font-family: 'Heebo', sans-serif;
+    font-size: clamp(28px, 4vw, 46px);
+    font-weight: 900;
+    color: var(--navy);
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+  .section-title span {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .section-subtitle {
+    font-size: 18px;
+    color: var(--gray-600);
+    max-width: 620px;
+    line-height: 1.8;
+  }
+  .section-header { margin-bottom: 60px; }
+  .section-header.center { text-align: center; }
+  .section-header.center .section-subtitle { margin: 0 auto; }
+
+  /* ===== SERVICES ===== */
+  .services { background: var(--gray-100); }
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+  .service-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 36px 28px;
+    border: 1px solid var(--gray-200);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .service-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--gold), var(--gold-light));
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.35s ease;
+  }
+  .service-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(201,168,76,0.25);
+  }
+  .service-card:hover::before { transform: scaleY(1); }
+  .service-icon {
+    width: 62px;
+    height: 62px;
+    background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05));
+    border: 1.5px solid rgba(201,168,76,0.25);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 20px;
+    transition: var(--transition);
+  }
+  .service-card:hover .service-icon {
+    background: linear-gradient(135deg, rgba(201,168,76,0.25), rgba(201,168,76,0.1));
+    border-color: var(--gold);
+  }
+  .service-title {
+    font-family: 'Heebo', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--navy);
+    margin-bottom: 12px;
+  }
+  .service-desc {
+    font-size: 15px;
+    color: var(--gray-600);
+    line-height: 1.8;
+    margin-bottom: 20px;
+    flex-grow: 1;
+  }
+  .service-deliverables {
+    list-style: none;
+    margin-bottom: 24px;
+  }
+  .service-deliverables li {
+    font-size: 14px;
+    color: var(--navy);
+    padding: 5px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .service-deliverables li::before {
+    content: '✓';
+    color: var(--gold);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .btn-read-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--gold);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: var(--transition);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Assistant', sans-serif;
+    padding: 0;
+    margin-top: auto;
+  }
+  .btn-read-more:hover { color: var(--gold-light); gap: 10px; }
+
+  /* ===== WHY US ===== */
+  .why-us { background: var(--navy); }
+  .why-us .section-title { color: var(--white); }
+  .why-us .section-subtitle { color: rgba(255,255,255,0.6); }
+  .why-us .section-tag {
+    background: rgba(201,168,76,0.15);
+    border-color: rgba(201,168,76,0.35);
+  }
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+  .why-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: var(--radius-lg);
+    padding: 36px 24px;
+    text-align: center;
+    transition: var(--transition);
+  }
+  .why-card:hover {
+    background: rgba(201,168,76,0.07);
+    border-color: rgba(201,168,76,0.35);
+    transform: translateY(-4px);
+  }
+  .why-icon {
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, rgba(201,168,76,0.18), rgba(201,168,76,0.06));
+    border: 1.5px solid rgba(201,168,76,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 20px;
+    transition: var(--transition);
+  }
+  .why-card:hover .why-icon {
+    background: linear-gradient(135deg, rgba(201,168,76,0.28), rgba(201,168,76,0.12));
+    transform: scale(1.06);
+  }
+  .why-title {
+    font-family: 'Heebo', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--gold-light);
+    margin-bottom: 12px;
+  }
+  .why-desc {
+    font-size: 15px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.8;
+  }
+
+  /* ===== PRICING ===== */
+  .pricing { background: var(--white); }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+  .pricing-card {
+    background: var(--white);
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: 40px 32px;
+    position: relative;
+    transition: var(--transition);
+  }
+  .pricing-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+  }
+  .pricing-card.featured {
+    background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 100%);
+    border-color: var(--gold);
+    transform: scale(1.03);
+    box-shadow: 0 16px 60px rgba(10,22,40,0.25);
+  }
+  .pricing-card.featured:hover { transform: scale(1.03) translateY(-4px); }
+  .pricing-badge {
+    position: absolute;
+    top: -14px;
+    right: 50%;
+    transform: translateX(50%);
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: var(--navy);
+    font-size: 12px;
+    font-weight: 800;
+    padding: 5px 18px;
+    border-radius: 40px;
+    white-space: nowrap;
+  }
+  .pricing-tier {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .pricing-card.featured .pricing-tier { color: var(--gold-light); }
+  .pricing-name {
+    font-family: 'Heebo', sans-serif;
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .pricing-card.featured .pricing-name { color: var(--white); }
+  .pricing-price {
+    font-family: 'Heebo', sans-serif;
+    font-size: 48px;
+    font-weight: 900;
+    color: var(--navy);
+    line-height: 1;
+    margin: 20px 0 4px;
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .pricing-card.featured .pricing-price { color: var(--gold-light); }
+  .pricing-currency {
+    font-size: 24px;
+    font-weight: 700;
+    margin-top: 8px;
+  }
+  .pricing-period {
+    font-size: 14px;
+    color: var(--gray-400);
+    font-weight: 400;
+    margin-bottom: 28px;
+    font-family: 'Assistant', sans-serif;
+    align-self: flex-end;
+    margin-bottom: 30px;
+  }
+  .pricing-card.featured .pricing-period { color: rgba(255,255,255,0.55); }
+  .pricing-divider {
+    height: 1px;
+    background: var(--gray-200);
+    margin: 20px 0 24px;
+  }
+  .pricing-card.featured .pricing-divider { background: rgba(255,255,255,0.12); }
+  .pricing-features {
+    list-style: none;
+    margin-bottom: 32px;
+  }
+  .pricing-features li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 15px;
+    color: var(--navy);
+    padding: 7px 0;
+    line-height: 1.5;
+  }
+  .pricing-card.featured .pricing-features li { color: rgba(255,255,255,0.85); }
+  .pricing-features li .check {
+    color: var(--gold);
+    font-weight: 800;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .btn-pricing {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1.5px solid var(--gold);
+    color: var(--gold);
+    background: transparent;
+    font-family: 'Assistant', sans-serif;
+  }
+  .btn-pricing:hover {
+    background: rgba(201,168,76,0.1);
+    transform: translateY(-1px);
+  }
+  .pricing-card.featured .btn-pricing {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: var(--navy);
+    border-color: transparent;
+  }
+  .pricing-card.featured .btn-pricing:hover {
+    box-shadow: 0 6px 24px rgba(201,168,76,0.4);
+  }
+
+  /* ===== FAQ ===== */
+  .faq { background: var(--gray-100); }
+  .faq-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  .faq-item {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: var(--transition);
+  }
+  .faq-item:hover { border-color: rgba(201,168,76,0.3); }
+  .faq-question {
+    width: 100%;
+    padding: 20px 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: 'Assistant', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    text-align: right;
+    transition: var(--transition);
+  }
+  .faq-question:hover { color: var(--gold); }
+  .faq-question.open { color: var(--gold); }
+  .faq-arrow {
+    width: 28px;
+    height: 28px;
+    background: rgba(201,168,76,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--gold);
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+  }
+  .faq-question.open .faq-arrow { transform: rotate(180deg); }
+  .faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.3s ease;
+  }
+  .faq-answer.open { max-height: 200px; }
+  .faq-answer-inner {
+    padding: 0 24px 20px;
+    font-size: 15px;
+    color: var(--gray-600);
+    line-height: 1.8;
+  }
+
+  /* ===== NEWS ===== */
+  .news { background: var(--white); }
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    margin-bottom: 44px;
+  }
+  .news-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: var(--transition);
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .news-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(201,168,76,0.25);
+  }
+  .news-img {
+    height: 180px;
+    background: linear-gradient(135deg, var(--navy-mid), var(--navy-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 52px;
+    position: relative;
+    overflow: hidden;
+  }
+  .news-img::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 60%, rgba(10,22,40,0.4));
+  }
+  .news-body { padding: 24px; }
+  .news-cat {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+  .news-title {
+    font-family: 'Heebo', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--navy);
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  .news-excerpt {
+    font-size: 14px;
+    color: var(--gray-600);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+  .news-meta {
+    font-size: 12px;
+    color: var(--gray-400);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .news-cta-wrap { text-align: center; }
+
+  /* ===== CONTACT ===== */
+  .contact { background: var(--navy); }
+  .contact .section-title { color: var(--white); }
+  .contact .section-subtitle { color: rgba(255,255,255,0.6); }
+  .contact .section-tag {
+    background: rgba(201,168,76,0.15);
+    border-color: rgba(201,168,76,0.35);
+  }
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 60px;
+    align-items: start;
+  }
+  .contact-info {
+    padding-top: 8px;
+  }
+  .contact-info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .contact-info-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .contact-info-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .contact-info-value {
+    font-size: 16px;
+    color: var(--white);
+    font-weight: 600;
+  }
+  .contact-form-wrap {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.3px;
+  }
+  .form-input, .form-select, .form-textarea {
+    padding: 13px 16px;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(201,168,76,0.15);
+    border-radius: 10px;
+    color: var(--white);
+    font-size: 15px;
+    font-family: 'Assistant', sans-serif;
+    transition: var(--transition);
+    outline: none;
+    direction: rtl;
+  }
+  .form-input::placeholder, .form-textarea::placeholder { color: rgba(255,255,255,0.3); }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.06);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+  }
+  .form-select option { background: var(--navy); color: var(--white); }
+  .form-textarea { resize: vertical; min-height: 110px; }
+  .form-submit {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border: none;
+    border-radius: var(--radius);
+    color: var(--navy);
+    font-size: 17px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'Assistant', sans-serif;
+    margin-top: 8px;
+  }
+  .form-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(201,168,76,0.45);
+  }
+  .form-message {
+    font-size: 13px;
+    margin-top: 8px;
+    min-height: 20px;
+    font-weight: 600;
+  }
+  .form-message.success { color: #4ade80; }
+  .form-message.error { color: #f87171; }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    background: var(--navy);
+    border-top: 1px solid rgba(201,168,76,0.12);
+    padding: 60px 0 32px;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 48px;
+  }
+  .footer-brand-desc {
+    font-size: 15px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.8;
+    margin-top: 16px;
+    margin-bottom: 20px;
+  }
+  .footer-social {
+    display: flex;
+    gap: 10px;
+  }
+  .footer-social-link {
+    width: 38px;
+    height: 38px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.55);
+    text-decoration: none;
+    font-size: 16px;
+    transition: var(--transition);
+  }
+  .footer-social-link:hover {
+    background: rgba(201,168,76,0.12);
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  .footer-col-title {
+    font-family: 'Heebo', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--gold-light);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 16px;
+  }
+  .footer-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .footer-links a {
+    color: rgba(255,255,255,0.55);
+    text-decoration: none;
+    font-size: 15px;
+    transition: var(--transition);
+  }
+  .footer-links a:hover { color: var(--gold-light); }
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.07);
+    padding-top: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .footer-copy {
+    font-size: 14px;
+    color: rgba(255,255,255,0.4);
+  }
+  .footer-legal {
+    display: flex;
+    gap: 20px;
+  }
+  .footer-legal a {
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+    text-decoration: none;
+    transition: var(--transition);
+  }
+  .footer-legal a:hover { color: var(--gold); }
+
+  /* ===== ANIMATIONS ===== */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ===== SCROLL TO TOP ===== */
+  .scroll-top {
+    position: fixed;
+    bottom: 28px;
+    left: 28px;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border: none;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--navy);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: var(--transition);
+    z-index: 900;
+    box-shadow: 0 4px 16px rgba(201,168,76,0.35);
+  }
+  .scroll-top.visible { opacity: 1; transform: translateY(0); }
+  .scroll-top:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(201,168,76,0.5); }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 1024px) {
+    .hero-inner { grid-template-columns: 1fr; text-align: center; }
+    .hero-subtitle { margin: 0 auto 36px; }
+    .hero-ctas { justify-content: center; }
+    .hero-value-cards { max-width: 480px; margin: 0 auto; }
+    .hero-visual { display: none; }
+    .services-grid { grid-template-columns: repeat(2, 1fr); }
+    .why-grid { grid-template-columns: repeat(2, 1fr); }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 768px) {
+    .nav-links, .nav-actions { display: none; }
+    .hamburger { display: flex; }
+    section { padding: 70px 0; }
+    .services-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .pricing-card.featured { transform: scale(1); }
+    .pricing-card.featured:hover { transform: translateY(-4px); }
+    .faq-grid { grid-template-columns: 1fr; }
+    .news-grid { grid-template-columns: 1fr; }
+    .contact-grid { grid-template-columns: 1fr; gap: 36px; }
+    .contact-form-wrap { padding: 24px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+    .footer-bottom { flex-direction: column; text-align: center; }
+    .hero-value-cards { grid-template-columns: 1fr; max-width: 320px; }
+  }
+  @media (max-width: 480px) {
+    .hero-inner { padding: 60px 20px; }
+    .container { padding: 0 16px; }
+    .hero-ctas { flex-direction: column; align-items: stretch; }
+    .btn-primary, .btn-secondary { justify-content: center; }
+    .why-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header>
+  <nav class="navbar" role="navigation" aria-label="ניווט ראשי">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo" aria-label="Prime Ledger Solutions - עמוד הבית">
+        <div class="nav-logo-icon" aria-hidden="true">PL</div>
+        <div class="nav-logo-text">
+          <span class="nav-logo-en">Prime Ledger Solutions</span>
+          <span class="nav-logo-he">פריים לדג'ר סולושנס</span>
+        </div>
+      </a>
+      <ul class="nav-links" role="list">
+        <li><a href="#services">שירותים</a></li>
+        <li><a href="#pricing">תמחור</a></li>
+        <li><a href="news.html">חדשות</a></li>
+        <li><a href="#contact">צור קשר</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="portal.html" class="btn-portal" aria-label="כניסה לפורטל לקוחות">כניסה לפורטל</a>
+        <a href="#contact" class="btn-cta-nav">התחל עכשיו</a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="פתח תפריט ניווט" aria-expanded="false" aria-controls="mobileMenu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  <nav class="mobile-menu" id="mobileMenu" aria-label="תפריט ניווט נייד">
+    <a href="#services">שירותים</a>
+    <a href="#pricing">תמחור</a>
+    <a href="news.html">חדשות</a>
+    <a href="#contact">צור קשר</a>
+    <div class="mobile-menu-actions">
+      <a href="portal.html" class="btn-portal" style="font-size:15px;">כניסה לפורטל</a>
+      <a href="#contact" class="btn-cta-nav" style="font-size:15px;">התחל עכשיו</a>
+    </div>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero" aria-label="כותרת ראשית">
+  <div class="hero-bg-grid" aria-hidden="true"></div>
+  <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
+  <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-badge" aria-label="מוסמכים ומוכרים">
+        <span class="hero-badge-dot" aria-hidden="true"></span>
+        רואי חשבון מוסמכים &amp; יועצים עסקיים
+      </div>
+      <h1 class="hero-title">
+        ניהול חשבונות <span>חכם.</span><br>
+        ייעוץ עסקי <span>מנצח.</span>
+      </h1>
+      <p class="hero-subtitle">
+        אנו מספקים שירותי הנהלת חשבונות מקצועיים, ייעוץ עסקי אסטרטגי וליווי פיננסי מלא לעסקים קטנים, בינוניים ועצמאים — כדי שתוכלו להתמקד בצמיחה.
+      </p>
+      <div class="hero-ctas">
+        <a href="portal.html" class="btn-primary" aria-label="התחל עכשיו - כניסה לפורטל">
+          התחל עכשיו ←
+        </a>
+        <a href="#contact" class="btn-secondary" aria-label="עבור לטופס יצירת קשר">
+          צור קשר
+        </a>
+      </div>
+      <div class="hero-value-cards" role="list" aria-label="יתרונות עיקריים">
+        <div class="hero-value-card" role="listitem">
+          <span class="hero-value-icon" aria-hidden="true">🏆</span>
+          <div class="hero-value-title">מקצועיות מלאה</div>
+          <div class="hero-value-desc">רואי חשבון מוסמכים עם ניסיון רב</div>
+        </div>
+        <div class="hero-value-card" role="listitem">
+          <span class="hero-value-icon" aria-hidden="true">🕐</span>
+          <div class="hero-value-title">זמינות 24/7</div>
+          <div class="hero-value-desc">תמיד זמינים לשאלות ולסיוע</div>
+        </div>
+        <div class="hero-value-card" role="listitem">
+          <span class="hero-value-icon" aria-hidden="true">📈</span>
+          <div class="hero-value-title">תוצאות מוכחות</div>
+          <div class="hero-value-desc">חיסכון במס ויעילות מרבית</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <div style="position:relative; width:440px; height:440px;">
+        <div class="hero-visual-main">
+          <div class="hero-orbit-item">💰</div>
+          <div class="hero-orbit-item">📊</div>
+          <div class="hero-orbit-item">🧾</div>
+          <div class="hero-orbit-item">📋</div>
+          <div class="hero-visual-center">🏛️</div>
+        </div>
+        <div class="hero-float-card">
+          <div class="hero-float-label">חיסכון במס</div>
+          <div class="hero-float-value">עד 35%</div>
+          <div class="hero-float-sub">בממוצע ללקוחותינו</div>
+        </div>
+        <div class="hero-float-card">
+          <div class="hero-float-label">זמן תגובה</div>
+          <div class="hero-float-value">תוך 2 שעות</div>
+          <div class="hero-float-sub">בימי עסקים</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="services" id="services" aria-label="השירותים שלנו">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-tag">השירותים שלנו</span>
+      <h2 class="section-title">פתרונות פיננסיים <span>מקיפים</span></h2>
+      <p class="section-subtitle">מהנהלת חשבונות שוטפת ועד ייעוץ אסטרטגי — אנחנו כאן בכל שלב של הדרך העסקית שלכם.</p>
+    </div>
+    <div class="services-grid">
+
+      <article class="service-card fade-in" aria-label="שירות הנהלת חשבונות שוטפת">
+        <div class="service-icon" aria-hidden="true">📚</div>
+        <h3 class="service-title">הנהלת חשבונות שוטפת</h3>
+        <p class="service-desc">ניהול ספרי החשבונות של עסקכם באופן שוטף ומדויק. אנו מכסים את כל ההיבטים הפיננסיים — מרישום התנועות היומיות ועד הפקת דוחות חודשיים מפורטים וגמר חשבון שנתי. ניתוח תזרים המזומנים שלנו מסייע לכם לקבל החלטות עסקיות מושכלות.</p>
+        <ul class="service-deliverables" aria-label="מה כלול בשירות">
+          <li>ניהול ספרים שוטף ורישום כל התנועות</li>
+          <li>דוחות חודשיים ורבעוניים מפורטים</li>
+          <li>גמר חשבון שנתי ואיזון ספרים</li>
+          <li>ניתוח תזרים מזומנים ותחזיות</li>
+          <li>ממשק ישיר עם תוכנות חשבונאות מובילות</li>
+        </ul>
+        <button class="btn-read-more" aria-label="קרא עוד על הנהלת חשבונות שוטפת">קרא עוד ←</button>
+      </article>
+
+      <article class="service-card fade-in" aria-label="שירות הגשת דוחות מע״מ">
+        <div class="service-icon" aria-hidden="true">🧾</div>
+        <h3 class="service-title">הגשת דוחות מע"מ</h3>
+        <p class="service-desc">הגשה מדויקת ובזמן של דוחות מע"מ לרשויות המס. אנו מטפלים בחישוב המס המדויק, מונעים קנסות בגין איחורים, ומייעלים את תהליך ההגשה. ליווי מלא מול רשות המסים בכל שאלה או בירור.</p>
+        <ul class="service-deliverables" aria-label="מה כלול בשירות">
+          <li>הגשה חודשית או דו-חודשית לרשות המסים</li>
+          <li>חישוב מדויק של מע"מ תשומות ועסקאות</li>
+          <li>מניעת קנסות פיגורים ואי-הגשה</li>
+          <li>ייצוג מול פקיד השומה בבירורים</li>
+          <li>עדכון שוטף לגבי שינויים בתקנות המע"מ</li>
+        </ul>
+        <button class="btn-read-more" aria-label="קרא עוד על הגשת דוחות מע״מ">קרא עוד ←</button>
+      </article>
+
+      <article class="service-card fade-in" aria-label="שירות שכר ותגמולים">
+        <div class="service-icon" aria-hidden="true">💼</div>
+        <h3 class="service-title">שכר ותגמולים</h3>
+        <p class="service-desc">ניהול שכר מקצועי ומדויק לכל גודל ארגון. אנו מחשבים משכורות, ניכויי ביטוח לאומי ומס הכנסה, ומגישים דוחות 126 ושנתיים לפי הדרישות החוקיות. הכל מנוהל בצורה אוטומטית ושקופה.</p>
+        <ul class="service-deliverables" aria-label="מה כלול בשירות">
+          <li>חישוב משכורות חודשי לכלל העובדים</li>
+          <li>ניכוי ביטוח לאומי ומס הכנסה</li>
+          <li>הגשת דוחות ניכויים חודשיים ושנתיים</li>
+          <li>ניהול קרנות פנסיה וקופות גמל</li>
+          <li>הפקת תלושי שכר דיגיטליים</li>
+        </ul>
+        <button class="btn-read-more" aria-label="קרא עוד על שירות שכר ותגמולים">קרא עוד ←</button>
+      </article>
+
+      <article class="service-card fade-in" aria-label="שירות ייעוץ עסקי אסטרטגי">
+        <div class="service-icon" aria-hidden="true">🎯</div>
+        <h3 class="service-title">ייעוץ עסקי אסטרטגי</h3>
+        <p class="service-desc">ייעוץ עסקי מעמיק שמסייע לכם לקבל החלטות פיננסיות חכמות. אנו בונים תוכניות עסקיות מפורטות, מנתחים רווחיות, מזהים הזדמנויות חיסכון ומלווים אתכם בתהליכי מימון והשקעה.</p>
+        <ul class="service-deliverables" aria-label="מה כלול בשירות">
+          <li>בניית תוכנית עסקית מקיפה</li>
+          <li>ניתוח רווחיות ונקודת איזון</li>
+          <li>ייעוץ למימון בנקאי וגיוס הון</li>
+          <li>תכנון מס אסטרטגי לחיסכון מקסימלי</li>
+          <li>ניתוח כלכלי לקראת רכישות ומיזוגים</li>
+        </ul>
+        <button class="btn-read-more" aria-label="קרא עוד על ייעוץ עסקי אסטרטגי">קרא עוד ←</button>
+      </article>
+
+      <article class="service-card fade-in" aria-label="שירות ייצוג מול רשויות">
+        <div class="service-icon" aria-hidden="true">⚖️</div>
+        <h3 class="service-title">ייצוג מול רשויות</h3>
+        <p class="service-desc">ייצוג מקצועי ואמין מול רשות המסים, ביטוח לאומי וגורמים ממשלתיים. אנו מנהלים שומות מס, מגישים ערעורים, ומלווים ביקורות מס — תוך שמירה על זכויותיכם ואינטרסיכם.</p>
+        <ul class="service-deliverables" aria-label="מה כלול בשירות">
+          <li>ניהול שומות מס הכנסה ומע"מ</li>
+          <li>הגשת ערעורים על החלטות פקיד שומה</li>
+          <li>ליווי בביקורות מס ובדיקות חשבוניות</li>
+          <li>ייצוג בדיוני שומה ופגישות עם הרשויות</li>
+          <li>הגשת בקשות להסכמי שומה</li>
+        </ul>
+        <button class="btn-read-more" aria-label="קרא עוד על ייצוג מול רשויות">קרא עוד ←</button>
+      </article>
+
+      <article class="service-card fade-in" aria-label="שירות הקמת עסקים">
+        <div class="service-icon" aria-hidden="true">🚀</div>
+        <h3 class="service-title">הקמת עסקים</h3>
+        <p class="service-desc">ליווי מלא בכל שלבי פתיחת העסק — מבחירת המבנה המשפטי הנכון ועד לרישום מול כל הרשויות הרלוונטיות. אנו נבטיח שתתחילו את דרכם העסקית על בסיס איתן ומסודר.</p>
+        <ul class="service-deliverables" aria-label="מה כלול בשירות">
+          <li>בחירת מבנה משפטי — עוסק מורשה, שותפות, חברה בע"מ</li>
+          <li>רישום ברשם החברות ורשות המסים</li>
+          <li>פתיחת תיקים בביטוח לאומי ומע"מ</li>
+          <li>ייעוץ לתכנון מס ראשוני ואופטימלי</li>
+          <li>הכנת הסכמים ומסמכים ייסודיים</li>
+        </ul>
+        <button class="btn-read-more" aria-label="קרא עוד על הקמת עסקים">קרא עוד ←</button>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- WHY US -->
+<section class="why-us" id="why-us" aria-label="למה לבחור בנו">
+  <div class="container">
+    <div class="section-header center fade-in">
+      <span class="section-tag">היתרון שלנו</span>
+      <h2 class="section-title" style="color:var(--white);">למה לבחור <span>בנו?</span></h2>
+      <p class="section-subtitle" style="color:rgba(255,255,255,0.6);">ארבעה עמודי תווך שמבדילים אותנו מכל גורם חשבונאי אחר</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-card fade-in" aria-label="מקצועיות">
+        <div class="why-icon" aria-hidden="true">🎓</div>
+        <h3 class="why-title">מקצועיות</h3>
+        <p class="why-desc">צוות רואי חשבון מוסמכים ויועצים עסקיים מנוסים. כל אחד מאנשי הצוות שלנו מחזיק בהסמכות מקצועיות ועובר הכשרה שוטפת לעמידה בעדכוני חקיקה ותקינה.</p>
+      </div>
+      <div class="why-card fade-in" aria-label="חיסכון">
+        <div class="why-icon" aria-hidden="true">💰</div>
+        <h3 class="why-title">חיסכון מרבי</h3>
+        <p class="why-desc">תכנון מס חכם ואסטרטגי שחוסך לכם כסף רב מדי שנה. אנחנו מזהים הזדמנויות חיסכון שעסקים רבים מפספסים, ומיישמים אסטרטגיות מס חוקיות ויעילות.</p>
+      </div>
+      <div class="why-card fade-in" aria-label="זמינות">
+        <div class="why-icon" aria-hidden="true">📞</div>
+        <h3 class="why-title">זמינות מלאה</h3>
+        <p class="why-desc">זמינים עבורכם בכל עת — טלפון, מייל, ווטסאפ. אנו מאמינים שתמיכה מהירה היא לא בונוס, היא חובה. זמן התגובה הממוצע שלנו הוא פחות משעתיים בימי עסקים.</p>
+      </div>
+      <div class="why-card fade-in" aria-label="טכנולוגיה">
+        <div class="why-icon" aria-hidden="true">💻</div>
+        <h3 class="why-title">טכנולוגיה מתקדמת</h3>
+        <p class="why-desc">עובדים עם הכלים הדיגיטליים המתקדמים ביותר — תוכנות חשבונאות בענן, גישה מרחוק לדוחות, ואוטומציה שמפחיתה טעויות ומגבירה יעילות. הפורטל האישי שלכם זמין 24/7.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing" aria-label="מחירים ותוכניות">
+  <div class="container">
+    <div class="section-header center fade-in">
+      <span class="section-tag">תמחור שקוף</span>
+      <h2 class="section-title">תוכניות <span>מותאמות</span> לכם</h2>
+      <p class="section-subtitle">מחירים ברורים וללא הפתעות. בחרו את התוכנית שמתאימה לגודל ולצרכי העסק שלכם.</p>
+    </div>
+    <div class="pricing-grid">
+
+      <div class="pricing-card fade-in" aria-label="תוכנית בסיסי">
+        <div class="pricing-tier">תוכנית</div>
+        <div class="pricing-name">בסיסי</div>
+        <div class="pricing-price">
+          <span class="pricing-currency">₪</span>
+          299
+          <span class="pricing-period">/חודש</span>
+        </div>
+        <div class="pricing-divider"></div>
+        <ul class="pricing-features" aria-label="מה כלול בתוכנית בסיסי">
+          <li><span class="check" aria-hidden="true">✓</span> עד 50 תנועות חשבונאיות</li>
+          <li><span class="check" aria-hidden="true">✓</span> הגשת דוחות מע"מ רבעונית</li>
+          <li><span class="check" aria-hidden="true">✓</span> דוחות חשבונאיים בסיסיים</li>
+          <li><span class="check" aria-hidden="true">✓</span> תמיכה במייל</li>
+          <li><span class="check" aria-hidden="true">✓</span> גישה לפורטל לקוחות</li>
+        </ul>
+        <a href="portal.html" class="btn-pricing" aria-label="התחל תוכנית בסיסי">התחל עכשיו</a>
+      </div>
+
+      <div class="pricing-card featured fade-in" aria-label="תוכנית מקצועי - מומלץ">
+        <div class="pricing-badge" aria-label="תוכנית מומלצת">הכי פופולרי</div>
+        <div class="pricing-tier">תוכנית</div>
+        <div class="pricing-name">מקצועי</div>
+        <div class="pricing-price">
+          <span class="pricing-currency">₪</span>
+          599
+          <span class="pricing-period">/חודש</span>
+        </div>
+        <div class="pricing-divider"></div>
+        <ul class="pricing-features" aria-label="מה כלול בתוכנית מקצועי">
+          <li><span class="check" aria-hidden="true">✓</span> עד 200 תנועות חשבונאיות</li>
+          <li><span class="check" aria-hidden="true">✓</span> הגשת דוחות מע"מ חודשית</li>
+          <li><span class="check" aria-hidden="true">✓</span> ייעוץ עסקי חודשי (שעה)</li>
+          <li><span class="check" aria-hidden="true">✓</span> תמיכה טלפונית ובמייל</li>
+          <li><span class="check" aria-hidden="true">✓</span> דוחות מפורטים ותחזיות</li>
+          <li><span class="check" aria-hidden="true">✓</span> ניהול שכר עד 5 עובדים</li>
+        </ul>
+        <a href="portal.html" class="btn-pricing" aria-label="התחל תוכנית מקצועי">התחל עכשיו</a>
+      </div>
+
+      <div class="pricing-card fade-in" aria-label="תוכנית עסקי">
+        <div class="pricing-tier">תוכנית</div>
+        <div class="pricing-name">עסקי</div>
+        <div class="pricing-price">
+          <span class="pricing-currency">₪</span>
+          999
+          <span class="pricing-period">/חודש</span>
+        </div>
+        <div class="pricing-divider"></div>
+        <ul class="pricing-features" aria-label="מה כלול בתוכנית עסקי">
+          <li><span class="check" aria-hidden="true">✓</span> ללא הגבלת תנועות</li>
+          <li><span class="check" aria-hidden="true">✓</span> ייצוג מלא מול רשויות</li>
+          <li><span class="check" aria-hidden="true">✓</span> ייעוץ עסקי שבועי</li>
+          <li><span class="check" aria-hidden="true">✓</span> מנהל חשבון אישי ייעודי</li>
+          <li><span class="check" aria-hidden="true">✓</span> ניהול שכר ללא הגבלה</li>
+          <li><span class="check" aria-hidden="true">✓</span> תכנון מס שנתי מקיף</li>
+        </ul>
+        <a href="portal.html" class="btn-pricing" aria-label="התחל תוכנית עסקי">התחל עכשיו</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq" aria-label="שאלות נפוצות">
+  <div class="container">
+    <div class="section-header center fade-in">
+      <span class="section-tag">שאלות ותשובות</span>
+      <h2 class="section-title">שאלות <span>נפוצות</span></h2>
+      <p class="section-subtitle">תשובות לשאלות הנפוצות ביותר שמגיעות אלינו מלקוחות קיימים ופוטנציאלים</p>
+    </div>
+    <div class="faq-grid" role="list" aria-label="שאלות ותשובות">
+
+      <div class="faq-item fade-in" role="listitem">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq1" id="faq1-btn">
+          מה ההבדל בין הנהלת חשבונות לייעוץ עסקי?
+          <span class="faq-arrow" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-answer" id="faq1" role="region" aria-labelledby="faq1-btn">
+          <div class="faq-answer-inner">
+            הנהלת חשבונות עוסקת ברישום ותיעוד כל הפעולות הפיננסיות של העסק, הגשת דוחות לרשויות ועמידה בחובות החוקיות. ייעוץ עסקי הוא שכבת ניתוח נוספת — אנחנו מסתכלים על הנתונים ומסייעים לכם לקבל החלטות אסטרטגיות חכמות לצמיחה ולחיסכון.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item fade-in" role="listitem">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq2" id="faq2-btn">
+          האם אתם עובדים עם עצמאים וחברות בע"מ?
+          <span class="faq-arrow" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-answer" id="faq2" role="region" aria-labelledby="faq2-btn">
+          <div class="faq-answer-inner">
+            כן, אנו עובדים עם כל סוגי העסקים — עוסק פטור, עוסק מורשה, שותפויות וחברות בע"מ. לכל מבנה עסקי יש דרישות חוקיות שונות, ואנו מותאמים לכולן.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item fade-in" role="listitem">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="faq3-btn">
+          מתי הגשת דוחות מע"מ?
+          <span class="faq-arrow" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="faq3-btn">
+          <div class="faq-answer-inner">
+            בישראל, עסקים מגישים דוחות מע"מ בהתאם למחזור העסקאות שלהם: דו-חודשי (אחת לחודשיים) או חודשי (לעסקים גדולים). אנו נקבע יחד איתכם את מחזור ההגשה הנכון ונוודא עמידה מדויקת בכל המועדים.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item fade-in" role="listitem">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq4" id="faq4-btn">
+          כמה עולה שירות הנהלת חשבונות?
+          <span class="faq-arrow" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-answer" id="faq4" role="region" aria-labelledby="faq4-btn">
+          <div class="faq-answer-inner">
+            המחיר תלוי בהיקף הפעילות ובשירותים הנדרשים. תוכניותינו מתחילות מ-₪299 לחודש לעסקים קטנים ועד ₪999 לחודש לפתרון מלא לחברות. ניתן לראות את פירוט המחירים בסעיף התמחור למעלה, או ליצור קשר לייעוץ חינם.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item fade-in" role="listitem">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq5" id="faq5-btn">
+          האם ניתן לעבור מרואה חשבון קיים?
+          <span class="faq-arrow" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-answer" id="faq5" role="region" aria-labelledby="faq5-btn">
+          <div class="faq-answer-inner">
+            בהחלט, ומדובר בתהליך פשוט יחסית. אנו מטפלים בכל העברת המידע מרואה החשבון הקודם, כולל ספרי חשבונות, אישורי שנים קודמות ותיאום עם רשויות המס — הכל ללא מאמץ מצדכם.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item fade-in" role="listitem">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq6" id="faq6-btn">
+          מהם זמני התגובה שלכם?
+          <span class="faq-arrow" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-answer" id="faq6" role="region" aria-labelledby="faq6-btn">
+          <div class="faq-answer-inner">
+            אנו מחויבים לזמן תגובה של עד שעתיים בימי עסקים לשאלות דחופות, ועד 24 שעות לבקשות שאינן דחופות. לקוחות תוכנית "עסקי" נהנים ממנהל חשבון אישי עם קו ישיר לתגובה מהירה במיוחד.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- NEWS PREVIEW -->
+<section class="news" id="news" aria-label="עדכונים ומאמרים">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-tag">בלוג ועדכונים</span>
+      <h2 class="section-title">עדכונים <span>ומאמרים</span></h2>
+      <p class="section-subtitle">ידע פיננסי ועסקי שיסייע לכם לנהל את עסקיכם בצורה חכמה יותר</p>
+    </div>
+    <div class="news-grid">
+
+      <a href="news.html" class="news-card fade-in" aria-label="קרא מאמר: שינויי מס 2025 – מה עסקים צריכים לדעת">
+        <div class="news-img" aria-hidden="true">📊</div>
+        <div class="news-body">
+          <div class="news-cat">מיסוי</div>
+          <h3 class="news-title">שינויי מס 2025 – מה עסקים צריכים לדעת</h3>
+          <p class="news-excerpt">סקירה מקיפה של עדכוני מס הכנסה ומע"מ לשנת 2025, כולל שינויים בסכומי הפטור וההטבות לעסקים קטנים.</p>
+          <div class="news-meta">
+            <span>📅 ינואר 2025</span>
+            <span>• 5 דקות קריאה</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="news.html" class="news-card fade-in" aria-label="קרא מאמר: כיצד לתכנן תזרים מזומנים לעסק שלכם">
+        <div class="news-img" aria-hidden="true">💡</div>
+        <div class="news-body">
+          <div class="news-cat">ייעוץ עסקי</div>
+          <h3 class="news-title">כיצד לתכנן תזרים מזומנים לעסק שלכם</h3>
+          <p class="news-excerpt">מדריך פרקטי לניהול תזרים מזומנים חכם — כולל כלים, שיטות ודוגמאות מהעולם האמיתי לעסקים בישראל.</p>
+          <div class="news-meta">
+            <span>📅 פברואר 2025</span>
+            <span>• 7 דקות קריאה</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="news.html" class="news-card fade-in" aria-label="קרא מאמר: פתיחת חברה בע״מ מול עוסק מורשה">
+        <div class="news-img" aria-hidden="true">🏢</div>
+        <div class="news-body">
+          <div class="news-cat">הקמת עסקים</div>
+          <h3 class="news-title">פתיחת חברה בע"מ מול עוסק מורשה – מה נכון לכם?</h3>
+          <p class="news-excerpt">השוואה מעמיקה בין שתי האפשרויות המרכזיות לפעילות עצמאית בישראל — יתרונות, חסרונות ושיקולי מס.</p>
+          <div class="news-meta">
+            <span>📅 מרץ 2025</span>
+            <span>• 6 דקות קריאה</span>
+          </div>
+        </div>
+      </a>
+
+    </div>
+    <div class="news-cta-wrap">
+      <a href="news.html" class="btn-primary" aria-label="לכל המאמרים והעדכונים">לכל המאמרים ←</a>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact" aria-label="יצירת קשר">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-tag">בואו נדבר</span>
+      <h2 class="section-title" style="color:var(--white);">צרו <span>קשר</span> עכשיו</h2>
+      <p class="section-subtitle" style="color:rgba(255,255,255,0.6);">מלאו את הטופס ונחזור אליכם תוך יום עסקים. ייעוץ ראשוני ללא עלות.</p>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-info fade-in">
+        <div class="contact-info-item">
+          <div class="contact-info-icon" aria-hidden="true">📞</div>
+          <div>
+            <div class="contact-info-label">טלפון</div>
+            <div class="contact-info-value">03-000-0000</div>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-info-icon" aria-hidden="true">✉️</div>
+          <div>
+            <div class="contact-info-label">אימייל</div>
+            <div class="contact-info-value">info@primeled.co.il</div>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-info-icon" aria-hidden="true">📍</div>
+          <div>
+            <div class="contact-info-label">כתובת</div>
+            <div class="contact-info-value">רחוב הרצל 1, תל אביב</div>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-info-icon" aria-hidden="true">🕐</div>
+          <div>
+            <div class="contact-info-label">שעות פעילות</div>
+            <div class="contact-info-value">א׳–ה׳ | 9:00–18:00</div>
+          </div>
+        </div>
+      </div>
+      <div class="contact-form-wrap fade-in">
+        <form id="contactForm" novalidate aria-label="טופס יצירת קשר">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="fname">שם פרטי *</label>
+              <input class="form-input" type="text" id="fname" name="fname" placeholder="ישראל" required aria-required="true">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="lname">שם משפחה *</label>
+              <input class="form-input" type="text" id="lname" name="lname" placeholder="ישראלי" required aria-required="true">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="email">אימייל *</label>
+              <input class="form-input" type="email" id="email" name="email" placeholder="israel@example.com" required aria-required="true">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="phone">טלפון</label>
+              <input class="form-input" type="tel" id="phone" name="phone" placeholder="050-0000000">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="bizType">סוג עסק *</label>
+              <select class="form-select" id="bizType" name="bizType" required aria-required="true">
+                <option value="">בחר סוג עסק...</option>
+                <option value="freelancer">עוסק פטור / מורשה</option>
+                <option value="partnership">שותפות</option>
+                <option value="ltd">חברה בע"מ</option>
+                <option value="other">אחר</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="transactions">נפח תנועות חודשי</label>
+              <select class="form-select" id="transactions" name="transactions">
+                <option value="">בחר נפח תנועות...</option>
+                <option value="up50">עד 50 תנועות</option>
+                <option value="50-200">50–200 תנועות</option>
+                <option value="200plus">מעל 200 תנועות</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label class="form-label" for="service">שירות מבוקש</label>
+              <select class="form-select" id="service" name="service">
+                <option value="">בחר שירות...</option>
+                <option value="bookkeeping">הנהלת חשבונות שוטפת</option>
+                <option value="vat">דוחות מע"מ</option>
+                <option value="payroll">שכר ותגמולים</option>
+                <option value="consulting">ייעוץ עסקי</option>
+                <option value="representation">ייצוג מול רשויות</option>
+                <option value="setup">הקמת עסק</option>
+                <option value="other">אחר</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label class="form-label" for="message">הודעה</label>
+              <textarea class="form-textarea" id="message" name="message" placeholder="ספרו לנו על העסק שלכם והצרכים שלכם..."></textarea>
+            </div>
+          </div>
+          <button type="submit" class="form-submit">שלח פנייה ←</button>
+          <div class="form-message" id="formMessage" role="alert" aria-live="polite"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer" role="contentinfo">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="#" class="nav-logo" style="margin-bottom:12px; display:inline-flex;" aria-label="Prime Ledger Solutions - חזרה לעמוד הבית">
+          <div class="nav-logo-icon" aria-hidden="true">PL</div>
+          <div class="nav-logo-text">
+            <span class="nav-logo-en">Prime Ledger Solutions</span>
+            <span class="nav-logo-he">פריים לדג'ר סולושנס</span>
+          </div>
+        </a>
+        <p class="footer-brand-desc">שירותי הנהלת חשבונות, ייעוץ עסקי וניהול פיננסי מקצועי לעסקים בישראל. אנחנו כאן כדי שתוכלו להתמקד במה שחשוב.</p>
+        <div class="footer-social" aria-label="רשתות חברתיות">
+          <a href="#" class="footer-social-link" aria-label="עמוד הפייסבוק שלנו">f</a>
+          <a href="#" class="footer-social-link" aria-label="עמוד האינסטגרם שלנו">in</a>
+          <a href="#" class="footer-social-link" aria-label="עמוד הלינקדאין שלנו">Li</a>
+          <a href="#" class="footer-social-link" aria-label="ערוץ הוואטסאפ שלנו">W</a>
+        </div>
+      </div>
+      <div>
+        <h4 class="footer-col-title">שירותים</h4>
+        <ul class="footer-links" role="list">
+          <li><a href="#services">הנהלת חשבונות</a></li>
+          <li><a href="#services">דוחות מע"מ</a></li>
+          <li><a href="#services">שכר ותגמולים</a></li>
+          <li><a href="#services">ייעוץ עסקי</a></li>
+          <li><a href="#services">הקמת עסקים</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="footer-col-title">ניווט</h4>
+        <ul class="footer-links" role="list">
+          <li><a href="portal.html">פורטל לקוחות</a></li>
+          <li><a href="news.html">חדשות ומאמרים</a></li>
+          <li><a href="#pricing">תמחור</a></li>
+          <li><a href="#faq">שאלות נפוצות</a></li>
+          <li><a href="#contact">צור קשר</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="footer-col-title">משפטי</h4>
+        <ul class="footer-links" role="list">
+          <li><a href="#">מדיניות פרטיות</a></li>
+          <li><a href="#">תנאי שימוש</a></li>
+          <li><a href="#">נגישות</a></li>
+        </ul>
+        <div style="margin-top:24px;">
+          <div style="font-size:13px; color:rgba(255,255,255,0.4); line-height:1.8;">
+            <div>רישיון רואה חשבון: 00000</div>
+            <div>ח.פ: 000000000</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2025 Prime Ledger Solutions. כל הזכויות שמורות.</div>
+      <div class="footer-legal">
+        <a href="#">מדיניות פרטיות</a>
+        <a href="#">תנאי שימוש</a>
+        <a href="#">נגישות</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- SCROLL TO TOP -->
+<button class="scroll-top" id="scrollTop" aria-label="חזרה לראש הדף" title="חזרה לראש הדף">↑</button>
+
+<script>
+  // Navbar scroll effect
+  const navbar = document.querySelector('.navbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+  }, { passive: true });
+
+  // Hamburger menu
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburger.addEventListener('click', () => {
+    const isOpen = mobileMenu.classList.toggle('open');
+    hamburger.classList.toggle('active', isOpen);
+    hamburger.setAttribute('aria-expanded', isOpen);
+  });
+  // Close mobile menu on link click
+  mobileMenu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      mobileMenu.classList.remove('open');
+      hamburger.classList.remove('active');
+      hamburger.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-question').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const isOpen = btn.classList.contains('open');
+      // Close all
+      document.querySelectorAll('.faq-question').forEach(b => {
+        b.classList.remove('open');
+        b.setAttribute('aria-expanded', 'false');
+        const ans = document.getElementById(b.getAttribute('aria-controls'));
+        if (ans) ans.classList.remove('open');
+      });
+      // Open clicked if it was closed
+      if (!isOpen) {
+        btn.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+        const answer = document.getElementById(btn.getAttribute('aria-controls'));
+        if (answer) answer.classList.add('open');
+      }
+    });
+  });
+
+  // Fade-in on scroll
+  const fadeEls = document.querySelectorAll('.fade-in');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.classList.add('visible');
+        }, i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  fadeEls.forEach(el => observer.observe(el));
+
+  // Scroll to top
+  const scrollTopBtn = document.getElementById('scrollTop');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 400) {
+      scrollTopBtn.classList.add('visible');
+    } else {
+      scrollTopBtn.classList.remove('visible');
+    }
+  }, { passive: true });
+  scrollTopBtn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Contact form validation & submission
+  const contactForm = document.getElementById('contactForm');
+  const formMessage = document.getElementById('formMessage');
+  contactForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    formMessage.textContent = '';
+    formMessage.className = 'form-message';
+
+    const fname = document.getElementById('fname').value.trim();
+    const lname = document.getElementById('lname').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const bizType = document.getElementById('bizType').value;
+
+    if (!fname) { showError('אנא הזינו שם פרטי.'); return; }
+    if (!lname) { showError('אנא הזינו שם משפחה.'); return; }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showError('אנא הזינו כתובת אימייל תקינה.'); return;
+    }
+    if (!bizType) { showError('אנא בחרו סוג עסק.'); return; }
+
+    // Simulate submission
+    const submitBtn = contactForm.querySelector('.form-submit');
+    submitBtn.textContent = 'שולח...';
+    submitBtn.disabled = true;
+    setTimeout(() => {
+      formMessage.textContent = '✓ הפנייה נשלחה בהצלחה! ניצור אתכם קשר תוך יום עסקים.';
+      formMessage.classList.add('success');
+      contactForm.reset();
+      submitBtn.textContent = 'שלח פנייה ←';
+      submitBtn.disabled = false;
+    }, 1200);
+  });
+
+  function showError(msg) {
+    formMessage.textContent = msg;
+    formMessage.classList.add('error');
+  }
+
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        const offset = 80;
+        const top = target.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+</body>
+</html>
