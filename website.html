@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>פרו-ביז | שירותים מקצועיים</title>
+<title>Prime Ledger Solutions | הנהלת חשבונות וייעוץ עסקי</title>
+<meta name="description" content="Prime Ledger Solutions - שירותי הנהלת חשבונות מקצועיים, ייעוץ עסקי אסטרטגי, הגשת דוחות מע״מ ושכר לעסקים בישראל.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -21,19 +22,20 @@
     --gray-600: #6B7280;
     --text: #1A1A2E;
     --radius: 12px;
+    --radius-lg: 20px;
     --shadow: 0 4px 24px rgba(10,22,40,0.12);
     --shadow-lg: 0 8px 48px rgba(10,22,40,0.18);
+    --transition: all 0.3s ease;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   html { scroll-behavior: smooth; }
-
   body {
     font-family: 'Assistant', sans-serif;
     background: var(--white);
     color: var(--text);
     overflow-x: hidden;
+    line-height: 1.7;
   }
 
   /* ===== NAVBAR ===== */
@@ -41,11 +43,15 @@
     position: fixed;
     top: 0; left: 0; right: 0;
     z-index: 1000;
+    background: rgba(10,22,40,0.92);
     backdrop-filter: blur(16px);
     border-bottom: 1px solid rgba(201,168,76,0.2);
-    transition: all 0.3s;
+    transition: var(--transition);
   }
-
+  .navbar.scrolled {
+    background: rgba(10,22,40,0.98);
+    box-shadow: var(--shadow-lg);
+  }
   .nav-inner {
     max-width: 1320px;
     margin: 0 auto;
@@ -53,3243 +59,1914 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 70px;
+    height: 72px;
+    gap: 24px;
   }
-
-  .logo {
+  .nav-logo {
     display: flex;
     align-items: center;
     gap: 10px;
     text-decoration: none;
+    flex-shrink: 0;
   }
-
-  .logo-icon {
-    width: 40px; height: 40px;
+  .nav-logo-icon {
+    width: 42px;
+    height: 42px;
     background: linear-gradient(135deg, var(--gold), var(--gold-light));
     border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px; font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 900;
     color: var(--navy);
     font-family: 'Heebo', sans-serif;
   }
-
-  .logo-text {
+  .nav-logo-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+  .nav-logo-en {
     font-family: 'Heebo', sans-serif;
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--white);
-    letter-spacing: -0.5px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gold-light);
+    letter-spacing: 0.5px;
   }
-
-  .logo-text span { color: var(--gold); }
-
-  .nav-menu {
+  .nav-logo-he {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 400;
+  }
+  .nav-links {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     list-style: none;
-    position: relative;
   }
-
-  .nav-item { position: relative; }
-
-  .nav-link {
-    padding: 8px 14px;
-    color: rgba(255,255,255,0.82);
+  .nav-links a {
+    color: rgba(255,255,255,0.85);
     text-decoration: none;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
+    padding: 8px 14px;
     border-radius: 8px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-    white-space: nowrap;
+    transition: var(--transition);
   }
-
-  .nav-link:hover, .nav-link.active {
-    color: var(--gold);
+  .nav-links a:hover {
+    color: var(--gold-light);
     background: rgba(201,168,76,0.1);
   }
-
-  .nav-link .arrow {
-    font-size: 10px;
-    transition: transform 0.2s;
-  }
-
-  .nav-item:hover .arrow { transform: rotate(180deg); }
-
-  /* Dropdown */
-  .dropdown {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    background: var(--navy-mid);
-    border: 1px solid rgba(201,168,76,0.2);
-    border-radius: 12px;
-    min-width: 220px;
-    box-shadow: var(--shadow-lg);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-8px);
-    transition: all 0.2s;
-    overflow: hidden;
-  }
-
-  .nav-item:hover .dropdown {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-  }
-
-  .dropdown a {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 18px;
-    color: rgba(255,255,255,0.8);
-    text-decoration: none;
-    font-size: 14px;
-    transition: all 0.2s;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
-
-  .dropdown a:last-child { border-bottom: none; }
-
-  .dropdown a:hover {
-    background: rgba(201,168,76,0.1);
-    color: var(--gold);
-    padding-right: 24px;
-  }
-
-  .dropdown .d-icon { font-size: 16px; opacity: 0.7; }
-
   .nav-actions {
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-shrink: 0;
   }
-
   .btn-portal {
-    padding: 9px 20px;
-    background: transparent;
+    padding: 9px 18px;
     border: 1.5px solid rgba(201,168,76,0.5);
-    color: var(--gold);
     border-radius: 8px;
-    font-size: 13px;
+    color: var(--gold-light);
+    font-size: 14px;
     font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
     text-decoration: none;
+    transition: var(--transition);
     font-family: 'Assistant', sans-serif;
   }
-
   .btn-portal:hover {
-    background: rgba(201,168,76,0.1);
+    background: rgba(201,168,76,0.15);
     border-color: var(--gold);
   }
-
   .btn-cta-nav {
     padding: 9px 20px;
     background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    color: var(--navy);
     border: none;
     border-radius: 8px;
-    font-size: 13px;
+    color: var(--navy);
+    font-size: 14px;
     font-weight: 700;
+    text-decoration: none;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: var(--transition);
     font-family: 'Assistant', sans-serif;
   }
-
-  .btn-cta-nav:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(201,168,76,0.4); }
-
-  /* Mobile toggle */
-  .mobile-toggle {
+  .btn-cta-nav:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(201,168,76,0.4);
+  }
+  .hamburger {
     display: none;
     flex-direction: column;
     gap: 5px;
     cursor: pointer;
     padding: 8px;
-    border-radius: 8px;
-    transition: background 0.2s;
+    background: none;
+    border: none;
+    aria-label: "פתח תפריט";
   }
-
-  .mobile-toggle:hover { background: rgba(255,255,255,0.08); }
-
-  .mobile-toggle span {
-    width: 22px; height: 2px;
-    background: var(--white);
+  .hamburger span {
+    width: 24px;
+    height: 2px;
+    background: var(--gold-light);
     border-radius: 2px;
-    transition: all 0.3s;
+    transition: var(--transition);
     display: block;
   }
-
-  .mobile-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
-  .mobile-toggle.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
-  .mobile-toggle.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
-
-  /* ===== MOBILE DRAWER ===== */
-  .mobile-overlay {
+  .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+  .hamburger.active span:nth-child(2) { opacity: 0; }
+  .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+  .mobile-menu {
     display: none;
     position: fixed;
-    inset: 0;
-    background: rgba(10,22,40,0.6);
-    z-index: 9998;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-  }
-
-  .mobile-overlay.open { display: block; }
-
-  .mobile-drawer {
-    position: fixed;
-    top: 0; right: -110%;
-    width: 88%;
-    max-width: 360px;
-    height: 100vh;
-    height: 100dvh;
+    top: 72px; left: 0; right: 0;
     background: var(--navy);
-    z-index: 9999;
-    transition: right 0.35s cubic-bezier(0.25,0.46,0.45,0.94);
-    overflow-y: auto;
-    overflow-x: hidden;
-    display: flex;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    padding: 16px 24px 24px;
+    z-index: 999;
     flex-direction: column;
-    box-shadow: -8px 0 40px rgba(0,0,0,0.4);
+    gap: 4px;
   }
-
-  .mobile-drawer.open { right: 0; }
-
-  .drawer-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 22px;
-    border-bottom: 1px solid rgba(201,168,76,0.15);
-    flex-shrink: 0;
-  }
-
-  .drawer-close {
-    width: 36px; height: 36px;
-    background: rgba(255,255,255,0.08);
-    border: none;
-    border-radius: 50%;
-    color: var(--white);
-    font-size: 18px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.2s;
-  }
-
-  .drawer-close:hover { background: rgba(201,168,76,0.2); color: var(--gold); }
-
-  .drawer-body {
-    flex: 1;
-    padding: 8px 0 24px;
-    overflow-y: auto;
-  }
-
-  .drawer-section {
-    padding: 16px 22px 8px;
-  }
-
-  .drawer-section-label {
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.3);
-    margin-bottom: 10px;
-    padding-right: 4px;
-  }
-
-  .drawer-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    color: rgba(255,255,255,0.82);
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    color: rgba(255,255,255,0.85);
     text-decoration: none;
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 500;
-    cursor: pointer;
-    transition: all 0.18s;
-    margin-bottom: 2px;
-  }
-
-  .drawer-link:hover, .drawer-link:active {
-    background: rgba(201,168,76,0.1);
-    color: var(--gold);
-  }
-
-  .drawer-link-icon {
-    width: 34px; height: 34px;
+    padding: 12px 16px;
     border-radius: 8px;
-    background: rgba(255,255,255,0.06);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px;
-    flex-shrink: 0;
+    transition: var(--transition);
   }
-
-  .drawer-link-arrow {
-    margin-right: auto;
-    font-size: 12px;
-    opacity: 0.35;
-  }
-
-  /* Services sub-drawer */
-  .drawer-services-toggle {
+  .mobile-menu a:hover { background: rgba(201,168,76,0.1); color: var(--gold-light); }
+  .mobile-menu-actions {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    color: rgba(255,255,255,0.82);
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.18s;
-    margin-bottom: 2px;
-  }
-
-  .drawer-services-toggle:hover { background: rgba(201,168,76,0.1); color: var(--gold); }
-
-  .dst-arrow {
-    margin-right: auto;
-    font-size: 11px;
-    opacity: 0.5;
-    transition: transform 0.25s;
-  }
-
-  .drawer-services-toggle.expanded .dst-arrow { transform: rotate(180deg); }
-
-  .drawer-sub-items {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-    padding-right: 22px;
-  }
-
-  .drawer-sub-items.open { max-height: 400px; }
-
-  .drawer-sub-link {
-    display: flex;
-    align-items: center;
     gap: 10px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    color: rgba(255,255,255,0.65);
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.18s;
-    margin-bottom: 1px;
-    border-right: 2px solid rgba(201,168,76,0.15);
+    margin-top: 12px;
+    flex-wrap: wrap;
   }
-
-  .drawer-sub-link:hover { background: rgba(201,168,76,0.08); color: var(--gold-light); border-color: var(--gold); }
-
-  .drawer-divider {
-    height: 1px;
-    background: rgba(255,255,255,0.07);
-    margin: 8px 22px;
-  }
-
-  .drawer-footer {
-    padding: 16px 22px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    border-top: 1px solid rgba(201,168,76,0.12);
-    flex-shrink: 0;
-  }
-
-  .drawer-btn-primary {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    color: var(--navy);
-    border: none;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: 'Assistant', sans-serif;
-    transition: all 0.2s;
-  }
-
-  .drawer-btn-portal {
-    width: 100%;
-    padding: 13px;
-    background: transparent;
-    color: var(--gold);
-    border: 1.5px solid rgba(201,168,76,0.4);
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'Assistant', sans-serif;
-    transition: all 0.2s;
-  }
-
-  .drawer-btn-portal:hover { background: rgba(201,168,76,0.1); }
-
-  /* ===== PAGES ===== */
-  .page { display: none; padding-top: 70px; }
-  .page.active { display: block; }
 
   /* ===== HERO ===== */
   .hero {
-    min-height: 92vh;
-    background: var(--navy);
-    position: relative;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 50%, var(--navy-light) 100%);
     display: flex;
     align-items: center;
+    padding-top: 72px;
+    position: relative;
     overflow: hidden;
   }
-
-  .hero-bg {
+  .hero-bg-grid {
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse 80% 60% at 20% 50%, rgba(201,168,76,0.08) 0%, transparent 60%),
-                radial-gradient(ellipse 50% 80% at 80% 20%, rgba(30,58,95,0.8) 0%, transparent 60%);
-  }
-
-  .hero-grid {
-    position: absolute;
-    inset: 0;
-    background-image: 
-      linear-gradient(rgba(201,168,76,0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(201,168,76,0.05) 1px, transparent 1px);
+    background-image:
+      linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
     background-size: 60px 60px;
+    pointer-events: none;
   }
-
-  .hero-content {
+  .hero-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    animation: pulse-orb 6s ease-in-out infinite;
+  }
+  .hero-orb-1 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+    top: -100px; left: -100px;
+  }
+  .hero-orb-2 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(30,58,95,0.4) 0%, transparent 70%);
+    bottom: -50px; right: 100px;
+    animation-delay: 3s;
+  }
+  @keyframes pulse-orb {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+  }
+  .hero-inner {
     max-width: 1320px;
     margin: 0 auto;
-    padding: 0 24px;
-    position: relative;
-    z-index: 2;
+    padding: 80px 24px;
+    width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 80px;
+    gap: 60px;
     align-items: center;
+    position: relative;
+    z-index: 1;
   }
-
   .hero-badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(201,168,76,0.1);
+    background: rgba(201,168,76,0.12);
     border: 1px solid rgba(201,168,76,0.3);
-    color: var(--gold);
+    border-radius: 40px;
     padding: 6px 16px;
-    border-radius: 50px;
+    margin-bottom: 24px;
+    color: var(--gold-light);
     font-size: 13px;
     font-weight: 600;
-    margin-bottom: 24px;
   }
-
-  .hero-badge::before {
-    content: '';
+  .hero-badge-dot {
     width: 6px; height: 6px;
     background: var(--gold);
     border-radius: 50%;
-    animation: pulse 2s infinite;
+    animation: blink 2s ease-in-out infinite;
   }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.3); }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
   }
-
   .hero-title {
     font-family: 'Heebo', sans-serif;
-    font-size: clamp(38px, 5vw, 64px);
+    font-size: clamp(36px, 5vw, 62px);
     font-weight: 900;
     color: var(--white);
-    line-height: 1.1;
-    letter-spacing: -1px;
-    margin-bottom: 24px;
+    line-height: 1.15;
+    margin-bottom: 20px;
   }
-
-  .hero-title .highlight {
+  .hero-title span {
     background: linear-gradient(135deg, var(--gold), var(--gold-light));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-
-  .hero-desc {
-    font-size: 17px;
-    color: rgba(255,255,255,0.65);
-    line-height: 1.7;
+  .hero-subtitle {
+    font-size: clamp(16px, 2vw, 20px);
+    color: rgba(255,255,255,0.72);
     margin-bottom: 36px;
-    max-width: 500px;
+    font-weight: 400;
+    max-width: 520px;
+    line-height: 1.8;
   }
-
-  .hero-buttons {
+  .hero-ctas {
     display: flex;
     gap: 14px;
     flex-wrap: wrap;
+    margin-bottom: 48px;
   }
-
   .btn-primary {
-    padding: 14px 32px;
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    color: var(--navy);
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-family: 'Assistant', sans-serif;
-    text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    padding: 15px 32px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border: none;
+    border-radius: var(--radius);
+    color: var(--navy);
+    font-size: 17px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'Assistant', sans-serif;
   }
-
   .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(201,168,76,0.4);
+    box-shadow: 0 8px 28px rgba(201,168,76,0.45);
   }
-
   .btn-secondary {
-    padding: 14px 32px;
-    background: transparent;
-    color: var(--white);
-    border: 1.5px solid rgba(255,255,255,0.25);
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-family: 'Assistant', sans-serif;
-    text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    padding: 14px 30px;
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: var(--radius);
+    color: var(--white);
+    font-size: 17px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'Assistant', sans-serif;
   }
-
   .btn-secondary:hover {
-    border-color: rgba(255,255,255,0.6);
+    border-color: var(--gold);
+    color: var(--gold-light);
+    background: rgba(201,168,76,0.08);
+  }
+  .hero-value-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .hero-value-card {
     background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: var(--radius);
+    padding: 18px 14px;
+    text-align: center;
+    transition: var(--transition);
   }
-
-  .hero-stats {
-    display: flex;
-    gap: 32px;
-    margin-top: 48px;
-    padding-top: 48px;
-    border-top: 1px solid rgba(255,255,255,0.1);
+  .hero-value-card:hover {
+    background: rgba(201,168,76,0.08);
+    border-color: rgba(201,168,76,0.3);
+    transform: translateY(-3px);
   }
-
-  .stat-item { text-align: center; }
-
-  .stat-num {
+  .hero-value-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .hero-value-title {
     font-family: 'Heebo', sans-serif;
-    font-size: 32px;
-    font-weight: 900;
-    color: var(--gold);
-    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gold-light);
+    margin-bottom: 4px;
   }
-
-  .stat-label {
-    font-size: 13px;
-    color: rgba(255,255,255,0.5);
-    margin-top: 4px;
-    display: block;
+  .hero-value-desc {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.5;
   }
-
+  /* Hero Visual */
   .hero-visual {
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    position: relative;
   }
-
-  .hero-card {
+  .hero-visual-main {
+    width: 380px;
+    height: 380px;
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(201,168,76,0.2);
-    border-radius: 20px;
-    padding: 32px;
-    width: 100%;
-    max-width: 420px;
-    backdrop-filter: blur(10px);
-  }
-
-  .hero-card-header {
+    border-radius: 50%;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
+    justify-content: center;
+    position: relative;
+    animation: rotate-slow 30s linear infinite;
   }
-
-  .hch-title {
-    font-size: 14px;
-    color: rgba(255,255,255,0.6);
-    font-weight: 500;
+  @keyframes rotate-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .hero-visual-center {
+    width: 200px;
+    height: 200px;
+    background: linear-gradient(135deg, var(--navy-mid), var(--navy-light));
+    border: 2px solid rgba(201,168,76,0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: rotate-slow 30s linear infinite reverse;
+    font-size: 64px;
+    flex-shrink: 0;
   }
-
-  .hch-badge {
-    background: rgba(16,185,129,0.15);
-    color: #10B981;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
+  .hero-orbit-item {
+    position: absolute;
+    width: 52px;
+    height: 52px;
+    background: var(--navy-mid);
+    border: 1.5px solid rgba(201,168,76,0.35);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    animation: rotate-slow 30s linear infinite reverse;
   }
-
-  .services-mini {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+  .hero-orbit-item:nth-child(2) { top: 10px; left: 50%; transform: translateX(-50%); }
+  .hero-orbit-item:nth-child(3) { bottom: 10px; left: 50%; transform: translateX(-50%); }
+  .hero-orbit-item:nth-child(4) { top: 50%; right: 10px; transform: translateY(-50%); }
+  .hero-orbit-item:nth-child(5) { top: 50%; left: 10px; transform: translateY(-50%); }
+  .hero-float-card {
+    position: absolute;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 12px;
+    padding: 12px 16px;
+    min-width: 140px;
+    animation: float 4s ease-in-out infinite;
   }
-
-  .sm-item {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px;
-    padding: 14px;
-    transition: all 0.2s;
-    cursor: pointer;
+  .hero-float-card:nth-of-type(1) { top: -20px; right: -40px; animation-delay: 0s; }
+  .hero-float-card:nth-of-type(2) { bottom: 10px; left: -50px; animation-delay: 2s; }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
   }
-
-  .sm-item:hover {
-    border-color: rgba(201,168,76,0.3);
-    background: rgba(201,168,76,0.05);
-  }
-
-  .sm-icon { font-size: 22px; margin-bottom: 6px; display: block; }
-  .sm-name { font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 500; }
+  .hero-float-label { font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 2px; }
+  .hero-float-value { font-size: 18px; font-weight: 700; color: var(--gold-light); font-family: 'Heebo', sans-serif; }
+  .hero-float-sub { font-size: 11px; color: rgba(255,255,255,0.5); }
 
   /* ===== SECTION COMMON ===== */
-  .section {
-    padding: 96px 0;
-  }
-
-  .section-alt { background: var(--gray-100); }
-
+  section { padding: 100px 0; }
   .container {
     max-width: 1320px;
     margin: 0 auto;
     padding: 0 24px;
   }
-
-  .section-header {
-    text-align: center;
-    margin-bottom: 64px;
-  }
-
   .section-tag {
     display: inline-block;
     background: rgba(201,168,76,0.1);
-    color: var(--gold);
     border: 1px solid rgba(201,168,76,0.3);
-    padding: 5px 16px;
-    border-radius: 50px;
-    font-size: 12px;
+    color: var(--gold);
+    font-size: 13px;
     font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 40px;
     margin-bottom: 16px;
+    letter-spacing: 0.5px;
   }
-
   .section-title {
     font-family: 'Heebo', sans-serif;
-    font-size: clamp(28px, 4vw, 44px);
-    font-weight: 800;
+    font-size: clamp(28px, 4vw, 46px);
+    font-weight: 900;
     color: var(--navy);
-    line-height: 1.15;
-    letter-spacing: -0.5px;
     margin-bottom: 16px;
+    line-height: 1.2;
   }
-
-  .section-desc {
-    font-size: 17px;
+  .section-title span {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .section-subtitle {
+    font-size: 18px;
     color: var(--gray-600);
-    max-width: 560px;
-    margin: 0 auto;
-    line-height: 1.7;
+    max-width: 620px;
+    line-height: 1.8;
   }
+  .section-header { margin-bottom: 60px; }
+  .section-header.center { text-align: center; }
+  .section-header.center .section-subtitle { margin: 0 auto; }
 
   /* ===== SERVICES ===== */
+  .services { background: var(--gray-100); }
   .services-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
   }
-
   .service-card {
     background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 36px 28px;
     border: 1px solid var(--gray-200);
-    border-radius: 16px;
-    padding: 32px 28px;
-    transition: all 0.3s;
-    cursor: pointer;
+    transition: var(--transition);
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
-
   .service-card::before {
     content: '';
     position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--gold), var(--gold-light));
-    transform: scaleX(0);
-    transition: transform 0.3s;
+    top: 0; right: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--gold), var(--gold-light));
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.35s ease;
   }
-
   .service-card:hover {
     transform: translateY(-6px);
     box-shadow: var(--shadow-lg);
-    border-color: rgba(201,168,76,0.3);
+    border-color: rgba(201,168,76,0.25);
   }
-
-  .service-card:hover::before { transform: scaleX(1); }
-
-  .s-icon {
-    width: 56px; height: 56px;
-    background: linear-gradient(135deg, rgba(201,168,76,0.1), rgba(201,168,76,0.2));
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 26px;
+  .service-card:hover::before { transform: scaleY(1); }
+  .service-icon {
+    width: 62px;
+    height: 62px;
+    background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05));
+    border: 1.5px solid rgba(201,168,76,0.25);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
     margin-bottom: 20px;
+    transition: var(--transition);
   }
-
-  .s-title {
+  .service-card:hover .service-icon {
+    background: linear-gradient(135deg, rgba(201,168,76,0.25), rgba(201,168,76,0.1));
+    border-color: var(--gold);
+  }
+  .service-title {
     font-family: 'Heebo', sans-serif;
-    font-size: 19px;
-    font-weight: 700;
+    font-size: 20px;
+    font-weight: 800;
     color: var(--navy);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
-
-  .s-desc {
-    font-size: 14px;
+  .service-desc {
+    font-size: 15px;
     color: var(--gray-600);
-    line-height: 1.65;
+    line-height: 1.8;
+    margin-bottom: 20px;
+    flex-grow: 1;
   }
-
-  .s-link {
+  .service-deliverables {
+    list-style: none;
+    margin-bottom: 24px;
+  }
+  .service-deliverables li {
+    font-size: 14px;
+    color: var(--navy);
+    padding: 5px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .service-deliverables li::before {
+    content: '✓';
+    color: var(--gold);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .btn-read-more {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     color: var(--gold);
-    font-size: 13px;
-    font-weight: 600;
-    margin-top: 16px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: var(--transition);
+    background: none;
+    border: none;
     cursor: pointer;
-    transition: gap 0.2s;
+    font-family: 'Assistant', sans-serif;
+    padding: 0;
+    margin-top: auto;
   }
+  .btn-read-more:hover { color: var(--gold-light); gap: 10px; }
 
-  .service-card:hover .s-link { gap: 10px; }
+  /* ===== WHY US ===== */
+  .why-us { background: var(--navy); }
+  .why-us .section-title { color: var(--white); }
+  .why-us .section-subtitle { color: rgba(255,255,255,0.6); }
+  .why-us .section-tag {
+    background: rgba(201,168,76,0.15);
+    border-color: rgba(201,168,76,0.35);
+  }
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+  .why-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: var(--radius-lg);
+    padding: 36px 24px;
+    text-align: center;
+    transition: var(--transition);
+  }
+  .why-card:hover {
+    background: rgba(201,168,76,0.07);
+    border-color: rgba(201,168,76,0.35);
+    transform: translateY(-4px);
+  }
+  .why-icon {
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, rgba(201,168,76,0.18), rgba(201,168,76,0.06));
+    border: 1.5px solid rgba(201,168,76,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 20px;
+    transition: var(--transition);
+  }
+  .why-card:hover .why-icon {
+    background: linear-gradient(135deg, rgba(201,168,76,0.28), rgba(201,168,76,0.12));
+    transform: scale(1.06);
+  }
+  .why-title {
+    font-family: 'Heebo', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--gold-light);
+    margin-bottom: 12px;
+  }
+  .why-desc {
+    font-size: 15px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.8;
+  }
 
   /* ===== PRICING ===== */
+  .pricing { background: var(--white); }
   .pricing-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
     align-items: start;
   }
-
-  .price-card {
+  .pricing-card {
     background: var(--white);
     border: 1.5px solid var(--gray-200);
-    border-radius: 20px;
-    padding: 36px 32px;
-    transition: all 0.3s;
+    border-radius: var(--radius-lg);
+    padding: 40px 32px;
     position: relative;
+    transition: var(--transition);
   }
-
-  .price-card.popular {
+  .pricing-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+  }
+  .pricing-card.featured {
+    background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 100%);
     border-color: var(--gold);
-    background: var(--navy);
     transform: scale(1.03);
+    box-shadow: 0 16px 60px rgba(10,22,40,0.25);
   }
-
-  .popular-badge {
+  .pricing-card.featured:hover { transform: scale(1.03) translateY(-4px); }
+  .pricing-badge {
     position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: -14px;
+    right: 50%;
+    transform: translateX(50%);
     background: linear-gradient(135deg, var(--gold), var(--gold-light));
     color: var(--navy);
-    padding: 4px 20px;
-    border-radius: 20px;
     font-size: 12px;
     font-weight: 800;
+    padding: 5px 18px;
+    border-radius: 40px;
+    white-space: nowrap;
   }
-
-  .price-name {
+  .pricing-tier {
     font-size: 13px;
     font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
     color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
     margin-bottom: 8px;
   }
-
-  .price-amount {
+  .pricing-card.featured .pricing-tier { color: var(--gold-light); }
+  .pricing-name {
+    font-family: 'Heebo', sans-serif;
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .pricing-card.featured .pricing-name { color: var(--white); }
+  .pricing-price {
     font-family: 'Heebo', sans-serif;
     font-size: 48px;
     font-weight: 900;
     color: var(--navy);
     line-height: 1;
+    margin: 20px 0 4px;
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
   }
-
-  .price-card.popular .price-amount { color: var(--white); }
-  .price-card.popular .price-title { color: var(--white); }
-
-  .price-title {
-    font-size: 20px;
+  .pricing-card.featured .pricing-price { color: var(--gold-light); }
+  .pricing-currency {
+    font-size: 24px;
     font-weight: 700;
-    color: var(--navy);
-    margin-bottom: 4px;
+    margin-top: 8px;
   }
-
-  .price-period {
-    font-size: 13px;
+  .pricing-period {
+    font-size: 14px;
     color: var(--gray-400);
+    font-weight: 400;
     margin-bottom: 28px;
+    font-family: 'Assistant', sans-serif;
+    align-self: flex-end;
+    margin-bottom: 30px;
   }
-
-  .price-card.popular .price-period { color: rgba(255,255,255,0.5); }
-
-  .price-features {
+  .pricing-card.featured .pricing-period { color: rgba(255,255,255,0.55); }
+  .pricing-divider {
+    height: 1px;
+    background: var(--gray-200);
+    margin: 20px 0 24px;
+  }
+  .pricing-card.featured .pricing-divider { background: rgba(255,255,255,0.12); }
+  .pricing-features {
     list-style: none;
     margin-bottom: 32px;
   }
-
-  .price-features li {
+  .pricing-features li {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
-    padding: 8px 0;
-    font-size: 14px;
-    color: var(--gray-600);
-    border-bottom: 1px solid var(--gray-200);
+    font-size: 15px;
+    color: var(--navy);
+    padding: 7px 0;
+    line-height: 1.5;
   }
-
-  .price-card.popular .price-features li {
-    color: rgba(255,255,255,0.75);
-    border-color: rgba(255,255,255,0.1);
-  }
-
-  .price-features li::before {
-    content: '✓';
-    width: 20px; height: 20px;
-    background: rgba(201,168,76,0.1);
+  .pricing-card.featured .pricing-features li { color: rgba(255,255,255,0.85); }
+  .pricing-features li .check {
     color: var(--gold);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
+    font-weight: 800;
     flex-shrink: 0;
+    margin-top: 1px;
   }
-
-  .btn-price {
+  .btn-pricing {
+    display: block;
     width: 100%;
     padding: 14px;
-    border-radius: 10px;
-    font-size: 15px;
+    border-radius: var(--radius);
+    font-size: 16px;
     font-weight: 700;
+    text-align: center;
+    text-decoration: none;
     cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'Assistant', sans-serif;
-    border: none;
-  }
-
-  .btn-price-outline {
+    transition: var(--transition);
+    border: 1.5px solid var(--gold);
+    color: var(--gold);
     background: transparent;
-    border: 1.5px solid var(--navy) !important;
-    color: var(--navy);
+    font-family: 'Assistant', sans-serif;
   }
-
-  .btn-price-outline:hover { background: var(--navy); color: var(--white); }
-
-  .btn-price-gold {
+  .btn-pricing:hover {
+    background: rgba(201,168,76,0.1);
+    transform: translateY(-1px);
+  }
+  .pricing-card.featured .btn-pricing {
     background: linear-gradient(135deg, var(--gold), var(--gold-light));
     color: var(--navy);
+    border-color: transparent;
   }
-
-  .btn-price-gold:hover { box-shadow: 0 4px 20px rgba(201,168,76,0.4); transform: translateY(-1px); }
-
-  /* ===== FORMS PAGE ===== */
-  .forms-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 20px;
-  }
-
-  .form-card {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: 14px;
-    padding: 24px;
-    transition: all 0.2s;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .form-card:hover {
-    border-color: rgba(201,168,76,0.3);
-    box-shadow: var(--shadow);
-    transform: translateY(-3px);
-  }
-
-  .form-icon {
-    width: 44px; height: 44px;
-    background: rgba(201,168,76,0.1);
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-  }
-
-  .form-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--navy);
-  }
-
-  .form-meta {
-    font-size: 12px;
-    color: var(--gray-400);
-  }
-
-  .btn-download {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px;
-    background: rgba(201,168,76,0.08);
-    border: 1px solid rgba(201,168,76,0.25);
-    color: var(--gold);
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'Assistant', sans-serif;
-    margin-top: auto;
-  }
-
-  .btn-download:hover { background: var(--gold); color: var(--navy); }
-
-  /* ===== SIMULATORS ===== */
-  .sim-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 40px;
-    background: var(--gray-100);
-    padding: 6px;
-    border-radius: 12px;
-    width: fit-content;
-  }
-
-  .sim-tab {
-    padding: 10px 24px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: transparent;
-    border: none;
-    color: var(--gray-600);
-    font-family: 'Assistant', sans-serif;
-  }
-
-  .sim-tab.active {
-    background: var(--white);
-    color: var(--navy);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  }
-
-  .sim-panel { display: none; }
-  .sim-panel.active { display: block; }
-
-  .sim-card {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: 20px;
-    padding: 48px;
-    max-width: 700px;
-    margin: 0 auto;
-  }
-
-  .form-group {
-    margin-bottom: 20px;
-  }
-
-  .form-label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--navy);
-    margin-bottom: 8px;
-  }
-
-  .form-input, .form-select {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1.5px solid var(--gray-200);
-    border-radius: 10px;
-    font-size: 15px;
-    font-family: 'Assistant', sans-serif;
-    color: var(--text);
-    transition: border-color 0.2s;
-    background: var(--white);
-    outline: none;
-  }
-
-  .form-input:focus, .form-select:focus { border-color: var(--gold); }
-
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-
-  .sim-result {
-    background: var(--navy);
-    color: var(--white);
-    border-radius: 14px;
-    padding: 28px;
-    margin-top: 28px;
-    display: none;
-  }
-
-  .sim-result.show { display: block; }
-
-  .result-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    font-size: 14px;
-  }
-
-  .result-row:last-child { border: none; }
-  .result-row .label { color: rgba(255,255,255,0.6); }
-  .result-row .value { font-weight: 700; color: var(--white); }
-  .result-row.total .value { color: var(--gold); font-size: 20px; }
-
-  /* ===== GUIDE ===== */
-  .guide-grid {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 40px;
-    align-items: start;
-  }
-
-  .guide-nav {
-    position: sticky;
-    top: 90px;
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: 16px;
-    padding: 24px;
-  }
-
-  .guide-nav-title {
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--gray-400);
-    margin-bottom: 16px;
-  }
-
-  .guide-nav-item {
-    display: block;
-    padding: 9px 12px;
-    border-radius: 8px;
-    font-size: 14px;
-    color: var(--gray-600);
-    text-decoration: none;
-    transition: all 0.2s;
-    cursor: pointer;
-    margin-bottom: 2px;
-  }
-
-  .guide-nav-item:hover, .guide-nav-item.active {
-    background: rgba(201,168,76,0.08);
-    color: var(--gold);
-    font-weight: 600;
-  }
-
-  .article-card {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: 16px;
-    padding: 36px;
-    margin-bottom: 20px;
-    transition: all 0.2s;
-  }
-
-  .article-card:hover { border-color: rgba(201,168,76,0.25); }
-
-  .article-tag {
-    display: inline-block;
-    background: rgba(201,168,76,0.1);
-    color: var(--gold);
-    padding: 3px 12px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 14px;
-  }
-
-  .article-title {
-    font-family: 'Heebo', sans-serif;
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--navy);
-    margin-bottom: 10px;
-  }
-
-  .article-excerpt {
-    font-size: 14px;
-    color: var(--gray-600);
-    line-height: 1.7;
-    margin-bottom: 16px;
-  }
-
-  .article-meta {
-    font-size: 12px;
-    color: var(--gray-400);
-    display: flex;
-    gap: 16px;
-  }
-
-  /* ===== ABOUT ===== */
-  .about-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
-    align-items: center;
-  }
-
-  .about-visual {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-
-  .about-stat-card {
-    background: var(--navy);
-    color: var(--white);
-    border-radius: 16px;
-    padding: 28px 24px;
-    text-align: center;
-  }
-
-  .about-stat-card:nth-child(2) { margin-top: 24px; }
-
-  .as-num {
-    font-family: 'Heebo', sans-serif;
-    font-size: 40px;
-    font-weight: 900;
-    color: var(--gold);
-    display: block;
-  }
-
-  .as-label {
-    font-size: 13px;
-    color: rgba(255,255,255,0.6);
-    margin-top: 4px;
-  }
-
-  .about-text .section-title { text-align: right; }
-
-  .about-desc {
-    font-size: 16px;
-    color: var(--gray-600);
-    line-height: 1.75;
-    margin-bottom: 24px;
-  }
-
-  .team-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-    margin-top: 64px;
-  }
-
-  .team-card {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: 16px;
-    padding: 32px 24px;
-    text-align: center;
-    transition: all 0.3s;
-  }
-
-  .team-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
-
-  .team-avatar {
-    width: 72px; height: 72px;
-    background: linear-gradient(135deg, var(--navy), var(--navy-light));
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px;
-    margin: 0 auto 16px;
-    border: 3px solid rgba(201,168,76,0.3);
-  }
-
-  .team-name {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--navy);
-    margin-bottom: 4px;
-  }
-
-  .team-role {
-    font-size: 13px;
-    color: var(--gold);
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-
-  .team-bio {
-    font-size: 13px;
-    color: var(--gray-600);
-    line-height: 1.6;
+  .pricing-card.featured .btn-pricing:hover {
+    box-shadow: 0 6px 24px rgba(201,168,76,0.4);
   }
 
   /* ===== FAQ ===== */
-  .faq-list {
-    max-width: 780px;
+  .faq { background: var(--gray-100); }
+  .faq-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 960px;
     margin: 0 auto;
   }
-
   .faq-item {
     background: var(--white);
     border: 1px solid var(--gray-200);
-    border-radius: 12px;
-    margin-bottom: 12px;
+    border-radius: var(--radius);
     overflow: hidden;
-    transition: all 0.2s;
+    transition: var(--transition);
   }
-
-  .faq-item.open { border-color: rgba(201,168,76,0.3); }
-
+  .faq-item:hover { border-color: rgba(201,168,76,0.3); }
   .faq-question {
-    padding: 20px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--navy);
-    gap: 16px;
-  }
-
-  .faq-arrow {
-    font-size: 12px;
-    color: var(--gold);
-    transition: transform 0.3s;
-    flex-shrink: 0;
-  }
-
-  .faq-item.open .faq-arrow { transform: rotate(180deg); }
-
-  .faq-answer {
-    padding: 0 24px;
-    max-height: 0;
-    overflow: hidden;
-    transition: all 0.3s;
-    font-size: 14px;
-    color: var(--gray-600);
-    line-height: 1.7;
-  }
-
-  .faq-item.open .faq-answer {
-    padding: 0 24px 20px;
-    max-height: 500px;
-  }
-
-  /* ===== CONTACT ===== */
-  .contact-grid {
-    display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    gap: 60px;
-    align-items: start;
-  }
-
-  .contact-info-card {
-    background: var(--navy);
-    color: var(--white);
-    border-radius: 20px;
-    padding: 48px 36px;
-  }
-
-  .contact-title {
-    font-family: 'Heebo', sans-serif;
-    font-size: 28px;
-    font-weight: 800;
-    margin-bottom: 16px;
-  }
-
-  .contact-desc {
-    color: rgba(255,255,255,0.6);
-    font-size: 15px;
-    line-height: 1.7;
-    margin-bottom: 36px;
-  }
-
-  .contact-detail {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 20px;
-  }
-
-  .cd-icon {
-    width: 42px; height: 42px;
-    background: rgba(201,168,76,0.1);
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
-  }
-
-  .cd-text { font-size: 14px; color: rgba(255,255,255,0.8); }
-  .cd-label { font-size: 12px; color: rgba(255,255,255,0.4); }
-
-  .contact-form-card {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: 20px;
-    padding: 48px 36px;
-  }
-
-  .contact-form-title {
-    font-family: 'Heebo', sans-serif;
-    font-size: 24px;
-    font-weight: 800;
-    color: var(--navy);
-    margin-bottom: 28px;
-  }
-
-  textarea.form-input {
-    resize: vertical;
-    min-height: 120px;
-  }
-
-  .btn-submit {
     width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    color: var(--navy);
+    padding: 20px 24px;
+    background: none;
     border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'Assistant', sans-serif;
-  }
-
-  .btn-submit:hover { box-shadow: 0 4px 20px rgba(201,168,76,0.4); transform: translateY(-1px); }
-
-  /* ===== PROFILE ===== */
-  .profile-layout {
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 32px;
-    align-items: start;
-    padding: 32px 0;
-  }
-
-  .profile-sidebar {
-    background: var(--navy);
-    border-radius: 20px;
-    padding: 32px 24px;
-    color: var(--white);
-    position: sticky;
-    top: 90px;
-  }
-
-  .profile-avatar {
-    width: 72px; height: 72px;
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px;
-    margin: 0 auto 16px;
-  }
-
-  .profile-name {
-    text-align: center;
-    font-size: 17px;
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
-
-  .profile-email {
-    text-align: center;
-    font-size: 13px;
-    color: rgba(255,255,255,0.5);
-    margin-bottom: 24px;
-  }
-
-  .profile-plan {
-    background: rgba(201,168,76,0.1);
-    border: 1px solid rgba(201,168,76,0.3);
-    border-radius: 10px;
-    padding: 12px 16px;
-    margin-bottom: 28px;
-  }
-
-  .pp-label { font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
-  .pp-name { font-size: 15px; font-weight: 700; color: var(--gold); }
-
-  .profile-nav { list-style: none; }
-
-  .profile-nav li a {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 11px 14px;
-    border-radius: 9px;
-    color: rgba(255,255,255,0.7);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
-    cursor: pointer;
-    margin-bottom: 3px;
-  }
-
-  .profile-nav li a:hover, .profile-nav li a.active {
-    background: rgba(201,168,76,0.1);
-    color: var(--gold);
-  }
-
-  .profile-content {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-  }
-
-  .profile-panel { display: none; }
-  .profile-panel.active { display: block; }
-
-  .pcard {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: 16px;
-    padding: 32px;
-  }
-
-  .pcard-title {
-    font-family: 'Heebo', sans-serif;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--navy);
-    margin-bottom: 24px;
-    display: flex;
     justify-content: space-between;
-    align-items: center;
+    gap: 12px;
+    font-family: 'Assistant', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    text-align: right;
+    transition: var(--transition);
   }
-
-  .subscription-status {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 24px;
-  }
-
-  .status-dot {
-    width: 10px; height: 10px;
+  .faq-question:hover { color: var(--gold); }
+  .faq-question.open { color: var(--gold); }
+  .faq-arrow {
+    width: 28px;
+    height: 28px;
+    background: rgba(201,168,76,0.1);
     border-radius: 50%;
-    background: #10B981;
-    animation: pulse 2s infinite;
-  }
-
-  .status-text { font-size: 14px; color: #10B981; font-weight: 600; }
-
-  .sub-detail-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-
-  .sub-detail {
-    background: var(--gray-100);
-    border-radius: 10px;
-    padding: 16px;
-  }
-
-  .sd-label { font-size: 12px; color: var(--gray-400); margin-bottom: 6px; }
-  .sd-value { font-size: 16px; font-weight: 700; color: var(--navy); }
-
-  .meeting-list { display: flex; flex-direction: column; gap: 12px; }
-
-  .meeting-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: var(--gray-100);
-    border-radius: 12px;
-    border-right: 4px solid var(--gold);
-  }
-
-  .meeting-date {
-    width: 48px; height: 48px;
-    background: var(--navy);
-    border-radius: 10px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    color: var(--white);
-    flex-shrink: 0;
-  }
-
-  .md-day { font-size: 18px; font-weight: 900; line-height: 1; }
-  .md-mon { font-size: 10px; color: rgba(255,255,255,0.5); }
-
-  .meeting-info { flex: 1; }
-  .mi-title { font-size: 14px; font-weight: 700; color: var(--navy); }
-  .mi-time { font-size: 12px; color: var(--gray-400); margin-top: 3px; }
-
-  .meeting-status {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-  }
-
-  .ms-confirmed { background: rgba(16,185,129,0.1); color: #10B981; }
-  .ms-pending { background: rgba(245,158,11,0.1); color: #F59E0B; }
-
-  /* ===== TERMS ===== */
-  .terms-content {
-    max-width: 860px;
-    margin: 0 auto;
-  }
-
-  .terms-section {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: 16px;
-    padding: 32px;
-    margin-bottom: 20px;
-  }
-
-  .terms-section h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--navy);
-    margin-bottom: 14px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--gray-200);
-  }
-
-  .terms-section p, .terms-section li {
-    font-size: 14px;
-    color: var(--gray-600);
-    line-height: 1.8;
-    margin-bottom: 8px;
-  }
-
-  .terms-section ul { padding-right: 20px; }
-
-  /* ===== NEWSLETTER ===== */
-  .newsletter-section {
-    background: var(--navy);
-    padding: 64px 0;
-  }
-
-  .newsletter-inner {
-    max-width: 640px;
-    margin: 0 auto;
-    text-align: center;
-    padding: 0 24px;
-  }
-
-  .newsletter-title {
-    font-family: 'Heebo', sans-serif;
-    font-size: 32px;
-    font-weight: 800;
-    color: var(--white);
-    margin-bottom: 12px;
-  }
-
-  .newsletter-desc {
-    color: rgba(255,255,255,0.6);
-    font-size: 15px;
-    margin-bottom: 28px;
-  }
-
-  .newsletter-form {
-    display: flex;
-    gap: 10px;
-  }
-
-  .newsletter-input {
-    flex: 1;
-    padding: 14px 18px;
-    border: 1.5px solid rgba(255,255,255,0.15);
-    background: rgba(255,255,255,0.05);
-    color: var(--white);
-    border-radius: 10px;
-    font-size: 15px;
-    font-family: 'Assistant', sans-serif;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .newsletter-input::placeholder { color: rgba(255,255,255,0.35); }
-  .newsletter-input:focus { border-color: var(--gold); }
-
-  .btn-newsletter {
-    padding: 14px 28px;
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    color: var(--navy);
-    border: none;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'Assistant', sans-serif;
-    white-space: nowrap;
-  }
-
-  .btn-newsletter:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(201,168,76,0.4); }
-
-  /* ===== FOOTER ===== */
-  footer {
-    background: #060D1A;
-    padding: 64px 0 32px;
-    color: rgba(255,255,255,0.6);
-  }
-
-  .footer-grid {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr 1fr;
-    gap: 48px;
-    margin-bottom: 48px;
-  }
-
-  .footer-brand .logo-text { font-size: 20px; }
-
-  .footer-tagline {
-    font-size: 14px;
-    color: rgba(255,255,255,0.4);
-    margin-top: 12px;
-    line-height: 1.6;
-  }
-
-  .footer-col-title {
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--white);
-    margin-bottom: 18px;
-  }
-
-  .footer-col a {
-    display: block;
-    color: rgba(255,255,255,0.5);
-    text-decoration: none;
-    font-size: 14px;
-    margin-bottom: 10px;
-    transition: color 0.2s;
-    cursor: pointer;
-  }
-
-  .footer-col a:hover { color: var(--gold); }
-
-  .footer-bottom {
-    border-top: 1px solid rgba(255,255,255,0.08);
-    padding-top: 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 13px;
-  }
-
-  /* ===== MODAL / LOGIN ===== */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(10,22,40,0.7);
-    backdrop-filter: blur(8px);
-    z-index: 10000;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s;
+    font-size: 14px;
+    color: var(--gold);
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+  }
+  .faq-question.open .faq-arrow { transform: rotate(180deg); }
+  .faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.3s ease;
+  }
+  .faq-answer.open { max-height: 200px; }
+  .faq-answer-inner {
+    padding: 0 24px 20px;
+    font-size: 15px;
+    color: var(--gray-600);
+    line-height: 1.8;
   }
 
-  .modal-overlay.open {
-    opacity: 1;
-    visibility: visible;
+  /* ===== NEWS ===== */
+  .news { background: var(--white); }
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    margin-bottom: 44px;
   }
-
-  .modal {
+  .news-card {
     background: var(--white);
-    border-radius: 20px;
-    padding: 44px;
-    max-width: 440px;
-    width: 90%;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: var(--transition);
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .news-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(201,168,76,0.25);
+  }
+  .news-img {
+    height: 180px;
+    background: linear-gradient(135deg, var(--navy-mid), var(--navy-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 52px;
     position: relative;
-    transform: translateY(20px);
-    transition: transform 0.3s;
+    overflow: hidden;
   }
-
-  .modal-overlay.open .modal { transform: translateY(0); }
-
-  .modal-close {
+  .news-img::after {
+    content: '';
     position: absolute;
-    top: 16px;
-    left: 16px;
-    width: 32px; height: 32px;
-    background: var(--gray-100);
-    border: none;
-    border-radius: 50%;
-    font-size: 16px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 60%, rgba(10,22,40,0.4));
   }
-
-  .modal-logo {
-    text-align: center;
-    margin-bottom: 28px;
+  .news-body { padding: 24px; }
+  .news-cat {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
   }
-
-  .modal-title {
+  .news-title {
     font-family: 'Heebo', sans-serif;
-    font-size: 24px;
+    font-size: 18px;
     font-weight: 800;
     color: var(--navy);
-    text-align: center;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
+    line-height: 1.4;
   }
-
-  .modal-sub {
-    text-align: center;
+  .news-excerpt {
     font-size: 14px;
+    color: var(--gray-600);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+  .news-meta {
+    font-size: 12px;
     color: var(--gray-400);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .news-cta-wrap { text-align: center; }
+
+  /* ===== CONTACT ===== */
+  .contact { background: var(--navy); }
+  .contact .section-title { color: var(--white); }
+  .contact .section-subtitle { color: rgba(255,255,255,0.6); }
+  .contact .section-tag {
+    background: rgba(201,168,76,0.15);
+    border-color: rgba(201,168,76,0.35);
+  }
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 60px;
+    align-items: start;
+  }
+  .contact-info {
+    padding-top: 8px;
+  }
+  .contact-info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
     margin-bottom: 28px;
   }
-
-  .portal-note {
-    background: rgba(201,168,76,0.08);
-    border: 1px solid rgba(201,168,76,0.2);
-    border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 24px;
-    font-size: 13px;
-    color: var(--gray-600);
-    line-height: 1.6;
+  .contact-info-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
   }
-
-  .toast {
-    position: fixed;
-    bottom: 32px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--navy);
-    color: var(--white);
-    padding: 14px 28px;
-    border-radius: 10px;
-    font-size: 14px;
+  .contact-info-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
     font-weight: 600;
-    z-index: 10001;
-    transition: transform 0.3s;
-    border: 1px solid rgba(201,168,76,0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .contact-info-value {
+    font-size: 16px;
+    color: var(--white);
+    font-weight: 600;
+  }
+  .contact-form-wrap {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.3px;
+  }
+  .form-input, .form-select, .form-textarea {
+    padding: 13px 16px;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(201,168,76,0.15);
+    border-radius: 10px;
+    color: var(--white);
+    font-size: 15px;
+    font-family: 'Assistant', sans-serif;
+    transition: var(--transition);
+    outline: none;
+    direction: rtl;
+  }
+  .form-input::placeholder, .form-textarea::placeholder { color: rgba(255,255,255,0.3); }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.06);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+  }
+  .form-select option { background: var(--navy); color: var(--white); }
+  .form-textarea { resize: vertical; min-height: 110px; }
+  .form-submit {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border: none;
+    border-radius: var(--radius);
+    color: var(--navy);
+    font-size: 17px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: 'Assistant', sans-serif;
+    margin-top: 8px;
+  }
+  .form-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(201,168,76,0.45);
+  }
+  .form-message {
+    font-size: 13px;
+    margin-top: 8px;
+    min-height: 20px;
+    font-weight: 600;
+  }
+  .form-message.success { color: #4ade80; }
+  .form-message.error { color: #f87171; }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    background: var(--navy);
+    border-top: 1px solid rgba(201,168,76,0.12);
+    padding: 60px 0 32px;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 48px;
+  }
+  .footer-brand-desc {
+    font-size: 15px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.8;
+    margin-top: 16px;
+    margin-bottom: 20px;
+  }
+  .footer-social {
+    display: flex;
+    gap: 10px;
+  }
+  .footer-social-link {
+    width: 38px;
+    height: 38px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.55);
+    text-decoration: none;
+    font-size: 16px;
+    transition: var(--transition);
+  }
+  .footer-social-link:hover {
+    background: rgba(201,168,76,0.12);
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  .footer-col-title {
+    font-family: 'Heebo', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--gold-light);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 16px;
+  }
+  .footer-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .footer-links a {
+    color: rgba(255,255,255,0.55);
+    text-decoration: none;
+    font-size: 15px;
+    transition: var(--transition);
+  }
+  .footer-links a:hover { color: var(--gold-light); }
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.07);
+    padding-top: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .footer-copy {
+    font-size: 14px;
+    color: rgba(255,255,255,0.4);
+  }
+  .footer-legal {
+    display: flex;
+    gap: 20px;
+  }
+  .footer-legal a {
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+    text-decoration: none;
+    transition: var(--transition);
+  }
+  .footer-legal a:hover { color: var(--gold); }
+
+  /* ===== ANIMATIONS ===== */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
   }
 
-  .toast.show { transform: translateX(-50%) translateY(0); }
+  /* ===== SCROLL TO TOP ===== */
+  .scroll-top {
+    position: fixed;
+    bottom: 28px;
+    left: 28px;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border: none;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--navy);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: var(--transition);
+    z-index: 900;
+    box-shadow: 0 4px 16px rgba(201,168,76,0.35);
+  }
+  .scroll-top.visible { opacity: 1; transform: translateY(0); }
+  .scroll-top:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(201,168,76,0.5); }
 
   /* ===== RESPONSIVE ===== */
   @media (max-width: 1024px) {
-    .hero-content { grid-template-columns: 1fr; gap: 40px; }
+    .hero-inner { grid-template-columns: 1fr; text-align: center; }
+    .hero-subtitle { margin: 0 auto 36px; }
+    .hero-ctas { justify-content: center; }
+    .hero-value-cards { max-width: 480px; margin: 0 auto; }
     .hero-visual { display: none; }
-    .about-grid { grid-template-columns: 1fr; gap: 40px; }
-    .team-grid { grid-template-columns: 1fr 1fr; }
-    .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+    .services-grid { grid-template-columns: repeat(2, 1fr); }
+    .why-grid { grid-template-columns: repeat(2, 1fr); }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
   }
-
   @media (max-width: 768px) {
-    .nav-menu, .nav-actions .btn-cta-nav, .nav-actions .btn-portal { display: none; }
-    .mobile-toggle { display: flex; }
-    .guide-grid { grid-template-columns: 1fr; }
-    .contact-grid { grid-template-columns: 1fr; }
-    .profile-layout { grid-template-columns: 1fr; }
-    .form-row { grid-template-columns: 1fr; }
-    .sub-detail-grid { grid-template-columns: 1fr 1fr; }
-    .hero-stats { flex-direction: column; gap: 20px; }
-    .newsletter-form { flex-direction: column; }
-    .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+    .nav-links, .nav-actions { display: none; }
+    .hamburger { display: flex; }
+    section { padding: 70px 0; }
+    .services-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .pricing-card.featured { transform: scale(1); }
+    .pricing-card.featured:hover { transform: translateY(-4px); }
+    .faq-grid { grid-template-columns: 1fr; }
+    .news-grid { grid-template-columns: 1fr; }
+    .contact-grid { grid-template-columns: 1fr; gap: 36px; }
+    .contact-form-wrap { padding: 24px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+    .footer-bottom { flex-direction: column; text-align: center; }
+    .hero-value-cards { grid-template-columns: 1fr; max-width: 320px; }
+  }
+  @media (max-width: 480px) {
+    .hero-inner { padding: 60px 20px; }
+    .container { padding: 0 16px; }
+    .hero-ctas { flex-direction: column; align-items: stretch; }
+    .btn-primary, .btn-secondary { justify-content: center; }
+    .why-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 
-<!-- ===== NAVBAR ===== -->
-<nav class="navbar">
-  <div class="nav-inner">
-    <a class="logo" onclick="showPage('home')">
-      <div class="logo-icon">P</div>
-      <span class="logo-text">פרו<span>ביז</span></span>
-    </a>
-
-    <ul class="nav-menu">
-      <li class="nav-item">
-        <span class="nav-link" onclick="showPage('home')">דף בית</span>
-      </li>
-      <li class="nav-item">
-        <span class="nav-link">שירותים שלנו <span class="arrow">▾</span></span>
-        <div class="dropdown">
-          <a onclick="showPage('services')"><span class="d-icon">📊</span> הנהלת חשבונות</a>
-          <a onclick="showPage('services')"><span class="d-icon">💰</span> חשבות שכר</a>
-          <a onclick="showPage('services')"><span class="d-icon">💼</span> יעוץ עסקי</a>
-          <a onclick="showPage('services')"><span class="d-icon">📈</span> יעוץ פיננסי</a>
-          <a onclick="showPage('services')"><span class="d-icon">📣</span> שיווק ופרסום</a>
-          <a onclick="showPage('services')"><span class="d-icon">🎯</span> מכירות</a>
-          <a onclick="showPage('services')"><span class="d-icon">🛡️</span> פתרונות ציות</a>
+<!-- NAVBAR -->
+<header>
+  <nav class="navbar" role="navigation" aria-label="ניווט ראשי">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo" aria-label="Prime Ledger Solutions - עמוד הבית">
+        <div class="nav-logo-icon" aria-hidden="true">PL</div>
+        <div class="nav-logo-text">
+          <span class="nav-logo-en">Prime Ledger Solutions</span>
+          <span class="nav-logo-he">פריים לדג'ר סולושנס</span>
         </div>
-      </li>
-      <li class="nav-item">
-        <span class="nav-link" onclick="showPage('pricing')">מחירון</span>
-      </li>
-      <li class="nav-item">
-        <span class="nav-link" onclick="showPage('guide')">מדריך מקצועי</span>
-      </li>
-      <li class="nav-item">
-        <span class="nav-link" onclick="showPage('forms')">טפסים</span>
-      </li>
-      <li class="nav-item">
-        <span class="nav-link" onclick="showPage('simulators')">סימולטורים</span>
-      </li>
-      <li class="nav-item">
-        <span class="nav-link" onclick="showPage('about')">אודות</span>
-      </li>
-      <li class="nav-item">
-        <span class="nav-link">עוד <span class="arrow">▾</span></span>
-        <div class="dropdown">
-          <a onclick="showPage('terms')"><span class="d-icon">📋</span> תנאי ומדיניות</a>
-          <a onclick="showPage('contact')"><span class="d-icon">📞</span> צור קשר</a>
-          <a onclick="showPage('faq')"><span class="d-icon">❓</span> שאלות ותשובות</a>
-        </div>
-      </li>
-    </ul>
-
-    <div class="nav-actions">
-      <button class="btn-portal" onclick="openModal('portal')">כניסה לפורטל</button>
-      <button class="btn-cta-nav" onclick="showPage('contact')">פגישת ייעוץ חינם</button>
-      <div class="mobile-toggle" onclick="toggleMobileMenu()">
+      </a>
+      <ul class="nav-links" role="list">
+        <li><a href="#services">שירותים</a></li>
+        <li><a href="#pricing">תמחור</a></li>
+        <li><a href="news.html">חדשות</a></li>
+        <li><a href="#contact">צור קשר</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="portal.html" class="btn-portal" aria-label="כניסה לפורטל לקוחות">כניסה לפורטל</a>
+        <a href="#contact" class="btn-cta-nav">התחל עכשיו</a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="פתח תפריט ניווט" aria-expanded="false" aria-controls="mobileMenu">
         <span></span><span></span><span></span>
-      </div>
+      </button>
     </div>
-  </div>
-</nav>
-
-<!-- ===== MOBILE OVERLAY ===== -->
-<div class="mobile-overlay" id="mobile-overlay" onclick="closeMobileMenu()"></div>
-
-<!-- ===== MOBILE DRAWER ===== -->
-<div class="mobile-drawer" id="mobile-drawer">
-  <div class="drawer-header">
-    <div class="logo" style="cursor:pointer;" onclick="closeMobileMenu(); showPage('home')">
-      <div class="logo-icon" style="width:36px;height:36px;font-size:17px;">P</div>
-      <span class="logo-text" style="font-size:19px;">פרו<span>ביז</span></span>
+  </nav>
+  <nav class="mobile-menu" id="mobileMenu" aria-label="תפריט ניווט נייד">
+    <a href="#services">שירותים</a>
+    <a href="#pricing">תמחור</a>
+    <a href="news.html">חדשות</a>
+    <a href="#contact">צור קשר</a>
+    <div class="mobile-menu-actions">
+      <a href="portal.html" class="btn-portal" style="font-size:15px;">כניסה לפורטל</a>
+      <a href="#contact" class="btn-cta-nav" style="font-size:15px;">התחל עכשיו</a>
     </div>
-    <button class="drawer-close" onclick="closeMobileMenu()">✕</button>
-  </div>
+  </nav>
+</header>
 
-  <div class="drawer-body">
-    <!-- ראשי -->
-    <div class="drawer-section">
-      <div class="drawer-section-label">ניווט ראשי</div>
-
-      <div class="drawer-link" onclick="closeMobileMenu(); showPage('home')">
-        <div class="drawer-link-icon">🏠</div>
-        <span>דף בית</span>
-        <span class="drawer-link-arrow">›</span>
-      </div>
-
-      <!-- שירותים עם תת-תפריט -->
-      <div class="drawer-services-toggle" id="dst" onclick="toggleDrawerServices()">
-        <div class="drawer-link-icon">💼</div>
-        <span>שירותים שלנו</span>
-        <span class="dst-arrow">▾</span>
-      </div>
-      <div class="drawer-sub-items" id="drawer-sub">
-        <div class="drawer-sub-link" onclick="closeMobileMenu(); showPage('services')"><span>📊</span> הנהלת חשבונות</div>
-        <div class="drawer-sub-link" onclick="closeMobileMenu(); showPage('services')"><span>💰</span> חשבות שכר</div>
-        <div class="drawer-sub-link" onclick="closeMobileMenu(); showPage('services')"><span>🤝</span> יעוץ עסקי</div>
-        <div class="drawer-sub-link" onclick="closeMobileMenu(); showPage('services')"><span>📈</span> יעוץ פיננסי</div>
-        <div class="drawer-sub-link" onclick="closeMobileMenu(); showPage('services')"><span>📣</span> שיווק ופרסום</div>
-        <div class="drawer-sub-link" onclick="closeMobileMenu(); showPage('services')"><span>🎯</span> מכירות</div>
-        <div class="drawer-sub-link" onclick="closeMobileMenu(); showPage('services')"><span>🛡️</span> פתרונות ציות</div>
-      </div>
-
-      <div class="drawer-link" onclick="closeMobileMenu(); showPage('pricing')">
-        <div class="drawer-link-icon">💳</div>
-        <span>מחירון</span>
-        <span class="drawer-link-arrow">›</span>
-      </div>
-
-      <div class="drawer-link" onclick="closeMobileMenu(); showPage('guide')">
-        <div class="drawer-link-icon">📚</div>
-        <span>מדריך מקצועי</span>
-        <span class="drawer-link-arrow">›</span>
-      </div>
-    </div>
-
-    <div class="drawer-divider"></div>
-
-    <!-- כלים -->
-    <div class="drawer-section">
-      <div class="drawer-section-label">כלים</div>
-
-      <div class="drawer-link" onclick="closeMobileMenu(); showPage('forms')">
-        <div class="drawer-link-icon">📄</div>
-        <span>טפסים להורדה</span>
-        <span class="drawer-link-arrow">›</span>
-      </div>
-
-      <div class="drawer-link" onclick="closeMobileMenu(); showPage('simulators')">
-        <div class="drawer-link-icon">🧮</div>
-        <span>סימולטורים</span>
-        <span class="drawer-link-arrow">›</span>
-      </div>
-    </div>
-
-    <div class="drawer-divider"></div>
-
-    <!-- חברה -->
-    <div class="drawer-section">
-      <div class="drawer-section-label">חברה</div>
-
-      <div class="drawer-link" onclick="closeMobileMenu(); showPage('about')">
-        <div class="drawer-link-icon">🏢</div>
-        <span>אודות</span>
-        <span class="drawer-link-arrow">›</span>
-      </div>
-
-      <div class="drawer-link" onclick="closeMobileMenu(); showPage('contact')">
-        <div class="drawer-link-icon">📞</div>
-        <span>צרו קשר</span>
-        <span class="drawer-link-arrow">›</span>
-      </div>
-
-      <div class="drawer-link" onclick="closeMobileMenu(); showPage('faq')">
-        <div class="drawer-link-icon">❓</div>
-        <span>שאלות ותשובות</span>
-        <span class="drawer-link-arrow">›</span>
-      </div>
-
-      <div class="drawer-link" onclick="closeMobileMenu(); showPage('terms')">
-        <div class="drawer-link-icon">📋</div>
-        <span>תנאי ומדיניות</span>
-        <span class="drawer-link-arrow">›</span>
-      </div>
-    </div>
-
-    <!-- פרטי קשר מהירים -->
-    <div class="drawer-divider"></div>
-    <div class="drawer-section">
-      <div class="drawer-section-label">צרו קשר מהיר</div>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.04);">
-          <span style="font-size:16px;">📞</span>
-          <span style="font-size:14px;color:rgba(255,255,255,0.7);">03-1234567</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.04);">
-          <span style="font-size:16px;">📧</span>
-          <span style="font-size:14px;color:rgba(255,255,255,0.7);">info@probiz.co.il</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.04);">
-          <span style="font-size:16px;">🕐</span>
-          <span style="font-size:13px;color:rgba(255,255,255,0.5);">ראשון–חמישי 08:00–18:00</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="drawer-footer">
-    <button class="drawer-btn-primary" onclick="closeMobileMenu(); showPage('contact')">📅 פגישת ייעוץ חינם</button>
-    <button class="drawer-btn-portal" onclick="closeMobileMenu(); openModal('portal')">🔐 כניסה לפורטל</button>
-  </div>
-</div>
-
-<!-- ===== HOME PAGE ===== -->
-<div id="page-home" class="page active">
-
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-bg"></div>
-    <div class="hero-grid"></div>
+<!-- HERO -->
+<section class="hero" aria-label="כותרת ראשית">
+  <div class="hero-bg-grid" aria-hidden="true"></div>
+  <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
+  <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
+  <div class="hero-inner">
     <div class="hero-content">
-      <div>
-        <div class="hero-badge">שירותים מקצועיים לעסקים</div>
-        <h1 class="hero-title">
-          הצמיחה שלכם<br>
-          <span class="highlight">האחריות שלנו</span>
-        </h1>
-        <p class="hero-desc">
-          אנו מספקים פתרונות עסקיים מקיפים — מהנהלת חשבונות ועד יעוץ אסטרטגי — כדי שתוכלו להתמקד במה שחשוב באמת: הצמחת העסק שלכם.
-        </p>
-        <div class="hero-buttons">
-          <button class="btn-primary" onclick="showPage('services')">הכירו את השירותים ←</button>
-          <button class="btn-secondary" onclick="showPage('contact')">צרו קשר</button>
-        </div>
-        <div class="hero-stats">
-          <div class="stat-item">
-            <span class="stat-num">500+</span>
-            <span class="stat-label">לקוחות מרוצים</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-num">15+</span>
-            <span class="stat-label">שנות ניסיון</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-num">7</span>
-            <span class="stat-label">תחומי מומחיות</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-num">98%</span>
-            <span class="stat-label">שביעות רצון</span>
-          </div>
-        </div>
+      <div class="hero-badge" aria-label="מוסמכים ומוכרים">
+        <span class="hero-badge-dot" aria-hidden="true"></span>
+        רואי חשבון מוסמכים &amp; יועצים עסקיים
       </div>
-      <div class="hero-visual">
-        <div class="hero-card">
-          <div class="hero-card-header">
-            <span class="hch-title">השירותים שלנו</span>
-            <span class="hch-badge">✓ פעיל</span>
-          </div>
-          <div class="services-mini">
-            <div class="sm-item"><span class="sm-icon">📊</span><span class="sm-name">הנהלת חשבונות</span></div>
-            <div class="sm-item"><span class="sm-icon">💰</span><span class="sm-name">חשבות שכר</span></div>
-            <div class="sm-item"><span class="sm-icon">💼</span><span class="sm-name">יעוץ עסקי</span></div>
-            <div class="sm-item"><span class="sm-icon">📈</span><span class="sm-name">יעוץ פיננסי</span></div>
-            <div class="sm-item"><span class="sm-icon">📣</span><span class="sm-name">שיווק ופרסום</span></div>
-            <div class="sm-item"><span class="sm-icon">🎯</span><span class="sm-name">מכירות</span></div>
-            <div class="sm-item" style="grid-column: span 2"><span class="sm-icon">🛡️</span><span class="sm-name">פתרונות ציות</span></div>
-          </div>
+      <h1 class="hero-title">
+        ניהול חשבונות <span>חכם.</span><br>
+        ייעוץ עסקי <span>מנצח.</span>
+      </h1>
+      <p class="hero-subtitle">
+        אנו מספקים שירותי הנהלת חשבונות מקצועיים, ייעוץ עסקי אסטרטגי וליווי פיננסי מלא לעסקים קטנים, בינוניים ועצמאים — כדי שתוכלו להתמקד בצמיחה.
+      </p>
+      <div class="hero-ctas">
+        <a href="portal.html" class="btn-primary" aria-label="התחל עכשיו - כניסה לפורטל">
+          התחל עכשיו ←
+        </a>
+        <a href="#contact" class="btn-secondary" aria-label="עבור לטופס יצירת קשר">
+          צור קשר
+        </a>
+      </div>
+      <div class="hero-value-cards" role="list" aria-label="יתרונות עיקריים">
+        <div class="hero-value-card" role="listitem">
+          <span class="hero-value-icon" aria-hidden="true">🏆</span>
+          <div class="hero-value-title">מקצועיות מלאה</div>
+          <div class="hero-value-desc">רואי חשבון מוסמכים עם ניסיון רב</div>
+        </div>
+        <div class="hero-value-card" role="listitem">
+          <span class="hero-value-icon" aria-hidden="true">🕐</span>
+          <div class="hero-value-title">זמינות 24/7</div>
+          <div class="hero-value-desc">תמיד זמינים לשאלות ולסיוע</div>
+        </div>
+        <div class="hero-value-card" role="listitem">
+          <span class="hero-value-icon" aria-hidden="true">📈</span>
+          <div class="hero-value-title">תוצאות מוכחות</div>
+          <div class="hero-value-desc">חיסכון במס ויעילות מרבית</div>
         </div>
       </div>
     </div>
-  </section>
-
-  <!-- SERVICES PREVIEW -->
-  <section class="section">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-tag">מה אנחנו מציעים</div>
-        <h2 class="section-title">שירותים מקיפים לכל צורך עסקי</h2>
-        <p class="section-desc">ממיזם מתחיל ועד תאגיד — יש לנו את הכלים והמומחיות שצריכים</p>
-      </div>
-      <div class="services-grid">
-        <div class="service-card">
-          <div class="s-icon">📊</div>
-          <div class="s-title">הנהלת חשבונות</div>
-          <p class="s-desc">ניהול ספרי החשבונות, הכנת דוחות כספיים, ייצוג מול רשויות המס וביקורת חשבונות שוטפת.</p>
-          <div class="s-link" onclick="showPage('services')">קרא עוד ←</div>
+    <div class="hero-visual" aria-hidden="true">
+      <div style="position:relative; width:440px; height:440px;">
+        <div class="hero-visual-main">
+          <div class="hero-orbit-item">💰</div>
+          <div class="hero-orbit-item">📊</div>
+          <div class="hero-orbit-item">🧾</div>
+          <div class="hero-orbit-item">📋</div>
+          <div class="hero-visual-center">🏛️</div>
         </div>
-        <div class="service-card">
-          <div class="s-icon">💰</div>
-          <div class="s-title">חשבות שכר</div>
-          <p class="s-desc">עיבוד שכר חודשי, תלושי שכר, דיווחים למס הכנסה וביטוח לאומי, וניהול הטבות לעובדים.</p>
-          <div class="s-link" onclick="showPage('services')">קרא עוד ←</div>
+        <div class="hero-float-card">
+          <div class="hero-float-label">חיסכון במס</div>
+          <div class="hero-float-value">עד 35%</div>
+          <div class="hero-float-sub">בממוצע ללקוחותינו</div>
         </div>
-        <div class="service-card">
-          <div class="s-icon">💼</div>
-          <div class="s-title">יעוץ עסקי</div>
-          <p class="s-desc">אסטרטגיה עסקית, תכנון מבני, ניתוח שוק ותחרות, ליווי בשינויים ארגוניים.</p>
-          <div class="s-link" onclick="showPage('services')">קרא עוד ←</div>
-        </div>
-        <div class="service-card">
-          <div class="s-icon">📈</div>
-          <div class="s-title">יעוץ פיננסי</div>
-          <p class="s-desc">תכנון פיננסי, ניהול תזרים מזומנים, בחינת כדאיות השקעות וגיוס הון.</p>
-          <div class="s-link" onclick="showPage('services')">קרא עוד ←</div>
-        </div>
-        <div class="service-card">
-          <div class="s-icon">📣</div>
-          <div class="s-title">שיווק ופרסום</div>
-          <p class="s-desc">אסטרטגיית שיווק דיגיטלי, ניהול מדיה חברתית, קמפיינים ממומנים ובניית מותג.</p>
-          <div class="s-link" onclick="showPage('services')">קרא עוד ←</div>
-        </div>
-        <div class="service-card">
-          <div class="s-icon">🎯</div>
-          <div class="s-title">מכירות</div>
-          <p class="s-desc">בניית מערך מכירות, הכשרת צוות, פיתוח תהליכי מכירה ומעקב ביצועים.</p>
-          <div class="s-link" onclick="showPage('services')">קרא עוד ←</div>
-        </div>
-        <div class="service-card">
-          <div class="s-icon">🛡️</div>
-          <div class="s-title">פתרונות ציות</div>
-          <p class="s-desc">עמידה בדרישות רגולציה, הגנת מידע, ציות תאגידי ותיעוד נהלים.</p>
-          <div class="s-link" onclick="showPage('services')">קרא עוד ←</div>
+        <div class="hero-float-card">
+          <div class="hero-float-label">זמן תגובה</div>
+          <div class="hero-float-value">תוך 2 שעות</div>
+          <div class="hero-float-sub">בימי עסקים</div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- CTA BAND -->
-  <section style="background: linear-gradient(135deg, var(--navy), var(--navy-light)); padding: 80px 0;">
-    <div class="container" style="text-align: center;">
-      <h2 style="font-family: 'Heebo'; font-size: 36px; font-weight: 900; color: var(--white); margin-bottom: 16px;">מוכנים להתחיל?</h2>
-      <p style="color: rgba(255,255,255,0.6); font-size: 17px; margin-bottom: 36px;">קבלו ייעוץ ראשוני ללא עלות ותחויבות</p>
-      <button class="btn-primary" onclick="showPage('contact')">פגישת ייעוץ חינם ←</button>
+<!-- SERVICES -->
+<section class="services" id="services" aria-label="השירותים שלנו">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-tag">השירותים שלנו</span>
+      <h2 class="section-title">פתרונות פיננסיים <span>מקיפים</span></h2>
+      <p class="section-subtitle">מהנהלת חשבונות שוטפת ועד ייעוץ אסטרטגי — אנחנו כאן בכל שלב של הדרך העסקית שלכם.</p>
     </div>
-  </section>
-</div>
+    <div class="services-grid">
 
-<!-- ===== SERVICES PAGE ===== -->
-<div id="page-services" class="page">
-  <section class="section">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-tag">שירותים שלנו</div>
-        <h2 class="section-title">פתרונות מקצועיים לכל צורך</h2>
-        <p class="section-desc">שבעה תחומי מומחיות תחת קורת גג אחת — לנוחיותכם המרבית</p>
-      </div>
-      <div style="display: grid; grid-template-columns: 1fr; gap: 32px;">
-        
-        <!-- Service detail cards -->
-        <div style="background: var(--white); border: 1px solid var(--gray-200); border-radius: 20px; padding: 40px; display: grid; grid-template-columns: auto 1fr; gap: 32px; align-items: start;">
-          <div style="width: 72px; height: 72px; background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05)); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 36px;">📊</div>
-          <div>
-            <h3 style="font-family: 'Heebo'; font-size: 24px; font-weight: 800; color: var(--navy); margin-bottom: 12px;">הנהלת חשבונות</h3>
-            <p style="color: var(--gray-600); line-height: 1.75; margin-bottom: 20px;">שירות הנהלת חשבונות מקיף הכולל ניהול ספרי החשבונות, הכנת דוחות כספיים, דו"ח רווח והפסד, מאזן שנתי, ייצוג מול רשויות המס, ביקורת חשבונות שוטפת ועוד. אנו דואגים לכך שהעסק שלכם יהיה תמיד מסודר ועמיד בכל דרישות החוק.</p>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">דוחות כספיים</span>
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">מס הכנסה</span>
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">ביקורת שנתית</span>
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">מע"מ</span>
-            </div>
-          </div>
-        </div>
+      <article class="service-card fade-in" aria-label="שירות הנהלת חשבונות שוטפת">
+        <div class="service-icon" aria-hidden="true">📚</div>
+        <h3 class="service-title">הנהלת חשבונות שוטפת</h3>
+        <p class="service-desc">ניהול ספרי החשבונות של עסקכם באופן שוטף ומדויק. אנו מכסים את כל ההיבטים הפיננסיים — מרישום התנועות היומיות ועד הפקת דוחות חודשיים מפורטים וגמר חשבון שנתי. ניתוח תזרים המזומנים שלנו מסייע לכם לקבל החלטות עסקיות מושכלות.</p>
+        <ul class="service-deliverables" aria-label="מה כלול בשירות">
+          <li>ניהול ספרים שוטף ורישום כל התנועות</li>
+          <li>דוחות חודשיים ורבעוניים מפורטים</li>
+          <li>גמר חשבון שנתי ואיזון ספרים</li>
+          <li>ניתוח תזרים מזומנים ותחזיות</li>
+          <li>ממשק ישיר עם תוכנות חשבונאות מובילות</li>
+        </ul>
+        <button class="btn-read-more" aria-label="קרא עוד על הנהלת חשבונות שוטפת">קרא עוד ←</button>
+      </article>
 
-        <div style="background: var(--white); border: 1px solid var(--gray-200); border-radius: 20px; padding: 40px; display: grid; grid-template-columns: auto 1fr; gap: 32px; align-items: start;">
-          <div style="width: 72px; height: 72px; background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05)); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 36px;">💰</div>
-          <div>
-            <h3 style="font-family: 'Heebo'; font-size: 24px; font-weight: 800; color: var(--navy); margin-bottom: 12px;">חשבות שכר</h3>
-            <p style="color: var(--gray-600); line-height: 1.75; margin-bottom: 20px;">עיבוד שכר חודשי מדויק, הפקת תלושי שכר, דיווחים למס הכנסה וביטוח לאומי, ניהול ניכויים וזכויות עובדים, חישוב פיצויים, חופשות ומחלות — הכל בהתאם לחוק.</p>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">תלושי שכר</span>
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">ביטוח לאומי</span>
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">פיצויים</span>
-            </div>
-          </div>
-        </div>
+      <article class="service-card fade-in" aria-label="שירות הגשת דוחות מע״מ">
+        <div class="service-icon" aria-hidden="true">🧾</div>
+        <h3 class="service-title">הגשת דוחות מע"מ</h3>
+        <p class="service-desc">הגשה מדויקת ובזמן של דוחות מע"מ לרשויות המס. אנו מטפלים בחישוב המס המדויק, מונעים קנסות בגין איחורים, ומייעלים את תהליך ההגשה. ליווי מלא מול רשות המסים בכל שאלה או בירור.</p>
+        <ul class="service-deliverables" aria-label="מה כלול בשירות">
+          <li>הגשה חודשית או דו-חודשית לרשות המסים</li>
+          <li>חישוב מדויק של מע"מ תשומות ועסקאות</li>
+          <li>מניעת קנסות פיגורים ואי-הגשה</li>
+          <li>ייצוג מול פקיד השומה בבירורים</li>
+          <li>עדכון שוטף לגבי שינויים בתקנות המע"מ</li>
+        </ul>
+        <button class="btn-read-more" aria-label="קרא עוד על הגשת דוחות מע״מ">קרא עוד ←</button>
+      </article>
 
-        <div style="background: var(--white); border: 1px solid var(--gray-200); border-radius: 20px; padding: 40px; display: grid; grid-template-columns: auto 1fr; gap: 32px; align-items: start;">
-          <div style="width: 72px; height: 72px; background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05)); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 36px;">💼</div>
-          <div>
-            <h3 style="font-family: 'Heebo'; font-size: 24px; font-weight: 800; color: var(--navy); margin-bottom: 12px;">יעוץ עסקי</h3>
-            <p style="color: var(--gray-600); line-height: 1.75; margin-bottom: 20px;">ייעוץ אסטרטגי לפיתוח עסקי, כתיבת תוכניות עסקיות, ניתוח שוק ותחרות, סיוע בהקמת עסק, ליווי בשינויים ארגוניים ובגיוס משקיעים.</p>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">תוכנית עסקית</span>
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">אסטרטגיה</span>
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">ניתוח שוק</span>
-            </div>
-          </div>
-        </div>
+      <article class="service-card fade-in" aria-label="שירות שכר ותגמולים">
+        <div class="service-icon" aria-hidden="true">💼</div>
+        <h3 class="service-title">שכר ותגמולים</h3>
+        <p class="service-desc">ניהול שכר מקצועי ומדויק לכל גודל ארגון. אנו מחשבים משכורות, ניכויי ביטוח לאומי ומס הכנסה, ומגישים דוחות 126 ושנתיים לפי הדרישות החוקיות. הכל מנוהל בצורה אוטומטית ושקופה.</p>
+        <ul class="service-deliverables" aria-label="מה כלול בשירות">
+          <li>חישוב משכורות חודשי לכלל העובדים</li>
+          <li>ניכוי ביטוח לאומי ומס הכנסה</li>
+          <li>הגשת דוחות ניכויים חודשיים ושנתיים</li>
+          <li>ניהול קרנות פנסיה וקופות גמל</li>
+          <li>הפקת תלושי שכר דיגיטליים</li>
+        </ul>
+        <button class="btn-read-more" aria-label="קרא עוד על שירות שכר ותגמולים">קרא עוד ←</button>
+      </article>
 
-        <div style="background: var(--white); border: 1px solid var(--gray-200); border-radius: 20px; padding: 40px; display: grid; grid-template-columns: auto 1fr; gap: 32px; align-items: start;">
-          <div style="width: 72px; height: 72px; background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05)); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 36px;">📈</div>
-          <div>
-            <h3 style="font-family: 'Heebo'; font-size: 24px; font-weight: 800; color: var(--navy); margin-bottom: 12px;">יעוץ פיננסי</h3>
-            <p style="color: var(--gray-600); line-height: 1.75; margin-bottom: 20px;">תכנון פיננסי ארוך טווח, ניהול תזרים מזומנים, בחינת כדאיות השקעות, מבנה מימון, ליווי בגיוס הון ואשראי.</p>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">תזרים מזומנים</span>
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">השקעות</span>
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">גיוס הון</span>
-            </div>
-          </div>
-        </div>
+      <article class="service-card fade-in" aria-label="שירות ייעוץ עסקי אסטרטגי">
+        <div class="service-icon" aria-hidden="true">🎯</div>
+        <h3 class="service-title">ייעוץ עסקי אסטרטגי</h3>
+        <p class="service-desc">ייעוץ עסקי מעמיק שמסייע לכם לקבל החלטות פיננסיות חכמות. אנו בונים תוכניות עסקיות מפורטות, מנתחים רווחיות, מזהים הזדמנויות חיסכון ומלווים אתכם בתהליכי מימון והשקעה.</p>
+        <ul class="service-deliverables" aria-label="מה כלול בשירות">
+          <li>בניית תוכנית עסקית מקיפה</li>
+          <li>ניתוח רווחיות ונקודת איזון</li>
+          <li>ייעוץ למימון בנקאי וגיוס הון</li>
+          <li>תכנון מס אסטרטגי לחיסכון מקסימלי</li>
+          <li>ניתוח כלכלי לקראת רכישות ומיזוגים</li>
+        </ul>
+        <button class="btn-read-more" aria-label="קרא עוד על ייעוץ עסקי אסטרטגי">קרא עוד ←</button>
+      </article>
 
-        <div style="background: var(--white); border: 1px solid var(--gray-200); border-radius: 20px; padding: 40px; display: grid; grid-template-columns: auto 1fr; gap: 32px; align-items: start;">
-          <div style="width: 72px; height: 72px; background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05)); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 36px;">📣</div>
-          <div>
-            <h3 style="font-family: 'Heebo'; font-size: 24px; font-weight: 800; color: var(--navy); margin-bottom: 12px;">שיווק ופרסום</h3>
-            <p style="color: var(--gray-600); line-height: 1.75; margin-bottom: 20px;">אסטרטגיית שיווק דיגיטלי כוללת, ניהול מדיה חברתית, קמפיינים ממומנים (Google Ads, Meta), SEO, בניית מותג ועיצוב חומרים שיווקיים.</p>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">דיגיטל</span>
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">SEO</span>
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">מדיה חברתית</span>
-            </div>
-          </div>
-        </div>
+      <article class="service-card fade-in" aria-label="שירות ייצוג מול רשויות">
+        <div class="service-icon" aria-hidden="true">⚖️</div>
+        <h3 class="service-title">ייצוג מול רשויות</h3>
+        <p class="service-desc">ייצוג מקצועי ואמין מול רשות המסים, ביטוח לאומי וגורמים ממשלתיים. אנו מנהלים שומות מס, מגישים ערעורים, ומלווים ביקורות מס — תוך שמירה על זכויותיכם ואינטרסיכם.</p>
+        <ul class="service-deliverables" aria-label="מה כלול בשירות">
+          <li>ניהול שומות מס הכנסה ומע"מ</li>
+          <li>הגשת ערעורים על החלטות פקיד שומה</li>
+          <li>ליווי בביקורות מס ובדיקות חשבוניות</li>
+          <li>ייצוג בדיוני שומה ופגישות עם הרשויות</li>
+          <li>הגשת בקשות להסכמי שומה</li>
+        </ul>
+        <button class="btn-read-more" aria-label="קרא עוד על ייצוג מול רשויות">קרא עוד ←</button>
+      </article>
 
-        <div style="background: var(--white); border: 1px solid var(--gray-200); border-radius: 20px; padding: 40px; display: grid; grid-template-columns: auto 1fr; gap: 32px; align-items: start;">
-          <div style="width: 72px; height: 72px; background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05)); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 36px;">🎯</div>
-          <div>
-            <h3 style="font-family: 'Heebo'; font-size: 24px; font-weight: 800; color: var(--navy); margin-bottom: 12px;">מכירות</h3>
-            <p style="color: var(--gray-600); line-height: 1.75; margin-bottom: 20px;">בניית מערך מכירות מקצועי, הכשרת צוות מכירות, פיתוח תהליכי מכירה וסקריפטים, מעקב ביצועים, CRM ועוד.</p>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">הכשרה</span>
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">CRM</span>
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">KPIs</span>
-            </div>
-          </div>
-        </div>
+      <article class="service-card fade-in" aria-label="שירות הקמת עסקים">
+        <div class="service-icon" aria-hidden="true">🚀</div>
+        <h3 class="service-title">הקמת עסקים</h3>
+        <p class="service-desc">ליווי מלא בכל שלבי פתיחת העסק — מבחירת המבנה המשפטי הנכון ועד לרישום מול כל הרשויות הרלוונטיות. אנו נבטיח שתתחילו את דרכם העסקית על בסיס איתן ומסודר.</p>
+        <ul class="service-deliverables" aria-label="מה כלול בשירות">
+          <li>בחירת מבנה משפטי — עוסק מורשה, שותפות, חברה בע"מ</li>
+          <li>רישום ברשם החברות ורשות המסים</li>
+          <li>פתיחת תיקים בביטוח לאומי ומע"מ</li>
+          <li>ייעוץ לתכנון מס ראשוני ואופטימלי</li>
+          <li>הכנת הסכמים ומסמכים ייסודיים</li>
+        </ul>
+        <button class="btn-read-more" aria-label="קרא עוד על הקמת עסקים">קרא עוד ←</button>
+      </article>
 
-        <div style="background: var(--white); border: 1px solid var(--gray-200); border-radius: 20px; padding: 40px; display: grid; grid-template-columns: auto 1fr; gap: 32px; align-items: start;">
-          <div style="width: 72px; height: 72px; background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05)); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 36px;">🛡️</div>
-          <div>
-            <h3 style="font-family: 'Heebo'; font-size: 24px; font-weight: 800; color: var(--navy); margin-bottom: 12px;">פתרונות ציות</h3>
-            <p style="color: var(--gray-600); line-height: 1.75; margin-bottom: 20px;">עמידה בדרישות רגולציה, ציות לתקנות הגנת המידע (GDPR, חוק הגנת הפרטיות), ציות תאגידי, תיעוד נהלים ומדיניות, ביקורות ציות.</p>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">GDPR</span>
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">רגולציה</span>
-              <span style="background: rgba(201,168,76,0.1); color: var(--gold); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">ביקורת ציות</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
     </div>
-  </section>
-</div>
+  </div>
+</section>
 
-<!-- ===== PRICING PAGE ===== -->
-<div id="page-pricing" class="page">
-  <section class="section">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-tag">תמחור</div>
-        <h2 class="section-title">מחירון שקוף וברור</h2>
-        <p class="section-desc">תוכניות גמישות המתאימות לכל גודל עסק — ללא הפתעות</p>
+<!-- WHY US -->
+<section class="why-us" id="why-us" aria-label="למה לבחור בנו">
+  <div class="container">
+    <div class="section-header center fade-in">
+      <span class="section-tag">היתרון שלנו</span>
+      <h2 class="section-title" style="color:var(--white);">למה לבחור <span>בנו?</span></h2>
+      <p class="section-subtitle" style="color:rgba(255,255,255,0.6);">ארבעה עמודי תווך שמבדילים אותנו מכל גורם חשבונאי אחר</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-card fade-in" aria-label="מקצועיות">
+        <div class="why-icon" aria-hidden="true">🎓</div>
+        <h3 class="why-title">מקצועיות</h3>
+        <p class="why-desc">צוות רואי חשבון מוסמכים ויועצים עסקיים מנוסים. כל אחד מאנשי הצוות שלנו מחזיק בהסמכות מקצועיות ועובר הכשרה שוטפת לעמידה בעדכוני חקיקה ותקינה.</p>
       </div>
-      <div class="pricing-grid">
-        <div class="price-card">
-          <div class="price-name">STARTER</div>
-          <div class="price-title">בסיסי</div>
-          <div class="price-amount">₪899</div>
-          <div class="price-period">לחודש, ללא מע"מ</div>
-          <ul class="price-features">
-            <li>הנהלת חשבונות בסיסית</li>
-            <li>עד 5 עובדים — חשבות שכר</li>
-            <li>דוח מע"מ רבעוני</li>
-            <li>ייעוץ טלפוני — 2 שעות/חודש</li>
-            <li>גישה לפורטל לקוחות</li>
-          </ul>
-          <button class="btn-price btn-price-outline" onclick="showPage('contact')">התחילו עכשיו</button>
-        </div>
-
-        <div class="price-card popular">
-          <div class="popular-badge">הכי פופולרי</div>
-          <div class="price-name">PROFESSIONAL</div>
-          <div class="price-title">מקצועי</div>
-          <div class="price-amount" style="color: var(--white);">₪1,999</div>
-          <div class="price-period">לחודש, ללא מע"מ</div>
-          <ul class="price-features">
-            <li>הנהלת חשבונות מלאה</li>
-            <li>עד 20 עובדים — חשבות שכר</li>
-            <li>יעוץ עסקי — 4 שעות/חודש</li>
-            <li>דוחות פיננסיים חודשיים</li>
-            <li>ניהול תזרים מזומנים</li>
-            <li>גישה מלאה לכל הסימולטורים</li>
-            <li>תמיכה ב-WhatsApp</li>
-          </ul>
-          <button class="btn-price btn-price-gold" onclick="showPage('contact')">בחרו בתוכנית זו</button>
-        </div>
-
-        <div class="price-card">
-          <div class="price-name">ENTERPRISE</div>
-          <div class="price-title">ארגוני</div>
-          <div class="price-amount">מותאם</div>
-          <div class="price-period">הצעת מחיר אישית</div>
-          <ul class="price-features">
-            <li>כל שירותי החברה</li>
-            <li>עובדים ללא הגבלה</li>
-            <li>מנהל לקוח ייעודי</li>
-            <li>שיווק ופרסום דיגיטלי</li>
-            <li>פתרונות ציות מלאים</li>
-            <li>SLA מובטח</li>
-            <li>ישיבות חודשיות</li>
-          </ul>
-          <button class="btn-price btn-price-outline" onclick="showPage('contact')">צרו קשר לתמחור</button>
-        </div>
+      <div class="why-card fade-in" aria-label="חיסכון">
+        <div class="why-icon" aria-hidden="true">💰</div>
+        <h3 class="why-title">חיסכון מרבי</h3>
+        <p class="why-desc">תכנון מס חכם ואסטרטגי שחוסך לכם כסף רב מדי שנה. אנחנו מזהים הזדמנויות חיסכון שעסקים רבים מפספסים, ומיישמים אסטרטגיות מס חוקיות ויעילות.</p>
       </div>
-
-      <div style="margin-top: 40px; background: var(--gray-100); border-radius: 16px; padding: 28px; text-align: center;">
-        <p style="font-size: 14px; color: var(--gray-600);">💳 <strong>אמצעי תשלום:</strong> כרטיסי אשראי (ויזה, מסטרכארד, אמריקן אקספרס), העברה בנקאית, ביט ופייבוקס. תשלום ב-3 תשלומים ללא ריבית.</p>
+      <div class="why-card fade-in" aria-label="זמינות">
+        <div class="why-icon" aria-hidden="true">📞</div>
+        <h3 class="why-title">זמינות מלאה</h3>
+        <p class="why-desc">זמינים עבורכם בכל עת — טלפון, מייל, ווטסאפ. אנו מאמינים שתמיכה מהירה היא לא בונוס, היא חובה. זמן התגובה הממוצע שלנו הוא פחות משעתיים בימי עסקים.</p>
+      </div>
+      <div class="why-card fade-in" aria-label="טכנולוגיה">
+        <div class="why-icon" aria-hidden="true">💻</div>
+        <h3 class="why-title">טכנולוגיה מתקדמת</h3>
+        <p class="why-desc">עובדים עם הכלים הדיגיטליים המתקדמים ביותר — תוכנות חשבונאות בענן, גישה מרחוק לדוחות, ואוטומציה שמפחיתה טעויות ומגבירה יעילות. הפורטל האישי שלכם זמין 24/7.</p>
       </div>
     </div>
-  </section>
-</div>
+  </div>
+</section>
 
-<!-- ===== GUIDE PAGE ===== -->
-<div id="page-guide" class="page">
-  <section class="section">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-tag">ידע מקצועי</div>
-        <h2 class="section-title">מדריך מקצועי</h2>
-        <p class="section-desc">מאמרים, מדריכים וטיפים מהמומחים שלנו</p>
-      </div>
-      <div class="guide-grid">
-        <div class="guide-nav">
-          <div class="guide-nav-title">קטגוריות</div>
-          <span class="guide-nav-item active">הכל</span>
-          <span class="guide-nav-item">מיסוי</span>
-          <span class="guide-nav-item">שכר</span>
-          <span class="guide-nav-item">עסקים</span>
-          <span class="guide-nav-item">פיננסים</span>
-          <span class="guide-nav-item">שיווק</span>
-          <span class="guide-nav-item">ציות</span>
-        </div>
-        <div>
-          <div class="article-card">
-            <div class="article-tag">מיסוי</div>
-            <div class="article-title">מדריך מס הכנסה לעצמאים 2024 — כל מה שצריך לדעת</div>
-            <div class="article-excerpt">מדריך מקיף לכל עצמאי ובעל עסק קטן: ניכויים מותרים, מקדמות, הגשת דו"ח שנתי ועוד. עם הטבלאות המעודכנות לשנת המס 2024.</div>
-            <div class="article-meta">
-              <span>📅 12 ינואר 2024</span>
-              <span>⏱ 8 דקות קריאה</span>
-            </div>
-          </div>
-          <div class="article-card">
-            <div class="article-tag">שכר</div>
-            <div class="article-title">שכר מינימום ועדכוני חוק עבודה — כל מה שמעסיק צריך לדעת</div>
-            <div class="article-excerpt">עדכוני חוק עבודה אחרונים, שכר מינימום, זכויות עובדים, שעות נוספות ותוספות שכר. המדריך המלא למעסיק בישראל.</div>
-            <div class="article-meta">
-              <span>📅 3 פברואר 2024</span>
-              <span>⏱ 6 דקות קריאה</span>
-            </div>
-          </div>
-          <div class="article-card">
-            <div class="article-tag">עסקים</div>
-            <div class="article-title">כיצד לכתוב תוכנית עסקית שתשכנע משקיעים</div>
-            <div class="article-excerpt">מבנה תוכנית עסקית מנצחת, סעיפים חיוניים, ניתוח SWOT, תחזיות פיננסיות ואיך להציג את העסק שלך בצורה הטובה ביותר.</div>
-            <div class="article-meta">
-              <span>📅 19 פברואר 2024</span>
-              <span>⏱ 10 דקות קריאה</span>
-            </div>
-          </div>
-          <div class="article-card">
-            <div class="article-tag">פיננסים</div>
-            <div class="article-title">ניהול תזרים מזומנים — המדריך המעשי לבעלי עסקים</div>
-            <div class="article-excerpt">תזרים מזומנים תקין הוא עורק החיים של כל עסק. למדו כיצד לנהל, לחזות ולשפר את התזרים שלכם עם כלים פרקטיים.</div>
-            <div class="article-meta">
-              <span>📅 5 מרץ 2024</span>
-              <span>⏱ 7 דקות קריאה</span>
-            </div>
-          </div>
-        </div>
-      </div>
+<!-- PRICING -->
+<section class="pricing" id="pricing" aria-label="מחירים ותוכניות">
+  <div class="container">
+    <div class="section-header center fade-in">
+      <span class="section-tag">תמחור שקוף</span>
+      <h2 class="section-title">תוכניות <span>מותאמות</span> לכם</h2>
+      <p class="section-subtitle">מחירים ברורים וללא הפתעות. בחרו את התוכנית שמתאימה לגודל ולצרכי העסק שלכם.</p>
     </div>
-  </section>
-</div>
+    <div class="pricing-grid">
 
-<!-- ===== FORMS PAGE ===== -->
-<div id="page-forms" class="page">
-  <section class="section">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-tag">הורדת טפסים</div>
-        <h2 class="section-title">טפסים ומסמכים</h2>
-        <p class="section-desc">כל הטפסים הרשמיים והמדגמים שלנו — להורדה חינם</p>
+      <div class="pricing-card fade-in" aria-label="תוכנית בסיסי">
+        <div class="pricing-tier">תוכנית</div>
+        <div class="pricing-name">בסיסי</div>
+        <div class="pricing-price">
+          <span class="pricing-currency">₪</span>
+          299
+          <span class="pricing-period">/חודש</span>
+        </div>
+        <div class="pricing-divider"></div>
+        <ul class="pricing-features" aria-label="מה כלול בתוכנית בסיסי">
+          <li><span class="check" aria-hidden="true">✓</span> עד 50 תנועות חשבונאיות</li>
+          <li><span class="check" aria-hidden="true">✓</span> הגשת דוחות מע"מ רבעונית</li>
+          <li><span class="check" aria-hidden="true">✓</span> דוחות חשבונאיים בסיסיים</li>
+          <li><span class="check" aria-hidden="true">✓</span> תמיכה במייל</li>
+          <li><span class="check" aria-hidden="true">✓</span> גישה לפורטל לקוחות</li>
+        </ul>
+        <a href="portal.html" class="btn-pricing" aria-label="התחל תוכנית בסיסי">התחל עכשיו</a>
       </div>
-      <div style="display: flex; gap: 10px; margin-bottom: 36px; flex-wrap: wrap;">
-        <button style="padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; background: var(--navy); color: var(--white); border: none; font-family: 'Assistant';">הכל</button>
-        <button style="padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; background: var(--gray-100); color: var(--gray-600); border: none; font-family: 'Assistant';">חשבונאות</button>
-        <button style="padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; background: var(--gray-100); color: var(--gray-600); border: none; font-family: 'Assistant';">שכר</button>
-        <button style="padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; background: var(--gray-100); color: var(--gray-600); border: none; font-family: 'Assistant';">משפטי</button>
-        <button style="padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; background: var(--gray-100); color: var(--gray-600); border: none; font-family: 'Assistant';">שיווק</button>
+
+      <div class="pricing-card featured fade-in" aria-label="תוכנית מקצועי - מומלץ">
+        <div class="pricing-badge" aria-label="תוכנית מומלצת">הכי פופולרי</div>
+        <div class="pricing-tier">תוכנית</div>
+        <div class="pricing-name">מקצועי</div>
+        <div class="pricing-price">
+          <span class="pricing-currency">₪</span>
+          599
+          <span class="pricing-period">/חודש</span>
+        </div>
+        <div class="pricing-divider"></div>
+        <ul class="pricing-features" aria-label="מה כלול בתוכנית מקצועי">
+          <li><span class="check" aria-hidden="true">✓</span> עד 200 תנועות חשבונאיות</li>
+          <li><span class="check" aria-hidden="true">✓</span> הגשת דוחות מע"מ חודשית</li>
+          <li><span class="check" aria-hidden="true">✓</span> ייעוץ עסקי חודשי (שעה)</li>
+          <li><span class="check" aria-hidden="true">✓</span> תמיכה טלפונית ובמייל</li>
+          <li><span class="check" aria-hidden="true">✓</span> דוחות מפורטים ותחזיות</li>
+          <li><span class="check" aria-hidden="true">✓</span> ניהול שכר עד 5 עובדים</li>
+        </ul>
+        <a href="portal.html" class="btn-pricing" aria-label="התחל תוכנית מקצועי">התחל עכשיו</a>
       </div>
-      <div class="forms-grid">
-        <div class="form-card">
-          <div class="form-icon">📄</div>
-          <div class="form-title">בקשה לפתיחת תיק במס הכנסה</div>
-          <div class="form-meta">PDF • עודכן: ינואר 2024</div>
-          <button class="btn-download" onclick="showToast('הטופס הורד בהצלחה!')">⬇ הורד טופס</button>
+
+      <div class="pricing-card fade-in" aria-label="תוכנית עסקי">
+        <div class="pricing-tier">תוכנית</div>
+        <div class="pricing-name">עסקי</div>
+        <div class="pricing-price">
+          <span class="pricing-currency">₪</span>
+          999
+          <span class="pricing-period">/חודש</span>
         </div>
-        <div class="form-card">
-          <div class="form-icon">📊</div>
-          <div class="form-title">טופס 856 — דו"ח שנתי לעצמאי</div>
-          <div class="form-meta">PDF • עודכן: ינואר 2024</div>
-          <button class="btn-download" onclick="showToast('הטופס הורד בהצלחה!')">⬇ הורד טופס</button>
-        </div>
-        <div class="form-card">
-          <div class="form-icon">💰</div>
-          <div class="form-title">הסכם העסקה לעובד שכיר</div>
-          <div class="form-meta">DOCX • עודכן: פברואר 2024</div>
-          <button class="btn-download" onclick="showToast('הטופס הורד בהצלחה!')">⬇ הורד טופס</button>
-        </div>
-        <div class="form-card">
-          <div class="form-icon">🏢</div>
-          <div class="form-title">בקשה לרישום חברה בע"מ</div>
-          <div class="form-meta">PDF • עודכן: מרץ 2024</div>
-          <button class="btn-download" onclick="showToast('הטופס הורד בהצלחה!')">⬇ הורד טופס</button>
-        </div>
-        <div class="form-card">
-          <div class="form-icon">📈</div>
-          <div class="form-title">תבנית תוכנית עסקית</div>
-          <div class="form-meta">DOCX • עודכן: פברואר 2024</div>
-          <button class="btn-download" onclick="showToast('הטופס הורד בהצלחה!')">⬇ הורד טופס</button>
-        </div>
-        <div class="form-card">
-          <div class="form-icon">📋</div>
-          <div class="form-title">הסכם שמירת סודיות (NDA)</div>
-          <div class="form-meta">DOCX • עודכן: ינואר 2024</div>
-          <button class="btn-download" onclick="showToast('הטופס הורד בהצלחה!')">⬇ הורד טופס</button>
-        </div>
-        <div class="form-card">
-          <div class="form-icon">🛡️</div>
-          <div class="form-title">מדיניות הגנת מידע לאתר</div>
-          <div class="form-meta">DOCX • עודכן: ינואר 2024</div>
-          <button class="btn-download" onclick="showToast('הטופס הורד בהצלחה!')">⬇ הורד טופס</button>
-        </div>
-        <div class="form-card">
-          <div class="form-icon">🎯</div>
-          <div class="form-title">תבנית תוכנית שיווקית</div>
-          <div class="form-meta">XLSX • עודכן: מרץ 2024</div>
-          <button class="btn-download" onclick="showToast('הטופס הורד בהצלחה!')">⬇ הורד טופס</button>
-        </div>
-        <div class="form-card">
-          <div class="form-icon">💼</div>
-          <div class="form-title">חוזה ייעוץ לפרילנסר</div>
-          <div class="form-meta">DOCX • עודכן: פברואר 2024</div>
-          <button class="btn-download" onclick="showToast('הטופס הורד בהצלחה!')">⬇ הורד טופס</button>
-        </div>
+        <div class="pricing-divider"></div>
+        <ul class="pricing-features" aria-label="מה כלול בתוכנית עסקי">
+          <li><span class="check" aria-hidden="true">✓</span> ללא הגבלת תנועות</li>
+          <li><span class="check" aria-hidden="true">✓</span> ייצוג מלא מול רשויות</li>
+          <li><span class="check" aria-hidden="true">✓</span> ייעוץ עסקי שבועי</li>
+          <li><span class="check" aria-hidden="true">✓</span> מנהל חשבון אישי ייעודי</li>
+          <li><span class="check" aria-hidden="true">✓</span> ניהול שכר ללא הגבלה</li>
+          <li><span class="check" aria-hidden="true">✓</span> תכנון מס שנתי מקיף</li>
+        </ul>
+        <a href="portal.html" class="btn-pricing" aria-label="התחל תוכנית עסקי">התחל עכשיו</a>
       </div>
+
     </div>
-  </section>
-</div>
+  </div>
+</section>
 
-<!-- ===== SIMULATORS PAGE ===== -->
-<div id="page-simulators" class="page">
-  <section class="section">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-tag">כלים חכמים</div>
-        <h2 class="section-title">סימולטורים פיננסיים</h2>
-        <p class="section-desc">חשבו ותכננו בקלות — ללא צורך בידע מקצועי</p>
+<!-- FAQ -->
+<section class="faq" id="faq" aria-label="שאלות נפוצות">
+  <div class="container">
+    <div class="section-header center fade-in">
+      <span class="section-tag">שאלות ותשובות</span>
+      <h2 class="section-title">שאלות <span>נפוצות</span></h2>
+      <p class="section-subtitle">תשובות לשאלות הנפוצות ביותר שמגיעות אלינו מלקוחות קיימים ופוטנציאלים</p>
+    </div>
+    <div class="faq-grid" role="list" aria-label="שאלות ותשובות">
+
+      <div class="faq-item fade-in" role="listitem">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq1" id="faq1-btn">
+          מה ההבדל בין הנהלת חשבונות לייעוץ עסקי?
+          <span class="faq-arrow" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-answer" id="faq1" role="region" aria-labelledby="faq1-btn">
+          <div class="faq-answer-inner">
+            הנהלת חשבונות עוסקת ברישום ותיעוד כל הפעולות הפיננסיות של העסק, הגשת דוחות לרשויות ועמידה בחובות החוקיות. ייעוץ עסקי הוא שכבת ניתוח נוספת — אנחנו מסתכלים על הנתונים ומסייעים לכם לקבל החלטות אסטרטגיות חכמות לצמיחה ולחיסכון.
+          </div>
+        </div>
       </div>
 
-      <div class="sim-tabs">
-        <button class="sim-tab active" onclick="switchSim('tax', this)">🔄 החזר מס</button>
-        <button class="sim-tab" onclick="switchSim('salary', this)">💰 חישוב שכר נטו</button>
+      <div class="faq-item fade-in" role="listitem">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq2" id="faq2-btn">
+          האם אתם עובדים עם עצמאים וחברות בע"מ?
+          <span class="faq-arrow" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-answer" id="faq2" role="region" aria-labelledby="faq2-btn">
+          <div class="faq-answer-inner">
+            כן, אנו עובדים עם כל סוגי העסקים — עוסק פטור, עוסק מורשה, שותפויות וחברות בע"מ. לכל מבנה עסקי יש דרישות חוקיות שונות, ואנו מותאמים לכולן.
+          </div>
+        </div>
       </div>
 
-      <!-- TAX REFUND SIM -->
-      <div id="sim-tax" class="sim-panel active">
-        <div class="sim-card">
-          <h3 style="font-family: 'Heebo'; font-size: 22px; font-weight: 800; color: var(--navy); margin-bottom: 8px;">סימולטור החזר מס</h3>
-          <p style="font-size: 14px; color: var(--gray-600); margin-bottom: 28px;">הכניסו את פרטי ההכנסות וההוצאות שלכם לחישוב משוער של החזר המס</p>
-          <div class="form-row">
+      <div class="faq-item fade-in" role="listitem">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq3" id="faq3-btn">
+          מתי הגשת דוחות מע"מ?
+          <span class="faq-arrow" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-answer" id="faq3" role="region" aria-labelledby="faq3-btn">
+          <div class="faq-answer-inner">
+            בישראל, עסקים מגישים דוחות מע"מ בהתאם למחזור העסקאות שלהם: דו-חודשי (אחת לחודשיים) או חודשי (לעסקים גדולים). אנו נקבע יחד איתכם את מחזור ההגשה הנכון ונוודא עמידה מדויקת בכל המועדים.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item fade-in" role="listitem">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq4" id="faq4-btn">
+          כמה עולה שירות הנהלת חשבונות?
+          <span class="faq-arrow" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-answer" id="faq4" role="region" aria-labelledby="faq4-btn">
+          <div class="faq-answer-inner">
+            המחיר תלוי בהיקף הפעילות ובשירותים הנדרשים. תוכניותינו מתחילות מ-₪299 לחודש לעסקים קטנים ועד ₪999 לחודש לפתרון מלא לחברות. ניתן לראות את פירוט המחירים בסעיף התמחור למעלה, או ליצור קשר לייעוץ חינם.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item fade-in" role="listitem">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq5" id="faq5-btn">
+          האם ניתן לעבור מרואה חשבון קיים?
+          <span class="faq-arrow" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-answer" id="faq5" role="region" aria-labelledby="faq5-btn">
+          <div class="faq-answer-inner">
+            בהחלט, ומדובר בתהליך פשוט יחסית. אנו מטפלים בכל העברת המידע מרואה החשבון הקודם, כולל ספרי חשבונות, אישורי שנים קודמות ותיאום עם רשויות המס — הכל ללא מאמץ מצדכם.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item fade-in" role="listitem">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq6" id="faq6-btn">
+          מהם זמני התגובה שלכם?
+          <span class="faq-arrow" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-answer" id="faq6" role="region" aria-labelledby="faq6-btn">
+          <div class="faq-answer-inner">
+            אנו מחויבים לזמן תגובה של עד שעתיים בימי עסקים לשאלות דחופות, ועד 24 שעות לבקשות שאינן דחופות. לקוחות תוכנית "עסקי" נהנים ממנהל חשבון אישי עם קו ישיר לתגובה מהירה במיוחד.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- NEWS PREVIEW -->
+<section class="news" id="news" aria-label="עדכונים ומאמרים">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-tag">בלוג ועדכונים</span>
+      <h2 class="section-title">עדכונים <span>ומאמרים</span></h2>
+      <p class="section-subtitle">ידע פיננסי ועסקי שיסייע לכם לנהל את עסקיכם בצורה חכמה יותר</p>
+    </div>
+    <div class="news-grid">
+
+      <a href="news.html" class="news-card fade-in" aria-label="קרא מאמר: שינויי מס 2025 – מה עסקים צריכים לדעת">
+        <div class="news-img" aria-hidden="true">📊</div>
+        <div class="news-body">
+          <div class="news-cat">מיסוי</div>
+          <h3 class="news-title">שינויי מס 2025 – מה עסקים צריכים לדעת</h3>
+          <p class="news-excerpt">סקירה מקיפה של עדכוני מס הכנסה ומע"מ לשנת 2025, כולל שינויים בסכומי הפטור וההטבות לעסקים קטנים.</p>
+          <div class="news-meta">
+            <span>📅 ינואר 2025</span>
+            <span>• 5 דקות קריאה</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="news.html" class="news-card fade-in" aria-label="קרא מאמר: כיצד לתכנן תזרים מזומנים לעסק שלכם">
+        <div class="news-img" aria-hidden="true">💡</div>
+        <div class="news-body">
+          <div class="news-cat">ייעוץ עסקי</div>
+          <h3 class="news-title">כיצד לתכנן תזרים מזומנים לעסק שלכם</h3>
+          <p class="news-excerpt">מדריך פרקטי לניהול תזרים מזומנים חכם — כולל כלים, שיטות ודוגמאות מהעולם האמיתי לעסקים בישראל.</p>
+          <div class="news-meta">
+            <span>📅 פברואר 2025</span>
+            <span>• 7 דקות קריאה</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="news.html" class="news-card fade-in" aria-label="קרא מאמר: פתיחת חברה בע״מ מול עוסק מורשה">
+        <div class="news-img" aria-hidden="true">🏢</div>
+        <div class="news-body">
+          <div class="news-cat">הקמת עסקים</div>
+          <h3 class="news-title">פתיחת חברה בע"מ מול עוסק מורשה – מה נכון לכם?</h3>
+          <p class="news-excerpt">השוואה מעמיקה בין שתי האפשרויות המרכזיות לפעילות עצמאית בישראל — יתרונות, חסרונות ושיקולי מס.</p>
+          <div class="news-meta">
+            <span>📅 מרץ 2025</span>
+            <span>• 6 דקות קריאה</span>
+          </div>
+        </div>
+      </a>
+
+    </div>
+    <div class="news-cta-wrap">
+      <a href="news.html" class="btn-primary" aria-label="לכל המאמרים והעדכונים">לכל המאמרים ←</a>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact" aria-label="יצירת קשר">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-tag">בואו נדבר</span>
+      <h2 class="section-title" style="color:var(--white);">צרו <span>קשר</span> עכשיו</h2>
+      <p class="section-subtitle" style="color:rgba(255,255,255,0.6);">מלאו את הטופס ונחזור אליכם תוך יום עסקים. ייעוץ ראשוני ללא עלות.</p>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-info fade-in">
+        <div class="contact-info-item">
+          <div class="contact-info-icon" aria-hidden="true">📞</div>
+          <div>
+            <div class="contact-info-label">טלפון</div>
+            <div class="contact-info-value">03-000-0000</div>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-info-icon" aria-hidden="true">✉️</div>
+          <div>
+            <div class="contact-info-label">אימייל</div>
+            <div class="contact-info-value">info@primeled.co.il</div>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-info-icon" aria-hidden="true">📍</div>
+          <div>
+            <div class="contact-info-label">כתובת</div>
+            <div class="contact-info-value">רחוב הרצל 1, תל אביב</div>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-info-icon" aria-hidden="true">🕐</div>
+          <div>
+            <div class="contact-info-label">שעות פעילות</div>
+            <div class="contact-info-value">א׳–ה׳ | 9:00–18:00</div>
+          </div>
+        </div>
+      </div>
+      <div class="contact-form-wrap fade-in">
+        <form id="contactForm" novalidate aria-label="טופס יצירת קשר">
+          <div class="form-grid">
             <div class="form-group">
-              <label class="form-label">הכנסה שנתית ברוטו (₪)</label>
-              <input type="number" class="form-input" id="tax-income" placeholder="120,000" oninput="calcTax()">
+              <label class="form-label" for="fname">שם פרטי *</label>
+              <input class="form-input" type="text" id="fname" name="fname" placeholder="ישראל" required aria-required="true">
             </div>
             <div class="form-group">
-              <label class="form-label">מס ששולם בפועל (₪)</label>
-              <input type="number" class="form-input" id="tax-paid" placeholder="25,000" oninput="calcTax()">
+              <label class="form-label" for="lname">שם משפחה *</label>
+              <input class="form-input" type="text" id="lname" name="lname" placeholder="ישראלי" required aria-required="true">
             </div>
-          </div>
-          <div class="form-row">
             <div class="form-group">
-              <label class="form-label">נקודות זיכוי</label>
-              <select class="form-select" id="tax-points" onchange="calcTax()">
-                <option value="2.25">רווק/ה (2.25 נקודות)</option>
-                <option value="2.75">נשוי/ה (2.75 נקודות)</option>
-                <option value="3.25">הורה עם ילד אחד (3.25)</option>
-                <option value="4.25">הורה עם 2 ילדים (4.25)</option>
+              <label class="form-label" for="email">אימייל *</label>
+              <input class="form-input" type="email" id="email" name="email" placeholder="israel@example.com" required aria-required="true">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="phone">טלפון</label>
+              <input class="form-input" type="tel" id="phone" name="phone" placeholder="050-0000000">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="bizType">סוג עסק *</label>
+              <select class="form-select" id="bizType" name="bizType" required aria-required="true">
+                <option value="">בחר סוג עסק...</option>
+                <option value="freelancer">עוסק פטור / מורשה</option>
+                <option value="partnership">שותפות</option>
+                <option value="ltd">חברה בע"מ</option>
+                <option value="other">אחר</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">הפקדות לפנסיה (₪)</label>
-              <input type="number" class="form-input" id="tax-pension" placeholder="12,000" oninput="calcTax()">
-            </div>
-          </div>
-          <button class="btn-submit" onclick="calcTax()">חשב החזר מס</button>
-          <div class="sim-result" id="tax-result">
-            <div class="result-row"><span class="label">הכנסה חייבת</span><span class="value" id="r-taxable">-</span></div>
-            <div class="result-row"><span class="label">מס לפי מדרגות</span><span class="value" id="r-brackets">-</span></div>
-            <div class="result-row"><span class="label">זיכוי נקודות</span><span class="value" id="r-credit">-</span></div>
-            <div class="result-row"><span class="label">מס שחייב בפועל</span><span class="value" id="r-owed">-</span></div>
-            <div class="result-row"><span class="label">מס ששולם</span><span class="value" id="r-paid2">-</span></div>
-            <div class="result-row total"><span class="label" style="font-weight:700; color: var(--gold);">החזר מס משוער</span><span class="value" id="r-refund" style="font-size:24px;">-</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SALARY SIM -->
-      <div id="sim-salary" class="sim-panel">
-        <div class="sim-card">
-          <h3 style="font-family: 'Heebo'; font-size: 22px; font-weight: 800; color: var(--navy); margin-bottom: 8px;">סימולטור חשבות שכר</h3>
-          <p style="font-size: 14px; color: var(--gray-600); margin-bottom: 28px;">חשבו את השכר נטו שלכם לאחר כל הניכויים</p>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">שכר ברוטו חודשי (₪)</label>
-              <input type="number" class="form-input" id="sal-gross" placeholder="15,000" oninput="calcSalary()">
-            </div>
-            <div class="form-group">
-              <label class="form-label">מצב משפחתי</label>
-              <select class="form-select" id="sal-status" onchange="calcSalary()">
-                <option value="single">רווק/ה</option>
-                <option value="married">נשוי/ה</option>
-                <option value="parent">הורה</option>
+              <label class="form-label" for="transactions">נפח תנועות חודשי</label>
+              <select class="form-select" id="transactions" name="transactions">
+                <option value="">בחר נפח תנועות...</option>
+                <option value="up50">עד 50 תנועות</option>
+                <option value="50-200">50–200 תנועות</option>
+                <option value="200plus">מעל 200 תנועות</option>
               </select>
             </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">% הפקדה לפנסיה (עובד)</label>
-              <input type="number" class="form-input" id="sal-pension" value="6" oninput="calcSalary()" max="7" min="0">
+            <div class="form-group full">
+              <label class="form-label" for="service">שירות מבוקש</label>
+              <select class="form-select" id="service" name="service">
+                <option value="">בחר שירות...</option>
+                <option value="bookkeeping">הנהלת חשבונות שוטפת</option>
+                <option value="vat">דוחות מע"מ</option>
+                <option value="payroll">שכר ותגמולים</option>
+                <option value="consulting">ייעוץ עסקי</option>
+                <option value="representation">ייצוג מול רשויות</option>
+                <option value="setup">הקמת עסק</option>
+                <option value="other">אחר</option>
+              </select>
             </div>
-            <div class="form-group">
-              <label class="form-label">שעות נוספות (₪)</label>
-              <input type="number" class="form-input" id="sal-extra" placeholder="0" oninput="calcSalary()">
+            <div class="form-group full">
+              <label class="form-label" for="message">הודעה</label>
+              <textarea class="form-textarea" id="message" name="message" placeholder="ספרו לנו על העסק שלכם והצרכים שלכם..."></textarea>
             </div>
           </div>
-          <button class="btn-submit" onclick="calcSalary()">חשב שכר נטו</button>
-          <div class="sim-result" id="sal-result">
-            <div class="result-row"><span class="label">שכר ברוטו + שעות נוספות</span><span class="value" id="sr-gross">-</span></div>
-            <div class="result-row"><span class="label">ניכוי מס הכנסה</span><span class="value" id="sr-tax">-</span></div>
-            <div class="result-row"><span class="label">ניכוי ביטוח לאומי (3.5%)</span><span class="value" id="sr-bituach">-</span></div>
-            <div class="result-row"><span class="label">ניכוי פנסיה עובד</span><span class="value" id="sr-pension">-</span></div>
-            <div class="result-row total"><span class="label" style="font-weight:700; color: var(--gold);">שכר נטו לתשלום</span><span class="value" id="sr-net" style="font-size:24px;">-</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top: 40px; background: rgba(201,168,76,0.05); border: 1px solid rgba(201,168,76,0.2); border-radius: 12px; padding: 20px; text-align: center;">
-        <p style="font-size: 13px; color: var(--gray-600);">⚠️ <strong>הבהרה:</strong> החישובים הם משוערים ואינם מהווים ייעוץ מס מקצועי. לחישוב מדויק צרו קשר עם המומחים שלנו.</p>
+          <button type="submit" class="form-submit">שלח פנייה ←</button>
+          <div class="form-message" id="formMessage" role="alert" aria-live="polite"></div>
+        </form>
       </div>
     </div>
-  </section>
-</div>
+  </div>
+</section>
 
-<!-- ===== ABOUT PAGE ===== -->
-<div id="page-about" class="page">
-  <section class="section">
-    <div class="container">
-      <div class="about-grid">
-        <div class="about-visual">
-          <div class="about-stat-card">
-            <span class="as-num">15+</span>
-            <span class="as-label">שנות פעילות</span>
-          </div>
-          <div class="about-stat-card" style="background: var(--navy-light);">
-            <span class="as-num">500+</span>
-            <span class="as-label">לקוחות פעילים</span>
-          </div>
-          <div class="about-stat-card" style="background: linear-gradient(135deg, var(--gold), var(--gold-light)); margin-top: -24px;">
-            <span class="as-num" style="color: var(--navy);">7</span>
-            <span class="as-label" style="color: var(--navy-mid);">תחומי מומחיות</span>
-          </div>
-          <div class="about-stat-card" style="background: var(--navy-mid);">
-            <span class="as-num">98%</span>
-            <span class="as-label">שביעות רצון</span>
-          </div>
-        </div>
-        <div class="about-text">
-          <div class="section-tag">אודות פרוביז</div>
-          <h2 class="section-title">שותפים אמיתיים לצמיחה שלכם</h2>
-          <p class="about-desc">פרוביז נוסדה לפני למעלה מ-15 שנה מתוך אמונה שכל עסק — גדול כקטן — ראוי לקבל שירות מקצועי ברמה הגבוהה ביותר.</p>
-          <p class="about-desc">אנו מאמינים שמשרד שירותים מקצועיים טוב הוא לא ספק — אלא שותף אסטרטגי. לכן, כשאתם מצמיחים את העסק שלכם, אנחנו איתכם בכל צעד.</p>
-          <p class="about-desc">הצוות שלנו מורכב ממומחים בעלי ניסיון רב בתחומים שונים — חשבאים, יועצים עסקיים, אנשי שיווק ועורכי דין — כולם עם מטרה אחת: הצלחתכם.</p>
-          <button class="btn-primary" onclick="showPage('contact')">דברו איתנו ←</button>
-        </div>
-      </div>
-
-      <div class="team-grid">
-        <div class="team-card">
-          <div class="team-avatar">👨‍💼</div>
-          <div class="team-name">דוד לוי</div>
-          <div class="team-role">מנכ"ל ושותף מייסד</div>
-          <div class="team-bio">רו"ח מוסמך עם 20 שנות ניסיון בייעוץ לחברות ציבוריות ופרטיות. מומחה במבנה מס ותכנון פיננסי.</div>
-        </div>
-        <div class="team-card">
-          <div class="team-avatar">👩‍💼</div>
-          <div class="team-name">מיכל אברהם</div>
-          <div class="team-role">מנהלת יעוץ עסקי</div>
-          <div class="team-bio">MBA מאוניברסיטת תל אביב. ניסיון של 12 שנה בליווי סטארטאפים ועסקים בשלבי צמיחה.</div>
-        </div>
-        <div class="team-card">
-          <div class="team-avatar">👨‍🏫</div>
-          <div class="team-name">עמית כהן</div>
-          <div class="team-role">ראש מחלקת שיווק</div>
-          <div class="team-bio">מומחה שיווק דיגיטלי עם ניסיון בניהול קמפיינים לחברות Fortune 500 ועסקים מקומיים.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-</div>
-
-<!-- ===== TERMS PAGE ===== -->
-<div id="page-terms" class="page">
-  <section class="section">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-tag">משפטי</div>
-        <h2 class="section-title">תנאי שימוש ומדיניות</h2>
-        <p class="section-desc">עודכן לאחרונה: מרץ 2024</p>
-      </div>
-      <div class="terms-content">
-        <div class="terms-section">
-          <h3>1. תנאי שימוש כלליים</h3>
-          <p>השימוש באתר זה ובשירותים המוצעים על ידי פרוביז בע"מ ("החברה") כפוף לתנאים המפורטים להלן. שימוש באתר מהווה הסכמה לתנאים אלו.</p>
-          <p>החברה שומרת לעצמה את הזכות לשנות את תנאי השימוש בכל עת. שינויים יפורסמו באתר ויכנסו לתוקף מיד עם פרסומם.</p>
-        </div>
-        <div class="terms-section">
-          <h3>2. מדיניות פרטיות</h3>
-          <p>אנו מכבדים את פרטיותכם ומחויבים להגן על המידע האישי שאתם משתפים איתנו.</p>
-          <ul>
-            <li>המידע שנאסף משמש אך ורק לצורך מתן השירות ושיפורו</li>
-            <li>לא נמכור, נשתף או נעביר מידע אישי לצדדים שלישיים ללא הסכמתכם</li>
-            <li>המידע מאוחסן בשרתים מאובטחים עם הצפנה מלאה</li>
-            <li>יש לכם הזכות לבקש מחיקת המידע שלכם בכל עת</li>
-          </ul>
-        </div>
-        <div class="terms-section">
-          <h3>3. מדיניות ביטולים והחזרים</h3>
-          <p>לקוחות זכאים לביטול השירות בהתראה של 30 יום מראש. החזרים כספיים יינתנו בהתאם לחוק הגנת הצרכן.</p>
-        </div>
-        <div class="terms-section">
-          <h3>4. הגבלת אחריות</h3>
-          <p>המידע באתר הינו לצרכי מידע כללי בלבד ואינו מהווה ייעוץ מקצועי. לקבלת ייעוץ מותאם אישית, צרו קשר עם הצוות שלנו.</p>
-        </div>
-        <div class="terms-section">
-          <h3>5. קניין רוחני</h3>
-          <p>כל התכנים באתר זה — טקסטים, תמונות, לוגואים ועיצובים — הינם רכוש החברה ומוגנים בזכויות יוצרים. אין להעתיק, לשכפל או להשתמש בתכנים אלו ללא אישור מפורש.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-</div>
-
-<!-- ===== CONTACT PAGE ===== -->
-<div id="page-contact" class="page">
-  <section class="section">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-tag">דברו איתנו</div>
-        <h2 class="section-title">צרו קשר</h2>
-        <p class="section-desc">אנחנו כאן לכל שאלה. נחזור אליכם תוך 24 שעות</p>
-      </div>
-      <div class="contact-grid">
-        <div class="contact-info-card">
-          <div class="contact-title">נשמח לשמוע מכם</div>
-          <p class="contact-desc">צרו קשר לפגישת ייעוץ ראשונית חינם, לשאלה מקצועית, או סתם לדעת מה אנחנו יכולים לעשות בשבילכם.</p>
-          <div class="contact-detail">
-            <div class="cd-icon">📞</div>
-            <div>
-              <div class="cd-label">טלפון</div>
-              <div class="cd-text">03-1234567</div>
-            </div>
-          </div>
-          <div class="contact-detail">
-            <div class="cd-icon">📧</div>
-            <div>
-              <div class="cd-label">אימייל</div>
-              <div class="cd-text">info@probiz.co.il</div>
-            </div>
-          </div>
-          <div class="contact-detail">
-            <div class="cd-icon">📍</div>
-            <div>
-              <div class="cd-label">כתובת</div>
-              <div class="cd-text">רחוב אלנבי 32, תל אביב</div>
-            </div>
-          </div>
-          <div class="contact-detail">
-            <div class="cd-icon">🕐</div>
-            <div>
-              <div class="cd-label">שעות פעילות</div>
-              <div class="cd-text">ראשון–חמישי: 08:00–18:00</div>
-            </div>
-          </div>
-        </div>
-        <div class="contact-form-card">
-          <div class="contact-form-title">שלחו לנו הודעה</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">שם מלא</label>
-              <input type="text" class="form-input" placeholder="ישראל ישראלי">
-            </div>
-            <div class="form-group">
-              <label class="form-label">טלפון</label>
-              <input type="tel" class="form-input" placeholder="050-1234567">
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">אימייל</label>
-            <input type="email" class="form-input" placeholder="you@example.com">
-          </div>
-          <div class="form-group">
-            <label class="form-label">סוג הפנייה</label>
-            <select class="form-select">
-              <option>בקשת ייעוץ ראשוני</option>
-              <option>שאלה על שירות</option>
-              <option>בקשת הצעת מחיר</option>
-              <option>תלונה / משוב</option>
-              <option>אחר</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">הודעה</label>
-            <textarea class="form-input" placeholder="ספרו לנו במה נוכל לעזור..."></textarea>
-          </div>
-          <button class="btn-submit" onclick="showToast('הודעתכם נשלחה! נחזור אליכם בהקדם ✓')">שלח הודעה ←</button>
-        </div>
-      </div>
-    </div>
-  </section>
-</div>
-
-<!-- ===== FAQ PAGE ===== -->
-<div id="page-faq" class="page">
-  <section class="section">
-    <div class="container">
-      <div class="section-header">
-        <div class="section-tag">שאלות ותשובות</div>
-        <h2 class="section-title">שאלות נפוצות</h2>
-        <p class="section-desc">לא מצאתם תשובה? <span style="color: var(--gold); cursor: pointer;" onclick="showPage('contact')">צרו קשר ישירות</span></p>
-      </div>
-      <div class="faq-list">
-        <div class="faq-item">
-          <div class="faq-question" onclick="toggleFAQ(this)">
-            <span>מה כולל שירות הנהלת חשבונות שלכם?</span>
-            <span class="faq-arrow">▼</span>
-          </div>
-          <div class="faq-answer">שירות הנהלת החשבונות שלנו כולל ניהול ספרי חשבונות, הכנת דוחות מע"מ, דוח שנתי למס הכנסה, מאזן, דוח רווח והפסד, ניהול חשבוניות וקבלות. בתוכנית המקצועית כלול גם ייצוג מול רשות המסים.</div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-question" onclick="toggleFAQ(this)">
-            <span>האם ניתן לקבל ייעוץ ראשוני ללא עלות?</span>
-            <span class="faq-arrow">▼</span>
-          </div>
-          <div class="faq-answer">כן! אנו מציעים פגישת ייעוץ ראשונית של 30 דקות ללא עלות וללא התחייבות. בפגישה נכיר את הצרכים שלכם ונציע את הפתרון המתאים ביותר.</div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-question" onclick="toggleFAQ(this)">
-            <span>כיצד מתבצע תשלום השירות?</span>
-            <span class="faq-arrow">▼</span>
-          </div>
-          <div class="faq-answer">ניתן לשלם בכרטיס אשראי (ויזה, מסטרכארד, אמריקן אקספרס), העברה בנקאית, ביט ופייבוקס. הסדר של עד 3 תשלומים ללא ריבית זמין בכל התוכניות.</div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-question" onclick="toggleFAQ(this)">
-            <span>כמה זמן לוקח לקבל תשובה לפנייה?</span>
-            <span class="faq-arrow">▼</span>
-          </div>
-          <div class="faq-answer">אנו מתחייבים לחזור לכל פנייה תוך 24 שעות עסקים. לקוחות תוכנית מקצועית וארגונית נהנים מתמיכה ישירה ב-WhatsApp עם זמן תגובה של עד 4 שעות.</div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-question" onclick="toggleFAQ(this)">
-            <span>האם אתם עובדים עם עסקים בכל רחבי הארץ?</span>
-            <span class="faq-arrow">▼</span>
-          </div>
-          <div class="faq-answer">כן! אנו עובדים עם לקוחות מכל רחבי ישראל. רוב העבודה מתבצעת בצורה דיגיטלית — מפגשי זום, שליחת מסמכים דיגיטלית וכלי עבודה מקוונים. פגישות פנים אל פנים זמינות בתל אביב ובמרכז.</div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-question" onclick="toggleFAQ(this)">
-            <span>מה ההבדל בין הסימולטורים לייעוץ מקצועי?</span>
-            <span class="faq-arrow">▼</span>
-          </div>
-          <div class="faq-answer">הסימולטורים מספקים אומדן כללי ומשוער בלבד, על בסיס נוסחאות פשוטות. הם לא מתחשבים בנסיבות האישיות המלאות שלכם. לחישוב מדויק ומשפטית מחייב, יש לפנות לאחד המומחים שלנו.</div>
-        </div>
-        <div class="faq-item">
-          <div class="faq-question" onclick="toggleFAQ(this)">
-            <span>האם ניתן לבטל את השירות?</span>
-            <span class="faq-arrow">▼</span>
-          </div>
-          <div class="faq-answer">כן, ניתן לבטל את השירות בכל עת עם הודעה מוקדמת של 30 יום. אין קנסות ביטול, בהתאם לחוק הגנת הצרכן הישראלי.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-</div>
-
-<!-- ===== PROFILE PAGE ===== -->
-<div id="page-profile" class="page">
-  <section class="section" style="padding: 24px 0 64px;">
-    <div class="container">
-      <div class="profile-layout">
-        <div class="profile-sidebar">
-          <div class="profile-avatar">👤</div>
-          <div class="profile-name">ישראל ישראלי</div>
-          <div class="profile-email">israel@example.com</div>
-          <div class="profile-plan">
-            <div class="pp-label">תוכנית פעילה</div>
-            <div class="pp-name">מקצועי 🌟</div>
-          </div>
-          <ul class="profile-nav">
-            <li><a class="active" onclick="switchProfile('subscription', this)">📊 מנוי ותשלומים</a></li>
-            <li><a onclick="switchProfile('meetings', this)">📅 פגישות</a></li>
-            <li><a onclick="switchProfile('settings', this)">⚙️ הגדרות</a></li>
-            <li><a onclick="switchProfile('docs', this)">📁 מסמכים</a></li>
-            <li><a onclick="showPage('home')" style="color: rgba(255,100,100,0.7); margin-top: 20px;">🚪 יציאה</a></li>
-          </ul>
-        </div>
-
-        <div class="profile-content">
-          <!-- SUBSCRIPTION PANEL -->
-          <div id="panel-subscription" class="profile-panel active">
-            <div class="pcard">
-              <div class="pcard-title">
-                <span>סטטוס מנוי</span>
-              </div>
-              <div class="subscription-status">
-                <div class="status-dot"></div>
-                <span class="status-text">מנוי פעיל</span>
-              </div>
-              <div class="sub-detail-grid">
-                <div class="sub-detail">
-                  <div class="sd-label">תוכנית</div>
-                  <div class="sd-value">מקצועי</div>
-                </div>
-                <div class="sub-detail">
-                  <div class="sd-label">תשלום חודשי</div>
-                  <div class="sd-value">₪1,999</div>
-                </div>
-                <div class="sub-detail">
-                  <div class="sd-label">חידוש הבא</div>
-                  <div class="sd-value">1.4.2024</div>
-                </div>
-              </div>
-              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn-primary" style="font-size: 13px; padding: 10px 20px;" onclick="showToast('מעבר לתוכנית ארגונית — נציג יצור קשר ✓')">שדרג תוכנית</button>
-                <button class="btn-secondary" style="font-size: 13px; padding: 10px 20px; color: var(--navy); border-color: var(--gray-200);" onclick="showToast('היסטוריית תשלומים תישלח למייל ✓')">היסטוריית תשלומים</button>
-              </div>
-            </div>
-
-            <div class="pcard">
-              <div class="pcard-title">שירותים פעילים</div>
-              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.15); border-radius: 10px;">
-                  <span>📊</span><span style="font-size: 14px; font-weight: 600;">הנהלת חשבונות</span>
-                  <span style="margin-right: auto; color: #10B981; font-size: 12px; font-weight: 700;">פעיל</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.15); border-radius: 10px;">
-                  <span>💰</span><span style="font-size: 14px; font-weight: 600;">חשבות שכר</span>
-                  <span style="margin-right: auto; color: #10B981; font-size: 12px; font-weight: 700;">פעיל</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.15); border-radius: 10px;">
-                  <span>💼</span><span style="font-size: 14px; font-weight: 600;">יעוץ עסקי</span>
-                  <span style="margin-right: auto; color: #10B981; font-size: 12px; font-weight: 700;">פעיל</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: 10px; opacity: 0.6;">
-                  <span>📣</span><span style="font-size: 14px; font-weight: 600;">שיווק ופרסום</span>
-                  <span style="margin-right: auto; color: var(--gray-400); font-size: 12px; font-weight: 700;">לא פעיל</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- MEETINGS PANEL -->
-          <div id="panel-meetings" class="profile-panel">
-            <div class="pcard">
-              <div class="pcard-title">
-                <span>פגישות קרובות</span>
-                <button class="btn-primary" style="font-size: 13px; padding: 8px 18px;" onclick="showToast('נציג יצור קשר לתאם פגישה ✓')">+ קבע פגישה</button>
-              </div>
-              <div class="meeting-list">
-                <div class="meeting-item">
-                  <div class="meeting-date">
-                    <span class="md-day">25</span>
-                    <span class="md-mon">מרץ</span>
-                  </div>
-                  <div class="meeting-info">
-                    <div class="mi-title">ייעוץ חשבונאי שנתי</div>
-                    <div class="mi-time">10:00–11:00 | זום</div>
-                  </div>
-                  <span class="meeting-status ms-confirmed">מאושר</span>
-                </div>
-                <div class="meeting-item">
-                  <div class="meeting-date">
-                    <span class="md-day">2</span>
-                    <span class="md-mon">אפר</span>
-                  </div>
-                  <div class="meeting-info">
-                    <div class="mi-title">סקירת ביצועים רבעונית</div>
-                    <div class="mi-time">14:00–15:00 | משרד</div>
-                  </div>
-                  <span class="meeting-status ms-pending">ממתין</span>
-                </div>
-                <div class="meeting-item">
-                  <div class="meeting-date">
-                    <span class="md-day">15</span>
-                    <span class="md-mon">אפר</span>
-                  </div>
-                  <div class="meeting-info">
-                    <div class="mi-title">יעוץ תכנון מס שנתי</div>
-                    <div class="mi-time">09:00–10:00 | זום</div>
-                  </div>
-                  <span class="meeting-status ms-confirmed">מאושר</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- SETTINGS PANEL -->
-          <div id="panel-settings" class="profile-panel">
-            <div class="pcard">
-              <div class="pcard-title">הגדרות חשבון</div>
-              <div class="form-group">
-                <label class="form-label">שם מלא</label>
-                <input type="text" class="form-input" value="ישראל ישראלי">
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label">אימייל</label>
-                  <input type="email" class="form-input" value="israel@example.com">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">טלפון</label>
-                  <input type="tel" class="form-input" value="050-1234567">
-                </div>
-              </div>
-              <div class="form-group">
-                <label class="form-label">שם החברה</label>
-                <input type="text" class="form-input" value="חברת ישראלי בע״מ">
-              </div>
-              <button class="btn-submit" style="max-width: 200px;" onclick="showToast('הגדרות נשמרו בהצלחה ✓')">שמור שינויים</button>
-            </div>
-            <div class="pcard">
-              <div class="pcard-title">עדכוני הודעות</div>
-              <div style="display: flex; flex-direction: column; gap: 16px;">
-                <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                  <span style="font-size: 14px; color: var(--gray-600);">עדכוני חשבון ותשלומים</span>
-                  <input type="checkbox" checked style="width: 18px; height: 18px; accent-color: var(--gold);">
-                </label>
-                <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                  <span style="font-size: 14px; color: var(--gray-600);">תזכורות לפגישות</span>
-                  <input type="checkbox" checked style="width: 18px; height: 18px; accent-color: var(--gold);">
-                </label>
-                <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                  <span style="font-size: 14px; color: var(--gray-600);">ניוזלטר מקצועי</span>
-                  <input type="checkbox" style="width: 18px; height: 18px; accent-color: var(--gold);">
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <!-- DOCS PANEL -->
-          <div id="panel-docs" class="profile-panel">
-            <div class="pcard">
-              <div class="pcard-title">המסמכים שלי</div>
-              <div style="display: flex; flex-direction: column; gap: 10px;">
-                <div style="display: flex; align-items: center; gap: 14px; padding: 14px; background: var(--gray-100); border-radius: 10px;">
-                  <span style="font-size: 24px;">📄</span>
-                  <div style="flex: 1;">
-                    <div style="font-size: 14px; font-weight: 600;">חוזה שירות 2024.pdf</div>
-                    <div style="font-size: 12px; color: var(--gray-400);">נוסף: 1 ינואר 2024 • 245KB</div>
-                  </div>
-                  <button class="btn-download" onclick="showToast('המסמך הורד ✓')" style="padding: 8px 14px;">⬇</button>
-                </div>
-                <div style="display: flex; align-items: center; gap: 14px; padding: 14px; background: var(--gray-100); border-radius: 10px;">
-                  <span style="font-size: 24px;">📊</span>
-                  <div style="flex: 1;">
-                    <div style="font-size: 14px; font-weight: 600;">דוח שנתי 2023.pdf</div>
-                    <div style="font-size: 12px; color: var(--gray-400);">נוסף: 15 פברואר 2024 • 1.2MB</div>
-                  </div>
-                  <button class="btn-download" onclick="showToast('המסמך הורד ✓')" style="padding: 8px 14px;">⬇</button>
-                </div>
-                <div style="display: flex; align-items: center; gap: 14px; padding: 14px; background: var(--gray-100); border-radius: 10px;">
-                  <span style="font-size: 24px;">💰</span>
-                  <div style="flex: 1;">
-                    <div style="font-size: 14px; font-weight: 600;">תלושי שכר מרץ 2024.pdf</div>
-                    <div style="font-size: 12px; color: var(--gray-400);">נוסף: 3 מרץ 2024 • 380KB</div>
-                  </div>
-                  <button class="btn-download" onclick="showToast('המסמך הורד ✓')" style="padding: 8px 14px;">⬇</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  </section>
-</div>
-
-<!-- ===== NEWSLETTER ===== -->
-<div id="newsletter-bar">
-  <section class="newsletter-section">
-    <div class="newsletter-inner">
-      <div class="newsletter-title">הישארו מעודכנים</div>
-      <p class="newsletter-desc">קבלו טיפים מקצועיים, עדכוני חוק ומדריכים ישירות למייל — פעם בשבוע, ללא ספאם</p>
-      <div class="newsletter-form">
-        <input type="email" class="newsletter-input" placeholder="כתובת האימייל שלכם">
-        <button class="btn-newsletter" onclick="showToast('נרשמתם בהצלחה לניוזלטר! ✓')">הרשמה</button>
-      </div>
-    </div>
-  </section>
-</div>
-
-<!-- ===== FOOTER ===== -->
-<footer>
+<!-- FOOTER -->
+<footer class="footer" role="contentinfo">
   <div class="container">
     <div class="footer-grid">
-      <div class="footer-brand">
-        <div class="logo" style="text-decoration: none; cursor: pointer;" onclick="showPage('home')">
-          <div class="logo-icon">P</div>
-          <span class="logo-text" style="font-family: 'Heebo'">פרו<span style="color: var(--gold);">ביז</span></span>
+      <div>
+        <a href="#" class="nav-logo" style="margin-bottom:12px; display:inline-flex;" aria-label="Prime Ledger Solutions - חזרה לעמוד הבית">
+          <div class="nav-logo-icon" aria-hidden="true">PL</div>
+          <div class="nav-logo-text">
+            <span class="nav-logo-en">Prime Ledger Solutions</span>
+            <span class="nav-logo-he">פריים לדג'ר סולושנס</span>
+          </div>
+        </a>
+        <p class="footer-brand-desc">שירותי הנהלת חשבונות, ייעוץ עסקי וניהול פיננסי מקצועי לעסקים בישראל. אנחנו כאן כדי שתוכלו להתמקד במה שחשוב.</p>
+        <div class="footer-social" aria-label="רשתות חברתיות">
+          <a href="#" class="footer-social-link" aria-label="עמוד הפייסבוק שלנו">f</a>
+          <a href="#" class="footer-social-link" aria-label="עמוד האינסטגרם שלנו">in</a>
+          <a href="#" class="footer-social-link" aria-label="עמוד הלינקדאין שלנו">Li</a>
+          <a href="#" class="footer-social-link" aria-label="ערוץ הוואטסאפ שלנו">W</a>
         </div>
-        <p class="footer-tagline">שירותים מקצועיים לעסקים.<br>הצמיחה שלכם — האחריות שלנו.</p>
       </div>
-      <div class="footer-col">
-        <div class="footer-col-title">שירותים</div>
-        <a onclick="showPage('services')">הנהלת חשבונות</a>
-        <a onclick="showPage('services')">חשבות שכר</a>
-        <a onclick="showPage('services')">יעוץ עסקי</a>
-        <a onclick="showPage('services')">יעוץ פיננסי</a>
-        <a onclick="showPage('services')">שיווק ופרסום</a>
-        <a onclick="showPage('services')">מכירות</a>
-        <a onclick="showPage('services')">פתרונות ציות</a>
+      <div>
+        <h4 class="footer-col-title">שירותים</h4>
+        <ul class="footer-links" role="list">
+          <li><a href="#services">הנהלת חשבונות</a></li>
+          <li><a href="#services">דוחות מע"מ</a></li>
+          <li><a href="#services">שכר ותגמולים</a></li>
+          <li><a href="#services">ייעוץ עסקי</a></li>
+          <li><a href="#services">הקמת עסקים</a></li>
+        </ul>
       </div>
-      <div class="footer-col">
-        <div class="footer-col-title">כלים</div>
-        <a onclick="showPage('simulators')">סימולטור מס</a>
-        <a onclick="showPage('simulators')">חישוב שכר</a>
-        <a onclick="showPage('forms')">טפסים להורדה</a>
-        <a onclick="showPage('guide')">מדריך מקצועי</a>
-        <a onclick="showPage('pricing')">מחירון</a>
+      <div>
+        <h4 class="footer-col-title">ניווט</h4>
+        <ul class="footer-links" role="list">
+          <li><a href="portal.html">פורטל לקוחות</a></li>
+          <li><a href="news.html">חדשות ומאמרים</a></li>
+          <li><a href="#pricing">תמחור</a></li>
+          <li><a href="#faq">שאלות נפוצות</a></li>
+          <li><a href="#contact">צור קשר</a></li>
+        </ul>
       </div>
-      <div class="footer-col">
-        <div class="footer-col-title">חברה</div>
-        <a onclick="showPage('about')">אודות</a>
-        <a onclick="showPage('contact')">צרו קשר</a>
-        <a onclick="showPage('faq')">שאלות ותשובות</a>
-        <a onclick="showPage('terms')">תנאי שימוש</a>
-        <a onclick="showPage('terms')">מדיניות פרטיות</a>
+      <div>
+        <h4 class="footer-col-title">משפטי</h4>
+        <ul class="footer-links" role="list">
+          <li><a href="#">מדיניות פרטיות</a></li>
+          <li><a href="#">תנאי שימוש</a></li>
+          <li><a href="#">נגישות</a></li>
+        </ul>
+        <div style="margin-top:24px;">
+          <div style="font-size:13px; color:rgba(255,255,255,0.4); line-height:1.8;">
+            <div>רישיון רואה חשבון: 00000</div>
+            <div>ח.פ: 000000000</div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2024 פרוביז בע"מ. כל הזכויות שמורות.</span>
-      <span>עוצב ופותח ע"י צוות פרוביז</span>
+      <div class="footer-copy">© 2025 Prime Ledger Solutions. כל הזכויות שמורות.</div>
+      <div class="footer-legal">
+        <a href="#">מדיניות פרטיות</a>
+        <a href="#">תנאי שימוש</a>
+        <a href="#">נגישות</a>
+      </div>
     </div>
   </div>
 </footer>
 
-<!-- ===== PORTAL MODAL ===== -->
-<div class="modal-overlay" id="modal-portal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('portal')">✕</button>
-    <div class="modal-logo">
-      <div class="logo-icon" style="margin: 0 auto; width: 48px; height: 48px; font-size: 24px;">P</div>
-    </div>
-    <div class="modal-title">כניסה לפורטל לקוחות</div>
-    <div class="modal-sub">הכניסה לפורטל מיועדת ללקוחות קיימים בלבד</div>
-    <div class="portal-note">🔒 הפורטל מאובטח ומיועד ללקוחות החברה. להצטרפות כלקוח חדש, צרו קשר עם הצוות שלנו.</div>
-    <div class="form-group">
-      <label class="form-label">אימייל</label>
-      <input type="email" class="form-input" placeholder="you@example.com" id="login-email">
-    </div>
-    <div class="form-group">
-      <label class="form-label">סיסמה</label>
-      <input type="password" class="form-input" placeholder="הסיסמה שלכם" id="login-password">
-    </div>
-    <button class="btn-submit" onclick="doLogin()">כניסה לפורטל ←</button>
-    <p style="text-align: center; font-size: 13px; color: var(--gray-400); margin-top: 16px; cursor: pointer;" onclick="showToast('קישור לאיפוס סיסמה נשלח למייל ✓')">שכחתם סיסמה?</p>
-  </div>
-</div>
-
-<!-- ===== TOAST ===== -->
-<div class="toast" id="toast"></div>
+<!-- SCROLL TO TOP -->
+<button class="scroll-top" id="scrollTop" aria-label="חזרה לראש הדף" title="חזרה לראש הדף">↑</button>
 
 <script>
-// ===== PAGE NAVIGATION =====
-function showPage(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const target = document.getElementById('page-' + page);
-  if (target) {
-    target.classList.add('active');
-    // Show/hide newsletter
-    const nl = document.getElementById('newsletter-bar');
-    const hideNl = ['profile'];
-    nl.style.display = hideNl.includes(page) ? 'none' : 'block';
+  // Navbar scroll effect
+  const navbar = document.querySelector('.navbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+  }, { passive: true });
+
+  // Hamburger menu
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburger.addEventListener('click', () => {
+    const isOpen = mobileMenu.classList.toggle('open');
+    hamburger.classList.toggle('active', isOpen);
+    hamburger.setAttribute('aria-expanded', isOpen);
+  });
+  // Close mobile menu on link click
+  mobileMenu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      mobileMenu.classList.remove('open');
+      hamburger.classList.remove('active');
+      hamburger.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-question').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const isOpen = btn.classList.contains('open');
+      // Close all
+      document.querySelectorAll('.faq-question').forEach(b => {
+        b.classList.remove('open');
+        b.setAttribute('aria-expanded', 'false');
+        const ans = document.getElementById(b.getAttribute('aria-controls'));
+        if (ans) ans.classList.remove('open');
+      });
+      // Open clicked if it was closed
+      if (!isOpen) {
+        btn.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+        const answer = document.getElementById(btn.getAttribute('aria-controls'));
+        if (answer) answer.classList.add('open');
+      }
+    });
+  });
+
+  // Fade-in on scroll
+  const fadeEls = document.querySelectorAll('.fade-in');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.classList.add('visible');
+        }, i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  fadeEls.forEach(el => observer.observe(el));
+
+  // Scroll to top
+  const scrollTopBtn = document.getElementById('scrollTop');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 400) {
+      scrollTopBtn.classList.add('visible');
+    } else {
+      scrollTopBtn.classList.remove('visible');
+    }
+  }, { passive: true });
+  scrollTopBtn.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Contact form validation & submission
+  const contactForm = document.getElementById('contactForm');
+  const formMessage = document.getElementById('formMessage');
+  contactForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    formMessage.textContent = '';
+    formMessage.className = 'form-message';
+
+    const fname = document.getElementById('fname').value.trim();
+    const lname = document.getElementById('lname').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const bizType = document.getElementById('bizType').value;
+
+    if (!fname) { showError('אנא הזינו שם פרטי.'); return; }
+    if (!lname) { showError('אנא הזינו שם משפחה.'); return; }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showError('אנא הזינו כתובת אימייל תקינה.'); return;
+    }
+    if (!bizType) { showError('אנא בחרו סוג עסק.'); return; }
+
+    // Simulate submission
+    const submitBtn = contactForm.querySelector('.form-submit');
+    submitBtn.textContent = 'שולח...';
+    submitBtn.disabled = true;
+    setTimeout(() => {
+      formMessage.textContent = '✓ הפנייה נשלחה בהצלחה! ניצור אתכם קשר תוך יום עסקים.';
+      formMessage.classList.add('success');
+      contactForm.reset();
+      submitBtn.textContent = 'שלח פנייה ←';
+      submitBtn.disabled = false;
+    }, 1200);
+  });
+
+  function showError(msg) {
+    formMessage.textContent = msg;
+    formMessage.classList.add('error');
   }
-}
 
-// ===== MODAL =====
-function openModal(name) {
-  document.getElementById('modal-' + name).classList.add('open');
-}
-
-function closeModal(name) {
-  document.getElementById('modal-' + name).classList.remove('open');
-}
-
-function doLogin() {
-  const email = document.getElementById('login-email').value;
-  const pass = document.getElementById('login-password').value;
-  if (email && pass) {
-    closeModal('portal');
-    showPage('profile');
-    showToast('ברוכים הבאים לפורטל! ✓');
-  } else {
-    showToast('נא למלא אימייל וסיסמה');
-  }
-}
-
-// Close modal on overlay click
-document.getElementById('modal-portal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal('portal');
-});
-
-// ===== TOAST =====
-function showToast(msg) {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3000);
-}
-
-// ===== FAQ =====
-function toggleFAQ(el) {
-  const item = el.parentElement;
-  const isOpen = item.classList.contains('open');
-  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
-  if (!isOpen) item.classList.add('open');
-}
-
-// ===== SIMULATORS =====
-function switchSim(name, btn) {
-  document.querySelectorAll('.sim-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.sim-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('sim-' + name).classList.add('active');
-  btn.classList.add('active');
-}
-
-function fmt(n) {
-  return '₪' + Math.round(n).toLocaleString('he-IL');
-}
-
-function calcTax() {
-  const income = parseFloat(document.getElementById('tax-income').value) || 0;
-  const paid = parseFloat(document.getElementById('tax-paid').value) || 0;
-  const points = parseFloat(document.getElementById('tax-points').value) || 2.25;
-  const pension = parseFloat(document.getElementById('tax-pension').value) || 0;
-  if (income <= 0) return;
-
-  const taxable = Math.max(0, income - pension * 0.35);
-  
-  // Israeli tax brackets 2024 (annual)
-  let tax = 0;
-  const brackets = [
-    [81480, 0.10], [116760 - 81480, 0.14], [187440 - 116760, 0.20],
-    [260520 - 187440, 0.31], [542160 - 260520, 0.35], [Infinity, 0.47]
-  ];
-  let rem = taxable;
-  for (const [limit, rate] of brackets) {
-    if (rem <= 0) break;
-    tax += Math.min(rem, limit) * rate;
-    rem -= limit;
-  }
-  
-  const creditVal = points * 2904;
-  const owed = Math.max(0, tax - creditVal);
-  const refund = paid - owed;
-
-  document.getElementById('r-taxable').textContent = fmt(taxable);
-  document.getElementById('r-brackets').textContent = fmt(tax);
-  document.getElementById('r-credit').textContent = fmt(creditVal);
-  document.getElementById('r-owed').textContent = fmt(owed);
-  document.getElementById('r-paid2').textContent = fmt(paid);
-  document.getElementById('r-refund').textContent = fmt(refund);
-  document.getElementById('r-refund').style.color = refund >= 0 ? '#10B981' : '#EF4444';
-  document.getElementById('tax-result').classList.add('show');
-}
-
-function calcSalary() {
-  const gross = parseFloat(document.getElementById('sal-gross').value) || 0;
-  const pensionPct = parseFloat(document.getElementById('sal-pension').value) || 6;
-  const extra = parseFloat(document.getElementById('sal-extra').value) || 0;
-  const status = document.getElementById('sal-status').value;
-  if (gross <= 0) return;
-
-  const total = gross + extra;
-  const annual = total * 12;
-
-  // Tax
-  const points = status === 'single' ? 2.25 : status === 'married' ? 2.75 : 3.25;
-  const brackets = [
-    [81480, 0.10], [116760 - 81480, 0.14], [187440 - 116760, 0.20],
-    [260520 - 187440, 0.31], [542160 - 260520, 0.35], [Infinity, 0.47]
-  ];
-  let annualTax = 0;
-  let rem = annual;
-  for (const [limit, rate] of brackets) {
-    if (rem <= 0) break;
-    annualTax += Math.min(rem, limit) * rate;
-    rem -= limit;
-  }
-  annualTax = Math.max(0, annualTax - points * 2904);
-  const monthlyTax = annualTax / 12;
-
-  const bituach = total * 0.035;
-  const pensionDeduct = total * (pensionPct / 100);
-  const net = total - monthlyTax - bituach - pensionDeduct;
-
-  document.getElementById('sr-gross').textContent = fmt(total);
-  document.getElementById('sr-tax').textContent = fmt(monthlyTax);
-  document.getElementById('sr-bituach').textContent = fmt(bituach);
-  document.getElementById('sr-pension').textContent = fmt(pensionDeduct);
-  document.getElementById('sr-net').textContent = fmt(net);
-  document.getElementById('sal-result').classList.add('show');
-}
-
-// ===== PROFILE PANELS =====
-function switchProfile(panel, link) {
-  document.querySelectorAll('.profile-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.profile-nav a').forEach(a => a.classList.remove('active'));
-  document.getElementById('panel-' + panel).classList.add('active');
-  link.classList.add('active');
-}
-
-// ===== MOBILE DRAWER =====
-function toggleMobileMenu() {
-  const drawer = document.getElementById('mobile-drawer');
-  const overlay = document.getElementById('mobile-overlay');
-  const toggle = document.querySelector('.mobile-toggle');
-  const isOpen = drawer.classList.contains('open');
-  if (isOpen) {
-    closeMobileMenu();
-  } else {
-    drawer.classList.add('open');
-    overlay.classList.add('open');
-    toggle.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-}
-
-function closeMobileMenu() {
-  document.getElementById('mobile-drawer').classList.remove('open');
-  document.getElementById('mobile-overlay').classList.remove('open');
-  document.querySelector('.mobile-toggle').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-function toggleDrawerServices() {
-  const toggle = document.getElementById('dst');
-  const sub = document.getElementById('drawer-sub');
-  toggle.classList.toggle('expanded');
-  sub.classList.toggle('open');
-}
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        const offset = 80;
+        const top = target.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    });
+  });
 </script>
-
 </body>
 </html>
