@@ -11,9 +11,13 @@ class Settings(BaseSettings):
     supabase_anon_key: str
     supabase_service_key: str
 
-    # Telegram
-    telegram_bot_token: str
-    telegram_chairman_chat_id: int
+    # Telegram (optional)
+    telegram_bot_token: str = "optional"
+    telegram_chairman_chat_id: int = 0
+
+    # Dashboard
+    dashboard_user: str = "chairman"
+    dashboard_password: str = "gever2024"
 
     # Meta
     meta_access_token: Optional[str] = None

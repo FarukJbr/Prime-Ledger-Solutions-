@@ -1,7 +1,8 @@
 """FastAPI dashboard for Gever Management System."""
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, List
@@ -9,6 +10,7 @@ from database import db
 from tasks import TaskManager
 from meetings import MeetingRoom
 from config import settings
+import secrets
 import os
 
 app = FastAPI(
@@ -17,8 +19,27 @@ app = FastAPI(
     version="1.0.0"
 )
 
+security = HTTPBasic()
 task_manager = TaskManager()
 meeting_room = MeetingRoom()
+
+
+def require_auth(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_user = secrets.compare_digest(
+        credentials.username.encode("utf8"),
+        os.getenv("DASHBOARD_USER", "chairman").encode("utf8")
+    )
+    correct_pass = secrets.compare_digest(
+        credentials.password.encode("utf8"),
+        os.getenv("DASHBOARD_PASSWORD", "gever2024").encode("utf8")
+    )
+    if not (correct_user and correct_pass):
+        raise HTTPException(
+            status_code=401,
+            detail="גישה נדחתה",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
 
 
 # ─── PYDANTIC MODELS ─────────────────────────────────────────────────────────
@@ -47,7 +68,7 @@ class ConsultRequest(BaseModel):
 # ─── TASK ENDPOINTS ──────────────────────────────────────────────────────────
 
 @app.post("/api/tasks/new")
-async def create_task(req: InstructionRequest):
+async def create_task(req: InstructionRequest, user: str = Depends(require_auth)):
     saved = db.save_instruction(req.instruction, req.language)
     result = task_manager.process_chairman_instruction(
         req.instruction, saved["id"]
@@ -108,7 +129,7 @@ async def consult(req: ConsultRequest):
 # ─── DASHBOARD HTML ──────────────────────────────────────────────────────────
 
 @app.get("/", response_class=HTMLResponse)
-async def dashboard():
+async def dashboard(user: str = Depends(require_auth)):
     pending = task_manager.get_pending_reviews()
     in_progress = db.get_tasks_by_status("in_progress")
     completed = db.get_tasks_by_status("review")
