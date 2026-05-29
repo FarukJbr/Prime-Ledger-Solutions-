@@ -30,8 +30,8 @@ def run_api():
     """Run the FastAPI dashboard server."""
     import uvicorn
     from api import app
-    from config import settings
-    uvicorn.run(app, host=settings.app_host, port=settings.app_port)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
 
 
 if __name__ == "__main__":
