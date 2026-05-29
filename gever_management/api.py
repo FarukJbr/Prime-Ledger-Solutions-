@@ -95,6 +95,11 @@ class ActivityLogRequest(BaseModel):
     metadata: Optional[dict] = None
 
 
+class PublishRequest(BaseModel):
+    platform: str = "facebook"   # facebook | instagram | tiktok | all
+    task_title: Optional[str] = None
+
+
 # ─── TASK ENDPOINTS ──────────────────────────────────────────────────────────
 
 @app.post("/api/tasks/new")
@@ -138,6 +143,15 @@ async def approve(deliverable_id: str, req: Optional[FeedbackRequest] = None,
 async def reject(deliverable_id: str, req: FeedbackRequest,
                  user: str = Depends(require_auth)):
     return get_task_manager().reject_deliverable(deliverable_id, req.feedback)
+
+
+@app.post("/api/deliverables/{deliverable_id}/publish")
+async def publish_deliverable(deliverable_id: str, req: PublishRequest,
+                               user: str = Depends(require_auth)):
+    result = get_task_manager().publish_deliverable(
+        deliverable_id, req.platform, req.task_title or ""
+    )
+    return {"success": True, **result}
 
 
 # ─── MEETING ENDPOINTS ───────────────────────────────────────────────────────
@@ -435,6 +449,69 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   .badge-red { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
   .badge-purple { background: rgba(124,58,237,0.15); color: #a78bfa; border: 1px solid rgba(124,58,237,0.3); }
   .badge-gray { background: rgba(100,116,139,0.15); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
+
+  /* ── Content Modal ───────────────────────────────────────── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.88);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%; max-width: 840px;
+    max-height: 90vh;
+    display: flex; flex-direction: column;
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn {
+    from { opacity:0; transform: translateY(18px) scale(0.98); }
+    to   { opacity:1; transform: translateY(0)    scale(1); }
+  }
+  .modal-header {
+    padding: 16px 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+  }
+  .modal-title  { font-size: 1.05rem; font-weight: 700; }
+  .modal-subtitle { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+  .modal-close {
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    color: var(--muted); cursor: pointer; font-size: 1rem;
+    width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; transition: background 0.15s;
+  }
+  .modal-close:hover { background: rgba(255,255,255,0.14); color: var(--text); }
+  .modal-body {
+    flex: 1; overflow-y: auto; padding: 20px;
+    font-size: 0.9rem; line-height: 1.8;
+    white-space: pre-wrap; word-break: break-word; direction: rtl;
+  }
+  .modal-footer {
+    padding: 12px 20px;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+    border-radius: 0 0 16px 16px;
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  }
+  .modal-footer .spacer { flex: 1; }
+  .btn-copy     { background: linear-gradient(135deg,#0f766e,#0d9488); }
+  .btn-download { background: linear-gradient(135deg,#1d4ed8,#2563eb); }
+  .btn-publish  { background: linear-gradient(135deg,#9333ea,#c026d3); }
+  .read-more-btn {
+    background: none; border: 1px solid var(--border); color: var(--accent);
+    font-size: 0.78rem; border-radius: 6px; padding: 4px 10px;
+    cursor: pointer; margin-top: 6px; transition: background 0.15s;
+  }
+  .read-more-btn:hover { background: rgba(59,130,246,0.1); }
 
   /* Departments Grid */
   .departments-grid {
@@ -861,11 +938,125 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
 </div><!-- /content -->
 
+<!-- ── Content Modal ─────────────────────────────────────────────────── -->
+<div id="content-modal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-title">תוצר</div>
+        <div class="modal-subtitle" id="modal-subtitle"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-sm btn-copy"     onclick="copyModal()">📋 העתק</button>
+      <button class="btn btn-sm btn-download" onclick="downloadModal()">⬇️ הורד קובץ</button>
+      <div class="spacer"></div>
+      <button class="btn btn-sm btn-publish"  id="modal-publish-btn"  style="display:none" onclick="publishModal()">🚀 פרסם</button>
+      <button class="btn btn-success btn-sm"  id="modal-approve-btn"  style="display:none" onclick="approveModal()">✅ אשר</button>
+      <button class="btn btn-danger  btn-sm"  id="modal-reject-btn"   style="display:none" onclick="rejectModal()">❌ דחה</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── State ──────────────────────────────────────────────────────────────────
 let allMeetings = [];
 let allActivities = [];
 let allDeliverables = [];
+
+// ── Modal ──────────────────────────────────────────────────────────────────
+let _modalId     = null;
+let _modalStatus = null;
+let _modalTitle  = '';
+
+function openModal(title, subtitle, content, deliverableId, status) {
+  _modalId     = deliverableId || null;
+  _modalStatus = status || null;
+  _modalTitle  = title || 'תוצר';
+  document.getElementById('modal-title').textContent    = _modalTitle;
+  document.getElementById('modal-subtitle').textContent = subtitle || '';
+  document.getElementById('modal-body').textContent     = content  || '';
+
+  document.getElementById('modal-approve-btn').style.display  = status === 'pending_review' ? 'inline-flex' : 'none';
+  document.getElementById('modal-reject-btn').style.display   = status === 'pending_review' ? 'inline-flex' : 'none';
+  document.getElementById('modal-publish-btn').style.display  = status === 'approved'       ? 'inline-flex' : 'none';
+
+  document.getElementById('content-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('content-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  _modalId = null;
+}
+
+function copyModal() {
+  const text = document.getElementById('modal-body').textContent;
+  navigator.clipboard.writeText(text).then(() => toast('הועתק ✓', 'success'));
+}
+
+function downloadModal() {
+  const text  = document.getElementById('modal-body').textContent;
+  const fname = _modalTitle.replace(/[^א-תa-zA-Z0-9 ]/g, '_') + '.txt';
+  const blob  = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url   = URL.createObjectURL(blob);
+  const a     = Object.assign(document.createElement('a'), { href: url, download: fname });
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('מוריד קובץ ✓', 'success');
+}
+
+async function approveModal() {
+  if (!_modalId) return;
+  await quickApprove(_modalId);
+  closeModal();
+}
+
+async function rejectModal() {
+  if (!_modalId) return;
+  const feedback = prompt('סיבת הדחייה:');
+  if (!feedback) return;
+  await quickReject(_modalId, feedback);
+  closeModal();
+}
+
+async function publishModal() {
+  if (!_modalId) return;
+  const platform = prompt('פרסם ב:\n  facebook\n  instagram\n  tiktok\n  all', 'facebook');
+  if (!platform) return;
+  toast('שולח לפרסום...', '');
+  try {
+    const r = await fetch(`/api/deliverables/${_modalId}/publish`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ platform })
+    }).then(x => x.json());
+
+    if (r.published) {
+      toast('פורסם בהצלחה! 🚀', 'success');
+    } else {
+      // Show download option – content is ready
+      const pkg = Object.values(r.results || {})[0]?.package;
+      if (pkg) {
+        toast('אין חיבור API – מוריד קובץ תוכן מוכן ✓', 'success');
+        const blob = new Blob([pkg.content], { type: 'text/plain;charset=utf-8' });
+        const url  = URL.createObjectURL(blob);
+        const a    = Object.assign(document.createElement('a'), { href: url, download: `post_${platform}.txt` });
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        toast('בעיה בפרסום', 'error');
+      }
+    }
+    closeModal();
+    loadDeliverables();
+  } catch(e) {
+    toast('שגיאה: ' + e.message, 'error');
+  }
+}
 
 // ── Tab Switching ──────────────────────────────────────────────────────────
 function switchTab(name) {
@@ -985,7 +1176,11 @@ async function loadHome() {
     if (!pending || pending.length === 0) {
       pendingEl.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>אין תוצרים ממתינים לאישור</p></div>';
     } else {
-      pendingEl.innerHTML = pending.slice(0, 5).map(p => `
+      pendingEl.innerHTML = pending.slice(0, 5).map(p => {
+        const preview = (p.content || '').slice(0, 220);
+        const hasMore = (p.content || '').length > 220;
+        const subtitle = `${deptIcon(p.department)} ${p.department || ''} • ${timeAgo(p.created_at)}`;
+        return `
         <div class="task-card review">
           <div class="task-title">${p.agent_role || ''} — ${(p.tasks && p.tasks.title) || ''}</div>
           <div class="task-meta">
@@ -993,13 +1188,14 @@ async function loadHome() {
             ${statusBadge(p.status)}
             <span>${timeAgo(p.created_at)}</span>
           </div>
-          <div style="margin-top:10px; font-size:0.83rem; color:var(--muted); background:var(--bg); padding:10px; border-radius:8px; white-space:pre-wrap; max-height:80px; overflow:hidden;">${(p.content || '').slice(0, 200)}${p.content && p.content.length > 200 ? '...' : ''}</div>
+          <div style="margin-top:10px;font-size:0.83rem;color:var(--muted);background:var(--bg);padding:10px;border-radius:8px;white-space:pre-wrap;max-height:80px;overflow:hidden;">${preview}${hasMore ? '...' : ''}</div>
+          ${hasMore ? `<button class="read-more-btn" onclick="openModal('${(p.agent_role||'').replace(/'/g,"\\'")} — ${((p.tasks&&p.tasks.title)||'').replace(/'/g,"\\'")}','${subtitle.replace(/'/g,"\\'")}',${JSON.stringify(p.content||'')},'${p.id}','${p.status}')">📖 קרא הכל</button>` : ''}
           <div class="deliverable-actions" style="margin-top:8px;">
             <button class="btn btn-success btn-sm" onclick="quickApprove('${p.id}')">✅ אשר</button>
             <button class="btn btn-danger btn-sm" onclick="quickReject('${p.id}')">❌ דחה</button>
           </div>
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
     }
 
     // In Progress
@@ -1316,27 +1512,35 @@ function renderDeliverables(deliverables) {
     return;
   }
   el.innerHTML = deliverables.map(d => {
-    const taskTitle = d.tasks ? d.tasks.title : '';
+    const taskTitle  = d.tasks ? d.tasks.title : '';
+    const subtitle   = `${deptIcon(d.department)} ${d.department||''} • ${taskTitle ? '📋 '+taskTitle+' • ' : ''}${timeAgo(d.created_at)}`;
+    const preview    = (d.content || '').slice(0, 300);
+    const hasMore    = (d.content || '').length > 300;
+    const titleText  = d.agent_role || d.department || 'תוצר';
     return `
       <div class="deliverable-card">
         <div class="deliverable-header">
           <div>
-            <div style="font-weight:600;font-size:0.95rem;">${d.agent_role || d.department || ''}</div>
-            <div style="font-size:0.78rem;color:var(--muted);margin-top:3px;">
-              ${deptIcon(d.department)} ${d.department || ''} • ${taskTitle ? '📋 ' + taskTitle + ' •' : ''} ${timeAgo(d.created_at)}
-            </div>
+            <div style="font-weight:600;font-size:0.95rem;">${titleText}</div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:3px;">${subtitle}</div>
           </div>
           ${statusBadge(d.status)}
         </div>
         <div class="deliverable-body">
-          <div class="deliverable-content">${d.content || ''}</div>
-          ${d.chairman_feedback ? `<div style="margin-top:10px;padding:10px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:0.83rem;"><strong>משוב יו"ר:</strong> ${d.chairman_feedback}</div>` : ''}
-          ${d.status === 'pending_review' ? `
-            <div class="deliverable-actions">
+          <div class="deliverable-content" style="cursor:pointer" onclick="openModal(${JSON.stringify(titleText)},${JSON.stringify(subtitle)},${JSON.stringify(d.content||'')},${JSON.stringify(d.id)},${JSON.stringify(d.status)})">${preview}${hasMore ? '...' : ''}</div>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center;">
+            <button class="read-more-btn" onclick="openModal(${JSON.stringify(titleText)},${JSON.stringify(subtitle)},${JSON.stringify(d.content||'')},${JSON.stringify(d.id)},${JSON.stringify(d.status)})">📖 קרא הכל</button>
+            <button class="btn btn-sm btn-copy"     onclick="navigator.clipboard.writeText(${JSON.stringify(d.content||'')}).then(()=>toast('הועתק ✓','success'))">📋 העתק</button>
+            <button class="btn btn-sm btn-download" onclick="dlContent(${JSON.stringify(titleText)},${JSON.stringify(d.content||'')})">⬇️ הורד</button>
+            ${d.status === 'pending_review' ? `
               <button class="btn btn-success btn-sm" onclick="quickApprove('${d.id}')">✅ אשר</button>
-              <button class="btn btn-danger btn-sm" onclick="quickReject('${d.id}')">❌ דחה</button>
-            </div>
-          ` : ''}
+              <button class="btn btn-danger  btn-sm" onclick="quickReject('${d.id}')">❌ דחה</button>
+            ` : ''}
+            ${d.status === 'approved' ? `
+              <button class="btn btn-sm btn-publish" onclick="publishDirect('${d.id}','${taskTitle.replace(/'/g,"\\'")}')">🚀 פרסם</button>
+            ` : ''}
+          </div>
+          ${d.chairman_feedback ? `<div style="margin-top:10px;padding:10px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:0.83rem;"><strong>משוב יו"ר:</strong> ${d.chairman_feedback}</div>` : ''}
         </div>
       </div>
     `;
@@ -1355,8 +1559,8 @@ async function quickApprove(id) {
   }
 }
 
-async function quickReject(id) {
-  const feedback = prompt('סיבת הדחייה:');
+async function quickReject(id, feedbackText) {
+  const feedback = feedbackText || prompt('סיבת הדחייה:');
   if (!feedback) return;
   try {
     await fetch('/api/deliverables/' + id + '/reject', {
@@ -1396,6 +1600,54 @@ async function sendInstruction() {
     toast('שגיאה בשליחת הוראה', 'error');
   } finally {
     document.querySelector('.instruction-box .btn').disabled = false;
+  }
+}
+
+// ── Download helper ────────────────────────────────────────────────────────
+function dlContent(title, content) {
+  const fname = (title||'content').replace(/[^א-תa-zA-Z0-9 ]/g,'_') + '.txt';
+  const blob  = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url   = URL.createObjectURL(blob);
+  const a     = Object.assign(document.createElement('a'), { href: url, download: fname });
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('מוריד קובץ ✓', 'success');
+}
+
+// ── Publish direct ─────────────────────────────────────────────────────────
+async function publishDirect(deliverableId, taskTitle) {
+  const platform = prompt('פרסם ב:\n  facebook\n  instagram\n  tiktok\n  all', 'facebook');
+  if (!platform) return;
+  toast('שולח לפרסום...', '');
+  try {
+    const r = await fetch(`/api/deliverables/${deliverableId}/publish`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ platform, task_title: taskTitle })
+    }).then(x => x.json());
+
+    if (r.published) {
+      toast('פורסם בהצלחה! 🚀', 'success');
+      loadDeliverables();
+    } else {
+      // No API key → download the ready content
+      const results = r.results || {};
+      let downloaded = false;
+      for (const [p, v] of Object.entries(results)) {
+        const pkg = v.package;
+        if (pkg) {
+          const blob = new Blob([pkg.content], { type: 'text/plain;charset=utf-8' });
+          const url  = URL.createObjectURL(blob);
+          const a    = Object.assign(document.createElement('a'), { href: url, download: `פרסום_${p}.txt` });
+          a.click();
+          URL.revokeObjectURL(url);
+          downloaded = true;
+        }
+      }
+      toast(downloaded ? 'קובץ תוכן מוכן הורד ✓' : 'לא הצלחנו לפרסם', downloaded ? 'success' : 'error');
+    }
+  } catch(e) {
+    toast('שגיאה: ' + e.message, 'error');
   }
 }
 

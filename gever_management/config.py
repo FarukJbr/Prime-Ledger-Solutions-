@@ -39,6 +39,12 @@ class Settings(BaseSettings):
     dashboard_user: str = "chairman"
     dashboard_password: str = "gever2024"
 
+    # Email notifications (Gmail)
+    # Create app password at: https://myaccount.google.com/apppasswords
+    gmail_user: str = ""
+    gmail_app_password: str = ""
+    chairman_email: str = "farukjaber34@gmail.com"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
