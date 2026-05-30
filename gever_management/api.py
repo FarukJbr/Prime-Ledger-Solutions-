@@ -41,11 +41,11 @@ def get_meeting_room():
 def _check_credentials(username: str, password: str) -> bool:
     ok_user = secrets.compare_digest(
         username.encode("utf8"),
-        os.getenv("DASHBOARD_USER", "chairman").encode("utf8")
+        settings.dashboard_user.encode("utf8")
     )
     ok_pass = secrets.compare_digest(
         password.encode("utf8"),
-        os.getenv("DASHBOARD_PASSWORD", "gever2024").encode("utf8")
+        settings.dashboard_password.encode("utf8")
     )
     return ok_user and ok_pass
 
@@ -4277,15 +4277,7 @@ async def login_page(error: Optional[str] = None):
 
 @app.post("/login")
 async def login_submit(username: str = Form(...), password: str = Form(...)):
-    correct_user = secrets.compare_digest(
-        username.encode("utf8"),
-        os.getenv("DASHBOARD_USER", "chairman").encode("utf8")
-    )
-    correct_pass = secrets.compare_digest(
-        password.encode("utf8"),
-        os.getenv("DASHBOARD_PASSWORD", "gever2024").encode("utf8")
-    )
-    if correct_user and correct_pass:
+    if _check_credentials(username, password):
         token = secrets.token_urlsafe(32)
         _sessions[token] = username
         response = RedirectResponse(url="/", status_code=303)

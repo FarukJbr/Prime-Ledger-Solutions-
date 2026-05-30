@@ -26,8 +26,8 @@ class Settings(BaseSettings):
     tiktok_open_id: Optional[str] = None
 
     # Company
-    company_name: str = "Gever Entrepreneurship"
-    company_name_en: str = "Gever Entrepreneurship Business Consulting and Investments"
+    company_name: str = "Jabr Entrepreneurship"
+    company_name_en: str = "Jabr Entrepreneurship Business Consulting and Investments"
     default_language: str = "he"
 
     # App
@@ -37,7 +37,7 @@ class Settings(BaseSettings):
 
     # Dashboard
     dashboard_user: str = "chairman"
-    dashboard_password: str = "gever2024"
+    dashboard_password: str = "jabr2024"
 
     # Email notifications
     # OPTION 1 (Recommended – no password needed): Resend.com
