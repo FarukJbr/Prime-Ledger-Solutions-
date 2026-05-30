@@ -1,5 +1,5 @@
 # גבר יזמות ייעוץ עסקי והשקעות
-## Gever Entrepreneurship Business Consulting and Investments
+## Jabr Entrepreneurship Business Consulting and Investments
 ### AI Company Management System
 
 ---
