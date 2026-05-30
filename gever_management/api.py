@@ -2457,6 +2457,41 @@ function ils(n) {
   return '₪' + Number(n).toLocaleString('he-IL', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
+// periodCard must be at module level — function declarations inside if-blocks crash some browsers
+const periodCard = (title, icon, data, prev_label, prev_data, incChg, expChg, netChg, label) => {
+  const arrowInc = incChg === null ? '' : incChg >= 0 ? `<span style="color:var(--success)">↑${Math.abs(incChg)}%</span>` : `<span style="color:var(--danger)">↓${Math.abs(incChg)}%</span>`;
+  const arrowExp = expChg === null ? '' : expChg >= 0 ? `<span style="color:var(--danger)">↑${Math.abs(expChg)}%</span>` : `<span style="color:var(--success)">↓${Math.abs(expChg)}%</span>`;
+  const netColor = data.net >= 0 ? 'var(--success)' : 'var(--danger)';
+  const prevNetColor = prev_data.net >= 0 ? 'var(--success)' : 'var(--danger)';
+  return `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;flex:1;min-width:200px;">
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:2px;">${icon} ${title}</div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;">${label}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem;">
+        <div>
+          <div style="color:var(--muted);font-size:0.7rem;">הכנסות</div>
+          <div style="font-weight:700;color:var(--success);">${ils(data.income)}</div>
+          <div style="font-size:0.7rem;">${arrowInc}</div>
+        </div>
+        <div>
+          <div style="color:var(--muted);font-size:0.7rem;">הוצאות</div>
+          <div style="font-weight:700;color:var(--danger);">${ils(data.expenses)}</div>
+          <div style="font-size:0.7rem;">${arrowExp}</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:0.7rem;color:var(--muted);">נטו</div>
+          <div style="font-size:1.1rem;font-weight:800;color:${netColor};">${data.net >= 0 ? '+' : ''}${ils(data.net)}</div>
+        </div>
+        <div style="text-align:left;">
+          <div style="font-size:0.7rem;color:var(--muted);">${prev_label}</div>
+          <div style="font-size:0.82rem;font-weight:600;color:${prevNetColor};">${prev_data.net >= 0 ? '+' : ''}${ils(prev_data.net)}</div>
+        </div>
+      </div>
+    </div>`;
+};
+
 async function loadCashflow() {
   document.getElementById('cf-tracking').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   document.getElementById('cf-kpis').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
@@ -2476,40 +2511,6 @@ async function loadCashflow() {
       const profBdr = tr.overall_profitable ? 'rgba(16,185,129,0.4)'  : 'rgba(239,68,68,0.4)';
       const profIco = tr.overall_profitable ? '✅' : '❌';
       const profTxt = tr.overall_profitable ? 'רווחי' : 'בהפסד';
-
-      function periodCard(title, icon, data, prev_label, prev_data, incChg, expChg, netChg, label) {
-        const arrowInc = incChg === null ? '' : incChg >= 0 ? `<span style="color:var(--success)">↑${Math.abs(incChg)}%</span>` : `<span style="color:var(--danger)">↓${Math.abs(incChg)}%</span>`;
-        const arrowExp = expChg === null ? '' : expChg >= 0 ? `<span style="color:var(--danger)">↑${Math.abs(expChg)}%</span>` : `<span style="color:var(--success)">↓${Math.abs(expChg)}%</span>`;
-        const netColor = data.net >= 0 ? 'var(--success)' : 'var(--danger)';
-        const prevNetColor = prev_data.net >= 0 ? 'var(--success)' : 'var(--danger)';
-        return `
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;flex:1;min-width:200px;">
-            <div style="font-size:0.75rem;color:var(--muted);margin-bottom:2px;">${icon} ${title}</div>
-            <div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;">${label}</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem;">
-              <div>
-                <div style="color:var(--muted);font-size:0.7rem;">הכנסות</div>
-                <div style="font-weight:700;color:var(--success);">${ils(data.income)}</div>
-                <div style="font-size:0.7rem;">${arrowInc}</div>
-              </div>
-              <div>
-                <div style="color:var(--muted);font-size:0.7rem;">הוצאות</div>
-                <div style="font-weight:700;color:var(--danger);">${ils(data.expenses)}</div>
-                <div style="font-size:0.7rem;">${arrowExp}</div>
-              </div>
-            </div>
-            <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-              <div>
-                <div style="font-size:0.7rem;color:var(--muted);">נטו</div>
-                <div style="font-size:1.1rem;font-weight:800;color:${netColor};">${data.net >= 0 ? '+' : ''}${ils(data.net)}</div>
-              </div>
-              <div style="text-align:left;">
-                <div style="font-size:0.7rem;color:var(--muted);">${prev_label}</div>
-                <div style="font-size:0.82rem;font-weight:600;color:${prevNetColor};">${prev_data.net >= 0 ? '+' : ''}${ils(prev_data.net)}</div>
-              </div>
-            </div>
-          </div>`;
-      }
 
       const wk = tr.weekly, mo = tr.monthly, yr = tr.annual;
       const trackHtml = `
