@@ -468,7 +468,7 @@ class DatabaseClient:
         except Exception:
             return []
 
-    def get_all_deliverables(self, status: str = None, limit: int = 50) -> list:
+    def get_all_deliverables(self, status: str = None, department: str = None, limit: int = 50) -> list:
         try:
             query = (
                 self.client.table("deliverables")
@@ -478,6 +478,8 @@ class DatabaseClient:
             )
             if status:
                 query = query.eq("status", status)
+            if department:
+                query = query.eq("department", department)
             result = query.execute()
             return result.data
         except Exception:

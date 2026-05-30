@@ -399,8 +399,181 @@ async def list_meetings(limit: int = 20):
 
 
 @app.get("/api/deliverables")
-async def list_deliverables(status: Optional[str] = None, limit: int = 50):
-    return db.get_all_deliverables(status=status, limit=limit)
+async def list_deliverables(status: Optional[str] = None,
+                             department: Optional[str] = None,
+                             limit: int = 50):
+    return db.get_all_deliverables(status=status, department=department, limit=limit)
+
+
+# ─── DEPARTMENT REPORTS ───────────────────────────────────────────────────────
+
+_DEPT_REPORT_CONFIGS = {
+    "cfo": {
+        "title_he": "כספים", "employee": "רונית אברהמי",
+        "report_title": "דוח פיננסי חודשי",
+        "prompt": (
+            "צור דוח פיננסי מקיף לחודש האחרון:\n"
+            "1. סיכום הכנסות והוצאות — לפי קטגוריות\n"
+            "2. ניתוח תזרים מזומנים — ממצאים עיקריים\n"
+            "3. השוואה לחודש קודם — מה השתפר, מה הורע\n"
+            "4. נקודות סיכון פיננסיות\n"
+            "5. המלצות לחיסכון ולגידול הכנסות\n"
+            "6. תחזית לחודש הבא עם מספרים.\n"
+            "השתמש בנתוני הפורטל שניתנו לך."
+        ),
+    },
+    "marketing": {
+        "title_he": "שיווק", "employee": "יעל גולן",
+        "report_title": "דוח ביצועים שיווקי",
+        "prompt": (
+            "צור דוח ביצועים שיווקי מקיף לחודש האחרון:\n"
+            "1. קמפיינים שרצו — פלטפורמות, תוכן, תוצאות\n"
+            "2. KPIs: לידים שנוצרו, חשיפה, מעורבות, המרות\n"
+            "3. תוכן שפורסם — ביצועים לפי פלטפורמה\n"
+            "4. הישגים עיקריים ומה לא עבד\n"
+            "5. תוכנית חודש הבא — קמפיינים, תוכן, יעדים קונקרטיים\n"
+            "6. תקציב שיווקי מוצע עם פילוח ערוצים.\n"
+            "כלל מספרים ויעדים ברורים."
+        ),
+    },
+    "sales": {
+        "title_he": "מכירות", "employee": "מיכאל לוי",
+        "report_title": "דוח מכירות חודשי",
+        "prompt": (
+            "צור דוח מכירות מקיף לחודש האחרון:\n"
+            "1. עסקאות שנסגרו — מספר, ערך, ממוצע\n"
+            "2. לידים בצינור (pipeline) — שלבים וסטטוס\n"
+            "3. שיעור המרה — לפי שלב וממוצע\n"
+            "4. יעדים vs ביצוע בפועל (בטבלה)\n"
+            "5. לקוחות חדשים שנוספו\n"
+            "6. אתגרים עיקריים ואיך להתגבר עליהם\n"
+            "7. תוכנית מכירות לחודש הבא עם יעדים ספציפיים."
+        ),
+    },
+    "legal": {
+        "title_he": "משפטי", "employee": "שרה כהן",
+        "report_title": "דוח משפטי וסיכונים",
+        "prompt": (
+            "צור דוח משפטי וניהול סיכונים:\n"
+            "1. חוזים פעילים — סטטוס וחידושים נדרשים\n"
+            "2. סיכונים משפטיים שזוהו — דירוג חומרה\n"
+            "3. עדכוני רגולציה רלוונטיים לחברה\n"
+            "4. ציות — רמת ציות נוכחית לפי תחומים\n"
+            "5. פעולות נדרשות בדחיפות\n"
+            "6. המלצות להגנה משפטית."
+        ),
+    },
+    "cto": {
+        "title_he": "טכנולוגיה", "employee": "אורי שפירא",
+        "report_title": "דוח טכנולוגי",
+        "prompt": (
+            "צור דוח טכנולוגי מקיף:\n"
+            "1. פרויקטים פעילים — סטטוס, אחוז השלמה\n"
+            "2. בעיות טכניות פתוחות — חומרה ופתרון\n"
+            "3. ביצועי מערכות — זמינות, מהירות, שגיאות\n"
+            "4. אבטחת מידע — מצב ועדכונים\n"
+            "5. פרויקטים מתוכננים לחודש הבא\n"
+            "6. המלצות לשיפור תשתית ואוטומציה."
+        ),
+    },
+    "content": {
+        "title_he": "תוכן ועיצוב", "employee": "נועה ברק",
+        "report_title": "דוח תוכן ועיצוב",
+        "prompt": (
+            "צור דוח תוכן ועיצוב מקיף:\n"
+            "1. תוכן שיוצר החודש — פוסטים, מאמרים, עיצובים\n"
+            "2. לוח תוכן לחודש הבא — עם תאריכים ונושאים\n"
+            "3. ביצועי תוכן — מה תפס, מה לא\n"
+            "4. זהות מותגית — עקביות ושיפורים\n"
+            "5. כלים ותהליכים — מה עובד, מה צריך שיפור\n"
+            "6. המלצות לשיפור אסטרטגיית תוכן."
+        ),
+    },
+    "pr": {
+        "title_he": "יחסי ציבור", "employee": "גל מזרחי",
+        "report_title": "דוח יחסי ציבור",
+        "prompt": (
+            "צור דוח יחסי ציבור מקיף:\n"
+            "1. כיסוי תקשורתי — אזכורים, כתבות, ראיונות\n"
+            "2. ניהול מוניטין — מצב נוכחי ומגמות\n"
+            "3. פניות מדיה שהתקבלו ואיך טופלו\n"
+            "4. קמפיינים יחצ\"ניים פעילים\n"
+            "5. משברים ואיך נוהלו\n"
+            "6. תוכנית יחצ\"נית לחודש הבא."
+        ),
+    },
+    "compliance": {
+        "title_he": "ציות ובקרה", "employee": "דניאל רוזן",
+        "report_title": "דוח ציות ובקרה",
+        "prompt": (
+            "צור דוח ציות ובקרה מקיף:\n"
+            "1. רשימת ציות — פריטים שנבדקו, עמידה/אי-עמידה\n"
+            "2. ממצאי ביקורת פנימית — חומרה ותיקונים\n"
+            "3. סיכוני ציות — טבלת סיכונים לפי חומרה\n"
+            "4. עדכוני רגולציה — שינויים רלוונטיים\n"
+            "5. פעולות מתקנות שבוצעו\n"
+            "6. תוכנית ציות לרבעון הבא."
+        ),
+    },
+    "ceo": {
+        "title_he": "הנהלה כללית", "employee": "דוד אזולאי",
+        "report_title": "דוח מנכ\"ל — סיכום הנהלה",
+        "prompt": (
+            "צור דוח הנהלה מקיף לדירקטוריון:\n"
+            "1. סיכום ביצועי החברה החודש — עיקרי\n"
+            "2. התקדמות מול יעדים אסטרטגיים\n"
+            "3. ביצועי מחלקות — בריאות ארגונית\n"
+            "4. אתגרים עיקריים ואיך מנהלים אותם\n"
+            "5. הזדמנויות עסקיות שזוהו\n"
+            "6. המלצות החלטות לדירקטוריון\n"
+            "7. תוכנית חודש הבא — עדיפויות."
+        ),
+    },
+}
+
+
+@app.get("/api/reports/{dept}/deliverables")
+async def dept_deliverables(dept: str, limit: int = 15):
+    return db.get_all_deliverables(department=dept, limit=limit)
+
+
+@app.post("/api/reports/{dept}/generate")
+async def generate_dept_report(dept: str, user: str = Depends(require_auth)):
+    config = _DEPT_REPORT_CONFIGS.get(dept)
+    if not config:
+        raise HTTPException(status_code=404, detail="Department not found")
+
+    from agents import DEPARTMENT_AGENTS
+    agent_class = DEPARTMENT_AGENTS.get(dept)
+    if not agent_class:
+        raise HTTPException(status_code=400, detail="No agent for department")
+
+    task = db.create_task(
+        title=config["report_title"],
+        description=f"דוח מחלקת {config['title_he']}",
+        assigned_to=dept, priority="normal", language="he"
+    )
+    task_id = task["id"]
+
+    agent = agent_class()
+    result = agent.think(config["prompt"])
+
+    deliverable = db.save_deliverable(
+        task_id=task_id, department=dept,
+        agent_role=f"{config['title_he']} — {config['report_title']}",
+        content=result, content_type="markdown"
+    )
+    db.update_task_status(task_id, "review")
+    db.log_activity(
+        activity_type="deliverable_submitted",
+        title=f"{config['report_title']} הופק",
+        description=f"מחלקת {config['title_he']}",
+        department=dept, employee_name=config["employee"]
+    )
+    return {
+        "success": True, "task_id": task_id,
+        "deliverable_id": deliverable["id"], "content": result
+    }
 
 
 # ─── STRATEGIC GOALS ─────────────────────────────────────────────────────────
@@ -1215,6 +1388,35 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     font-size: 0.82rem; transition: all 0.15s;
   }
   .type-btn.selected { border-color: var(--accent); background: rgba(59,130,246,0.15); color: white; }
+
+  /* ── Department Reports Nav ─────────────────────────────── */
+  .dept-report-nav {
+    display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 6px; margin-bottom: 20px;
+  }
+  .dept-report-nav::-webkit-scrollbar { display: none; }
+  .dr-tab {
+    padding: 8px 16px; border-radius: 8px; border: none;
+    background: transparent; color: var(--muted); cursor: pointer;
+    font-size: 0.85rem; white-space: nowrap; transition: all 0.15s;
+    font-family: inherit;
+  }
+  .dr-tab:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+  .dr-tab.active { background: linear-gradient(135deg,#1e40af,#6d28d9); color: white; font-weight: 600; }
+  .dr-panel { display: none; }
+  .dr-panel.active { display: block; }
+  .dr-sect-title {
+    font-size: 0.95rem; font-weight: 700; margin-bottom: 16px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .dr-deliv-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-right: 3px solid var(--accent2); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 10px;
+  }
+  .dr-deliv-card:hover { border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -1241,6 +1443,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   <div class="tab" onclick="switchTab('meetings')" id="tab-meetings">🎙️ ישיבות</div>
   <div class="tab" onclick="switchTab('discussions')" id="tab-discussions">💬 דיונים</div>
   <div class="tab" onclick="switchTab('cashflow')" id="tab-cashflow">💰 תזרים</div>
+  <div class="tab" onclick="switchTab('reports')" id="tab-reports">📊 דוחות מחלקות</div>
   <div class="tab" onclick="switchTab('activity')" id="tab-activity">📊 פעילות</div>
   <div class="tab" onclick="switchTab('deliverables')" id="tab-deliverables">📋 תוצרים</div>
 </div>
@@ -1510,6 +1713,145 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       <div class="loading"><div class="spinner"></div></div>
     </div>
   </div>
+
+  <!-- DEPARTMENT REPORTS TAB -->
+  <div class="tab-panel" id="panel-reports">
+
+    <div style="background:linear-gradient(135deg,rgba(30,58,138,0.25),rgba(124,58,237,0.2));border:1px solid rgba(59,130,246,0.2);border-radius:14px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:1.05rem;font-weight:700;margin-bottom:4px;">📊 דוחות מחלקות</div>
+        <div style="font-size:0.82rem;color:var(--muted);">כל מחלקה — תוצרים אחרונים ודוח חודשי מותאם על ידי סוכן ה-AI</div>
+      </div>
+    </div>
+
+    <!-- Department sub-nav -->
+    <div class="dept-report-nav">
+      <button class="dr-tab active" onclick="switchDR('cfo',this)" id="drt-cfo">💰 כספים</button>
+      <button class="dr-tab" onclick="switchDR('marketing',this)" id="drt-marketing">📣 שיווק</button>
+      <button class="dr-tab" onclick="switchDR('sales',this)" id="drt-sales">📈 מכירות</button>
+      <button class="dr-tab" onclick="switchDR('legal',this)" id="drt-legal">⚖️ משפטי</button>
+      <button class="dr-tab" onclick="switchDR('cto',this)" id="drt-cto">💻 טכנולוגיה</button>
+      <button class="dr-tab" onclick="switchDR('content',this)" id="drt-content">🎨 תוכן</button>
+      <button class="dr-tab" onclick="switchDR('pr',this)" id="drt-pr">🤝 יח"צ</button>
+      <button class="dr-tab" onclick="switchDR('compliance',this)" id="drt-compliance">🛡️ ציות</button>
+      <button class="dr-tab" onclick="switchDR('ceo',this)" id="drt-ceo">🎯 הנהלה</button>
+    </div>
+
+    <!-- ═══ CFO PANEL ═══════════════════════════════════════════════════════ -->
+    <div id="drp-cfo" class="dr-panel active">
+
+      <!-- Action buttons -->
+      <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-sm" onclick="drCfAnalyze()" id="dr-analyze-btn">📊 ניתוח מצב פיננסי</button>
+        <button class="btn btn-sm btn-success" onclick="drCfBudget()" id="dr-budget-btn">📋 בנה תקציב שנתי</button>
+        <button class="btn btn-sm" style="background:linear-gradient(135deg,#0f766e,#0d9488);" onclick="generateDeptReport('cfo')" id="dr-gen-cfo">🗂️ הפק דוח חודשי</button>
+        <button class="filter-btn" onclick="loadDRCashflow()">↻ רענן נתונים</button>
+      </div>
+
+      <!-- CFO analysis result area -->
+      <div id="dr-cf-action-result" style="margin-bottom:16px;display:none;">
+        <div class="card" style="border-right:4px solid var(--accent);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <div style="font-weight:700;" id="dr-cf-action-title">תוצר</div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-sm btn-copy" onclick="drCopyCf()">📋 העתק</button>
+              <button class="btn btn-sm btn-download" onclick="drDownloadCf()">⬇️ הורד</button>
+              <button class="filter-btn" onclick="document.getElementById('dr-cf-action-result').style.display='none'">✕</button>
+            </div>
+          </div>
+          <div id="dr-cf-action-content" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:0.85rem;line-height:1.7;white-space:pre-wrap;max-height:400px;overflow-y:auto;direction:rtl;"></div>
+        </div>
+      </div>
+
+      <!-- Tracking -->
+      <div id="dr-cf-tracking" style="margin-bottom:24px;"><div class="loading"><div class="spinner"></div></div></div>
+      <!-- KPIs -->
+      <div class="stats-grid" id="dr-cf-kpis" style="margin-bottom:24px;"></div>
+      <!-- Accounts + Bank -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;" id="dr-cf-accounts-row"></div>
+      <!-- Monthly -->
+      <div class="card" id="dr-cf-monthly" style="margin-bottom:24px;"></div>
+      <!-- Categories -->
+      <div class="card" id="dr-cf-categories" style="margin-bottom:24px;"></div>
+
+      <!-- Recent CFO deliverables -->
+      <div class="dr-sect-title">📋 תוצרים אחרונים — מחלקת כספים</div>
+      <div id="dr-delivs-cfo"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ═══ MARKETING PANEL ══════════════════════════════════════════════════ -->
+    <div id="drp-marketing" class="dr-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
+        <div class="dr-sect-title" style="border:none;margin-bottom:0;">📣 מחלקת שיווק — יעל גולן</div>
+        <button class="btn btn-sm btn-success" onclick="generateDeptReport('marketing')" id="dr-gen-marketing">🗂️ הפק דוח שיווקי</button>
+      </div>
+      <div id="dr-delivs-marketing"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ═══ SALES PANEL ══════════════════════════════════════════════════════ -->
+    <div id="drp-sales" class="dr-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
+        <div class="dr-sect-title" style="border:none;margin-bottom:0;">📈 מחלקת מכירות — מיכאל לוי</div>
+        <button class="btn btn-sm btn-success" onclick="generateDeptReport('sales')" id="dr-gen-sales">🗂️ הפק דוח מכירות</button>
+      </div>
+      <div id="dr-delivs-sales"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ═══ LEGAL PANEL ══════════════════════════════════════════════════════ -->
+    <div id="drp-legal" class="dr-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
+        <div class="dr-sect-title" style="border:none;margin-bottom:0;">⚖️ מחלקה משפטית — שרה כהן</div>
+        <button class="btn btn-sm btn-success" onclick="generateDeptReport('legal')" id="dr-gen-legal">🗂️ הפק דוח משפטי</button>
+      </div>
+      <div id="dr-delivs-legal"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ═══ CTO PANEL ════════════════════════════════════════════════════════ -->
+    <div id="drp-cto" class="dr-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
+        <div class="dr-sect-title" style="border:none;margin-bottom:0;">💻 מחלקת טכנולוגיה — אורי שפירא</div>
+        <button class="btn btn-sm btn-success" onclick="generateDeptReport('cto')" id="dr-gen-cto">🗂️ הפק דוח טכנולוגי</button>
+      </div>
+      <div id="dr-delivs-cto"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ═══ CONTENT PANEL ════════════════════════════════════════════════════ -->
+    <div id="drp-content" class="dr-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
+        <div class="dr-sect-title" style="border:none;margin-bottom:0;">🎨 מחלקת תוכן ועיצוב — נועה ברק</div>
+        <button class="btn btn-sm btn-success" onclick="generateDeptReport('content')" id="dr-gen-content">🗂️ הפק דוח תוכן</button>
+      </div>
+      <div id="dr-delivs-content"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ═══ PR PANEL ═════════════════════════════════════════════════════════ -->
+    <div id="drp-pr" class="dr-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
+        <div class="dr-sect-title" style="border:none;margin-bottom:0;">🤝 יחסי ציבור — גל מזרחי</div>
+        <button class="btn btn-sm btn-success" onclick="generateDeptReport('pr')" id="dr-gen-pr">🗂️ הפק דוח יחצ"ן</button>
+      </div>
+      <div id="dr-delivs-pr"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ═══ COMPLIANCE PANEL ═════════════════════════════════════════════════ -->
+    <div id="drp-compliance" class="dr-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
+        <div class="dr-sect-title" style="border:none;margin-bottom:0;">🛡️ מחלקת ציות ובקרה — דניאל רוזן</div>
+        <button class="btn btn-sm btn-success" onclick="generateDeptReport('compliance')" id="dr-gen-compliance">🗂️ הפק דוח ציות</button>
+      </div>
+      <div id="dr-delivs-compliance"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- ═══ CEO PANEL ════════════════════════════════════════════════════════ -->
+    <div id="drp-ceo" class="dr-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
+        <div class="dr-sect-title" style="border:none;margin-bottom:0;">🎯 הנהלה כללית — דוד אזולאי, מנכ"ל</div>
+        <button class="btn btn-sm btn-success" onclick="generateDeptReport('ceo')" id="dr-gen-ceo">🗂️ הפק דוח הנהלה</button>
+      </div>
+      <div id="dr-delivs-ceo"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+  </div><!-- /panel-reports -->
 
 </div><!-- /content -->
 
@@ -1823,6 +2165,7 @@ function loadTab(name) {
     case 'meetings': loadMeetings(); break;
     case 'discussions': loadDiscussions(); break;
     case 'cashflow': loadCashflow(); break;
+    case 'reports': switchDR('cfo', document.getElementById('drt-cfo')); break;
     case 'activity': loadActivity(); break;
     case 'deliverables': loadDeliverables(); break;
   }
@@ -3386,6 +3729,324 @@ async function publishDirect(deliverableId, taskTitle) {
     }
   } catch(e) {
     toast('שגיאה: ' + e.message, 'error');
+  }
+}
+
+// ── Department Reports Tab ─────────────────────────────────────────────────
+let _currentDR = 'cfo';
+let _drCfContent = '';
+
+function switchDR(dept, btn) {
+  document.querySelectorAll('.dr-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.dr-tab').forEach(t => t.classList.remove('active'));
+  const panel = document.getElementById('drp-' + dept);
+  if (panel) panel.classList.add('active');
+  if (btn) btn.classList.add('active');
+  _currentDR = dept;
+  loadDeptReport(dept);
+}
+
+async function loadDeptReport(dept) {
+  if (dept === 'cfo') {
+    await Promise.all([loadDRCashflow(), loadDeptDeliverables('cfo')]);
+  } else {
+    await loadDeptDeliverables(dept);
+  }
+}
+
+async function loadDRCashflow() {
+  const trackEl = document.getElementById('dr-cf-tracking');
+  const kpisEl  = document.getElementById('dr-cf-kpis');
+  const acctEl  = document.getElementById('dr-cf-accounts-row');
+  const moEl    = document.getElementById('dr-cf-monthly');
+  const catEl   = document.getElementById('dr-cf-categories');
+  trackEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  kpisEl.innerHTML  = '<div class="loading"><div class="spinner"></div></div>';
+  acctEl.innerHTML  = '';
+  moEl.innerHTML    = '';
+  catEl.innerHTML   = '';
+
+  try {
+    const [d, tr] = await Promise.all([
+      fetch('/api/cashflow').then(r => r.json()),
+      fetch('/api/cashflow/tracking').then(r => r.json()),
+    ]);
+
+    // Tracking panel (period cards + trend table)
+    if (tr && tr.available) {
+      const profBg  = tr.overall_profitable ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)';
+      const profBdr = tr.overall_profitable ? 'rgba(16,185,129,0.4)'  : 'rgba(239,68,68,0.4)';
+      const profIco = tr.overall_profitable ? '✅' : '❌';
+      const profTxt = tr.overall_profitable ? 'רווחי' : 'בהפסד';
+      function drPeriodCard(title, icon, data, prev_label, prev_data, incChg, expChg, netChg, label) {
+        const arrowInc = incChg === null ? '' : incChg >= 0 ? `<span style="color:var(--success)">↑${Math.abs(incChg)}%</span>` : `<span style="color:var(--danger)">↓${Math.abs(incChg)}%</span>`;
+        const arrowExp = expChg === null ? '' : expChg >= 0 ? `<span style="color:var(--danger)">↑${Math.abs(expChg)}%</span>` : `<span style="color:var(--success)">↓${Math.abs(expChg)}%</span>`;
+        const netColor = data.net >= 0 ? 'var(--success)' : 'var(--danger)';
+        const prevNetColor = prev_data.net >= 0 ? 'var(--success)' : 'var(--danger)';
+        return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;flex:1;min-width:200px;">
+          <div style="font-size:0.75rem;color:var(--muted);margin-bottom:2px;">${icon} ${title}</div>
+          <div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;">${label}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem;">
+            <div><div style="color:var(--muted);font-size:0.7rem;">הכנסות</div><div style="font-weight:700;color:var(--success);">${ils(data.income)}</div><div style="font-size:0.7rem;">${arrowInc}</div></div>
+            <div><div style="color:var(--muted);font-size:0.7rem;">הוצאות</div><div style="font-weight:700;color:var(--danger);">${ils(data.expenses)}</div><div style="font-size:0.7rem;">${arrowExp}</div></div>
+          </div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+            <div><div style="font-size:0.7rem;color:var(--muted);">נטו</div><div style="font-size:1.1rem;font-weight:800;color:${netColor};">${data.net >= 0 ? '+' : ''}${ils(data.net)}</div></div>
+            <div style="text-align:left;"><div style="font-size:0.7rem;color:var(--muted);">${prev_label}</div><div style="font-size:0.82rem;font-weight:600;color:${prevNetColor};">${prev_data.net >= 0 ? '+' : ''}${ils(prev_data.net)}</div></div>
+          </div>
+        </div>`;
+      }
+      const wk = tr.weekly, mo = tr.monthly, yr = tr.annual;
+      trackEl.innerHTML = `
+        <div style="background:${profBg};border:2px solid ${profBdr};border-radius:14px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <div style="font-size:2.2rem;">${profIco}</div>
+          <div>
+            <div style="font-size:1.1rem;font-weight:800;">החברה ${profTxt} ${tr.overall_profitable ? '— כל הכבוד! 🎉' : '— דורש תשומת לב'}</div>
+            <div style="font-size:0.8rem;color:var(--muted);">עדכון ל-${tr.as_of} • חודש: ${mo.this_month.profitable ? 'רווחי' : 'בהפסד'} • שנה: ${yr.this_year.profitable ? 'רווחית' : 'בהפסד'}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+          ${drPeriodCard('שבועי','📅',wk.this_week,'שבוע קודם',wk.last_week,wk.income_change_pct,wk.expense_change_pct,wk.net_change_pct,wk.label)}
+          ${drPeriodCard('חודשי','📆',mo.this_month,'חודש קודם',mo.last_month,mo.income_change_pct,mo.expense_change_pct,mo.net_change_pct,mo.label)}
+          ${drPeriodCard('שנתי (YTD)','📊',yr.this_year,String(parseInt(tr.as_of)-1),yr.last_year,yr.income_change_pct,yr.expense_change_pct,yr.net_change_pct,yr.label+' עד היום')}
+        </div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="section-title" style="margin-bottom:12px;">📈 מגמה 13 חודשים אחרונים</div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:0.8rem;white-space:nowrap;">
+              <thead><tr style="color:var(--muted);border-bottom:1px solid var(--border);">
+                <th style="text-align:right;padding:7px 10px;">חודש</th>
+                <th style="text-align:left;padding:7px 10px;color:var(--success);">הכנסות</th>
+                <th style="text-align:left;padding:7px 10px;color:var(--danger);">הוצאות</th>
+                <th style="text-align:left;padding:7px 10px;">נטו</th>
+                <th style="text-align:center;padding:7px 10px;">סטטוס</th>
+              </tr></thead>
+              <tbody>${(tr.monthly_trend || []).map(m => {
+                const nc = m.net >= 0 ? 'var(--success)' : 'var(--danger)';
+                const cur = m.key === tr.as_of.slice(0,7);
+                return `<tr style="border-bottom:1px solid rgba(30,45,69,0.5);${cur?'background:rgba(59,130,246,0.07);':''}">
+                  <td style="padding:7px 10px;${cur?'font-weight:700;':''}">${m.label}${cur?' ◀':''}</td>
+                  <td style="padding:7px 10px;color:var(--success);">${ils(m.income)}</td>
+                  <td style="padding:7px 10px;color:var(--danger);">${ils(m.expenses)}</td>
+                  <td style="padding:7px 10px;font-weight:700;color:${nc};">${m.net>=0?'+':''}${ils(m.net)}</td>
+                  <td style="padding:7px 10px;text-align:center;">${m.profitable?'✅':'❌'}</td>
+                </tr>`;
+              }).join('')}</tbody>
+            </table>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="card">
+            <div class="section-title" style="margin-bottom:12px;">📅 שבועות החודש הנוכחי</div>
+            <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+              <thead><tr style="color:var(--muted);border-bottom:1px solid var(--border);">
+                <th style="text-align:right;padding:6px;">שבוע</th><th style="text-align:left;padding:6px;">הכנסות</th>
+                <th style="text-align:left;padding:6px;">הוצאות</th><th style="text-align:left;padding:6px;">נטו</th>
+              </tr></thead>
+              <tbody>${(tr.weeks_this_month||[]).map(w => {
+                const nc = w.net >= 0 ? 'var(--success)' : 'var(--danger)';
+                return `<tr style="border-bottom:1px solid rgba(30,45,69,0.4);">
+                  <td style="padding:6px;font-size:0.75rem;">${w.label}</td>
+                  <td style="padding:6px;color:var(--success);">${ils(w.income)}</td>
+                  <td style="padding:6px;color:var(--danger);">${ils(w.expenses)}</td>
+                  <td style="padding:6px;font-weight:700;color:${nc};">${w.net>=0?'+':''}${ils(w.net)}</td>
+                </tr>`;
+              }).join('')}</tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="section-title" style="margin-bottom:12px;">📂 קטגוריות שנה שוטפת</div>
+            <div style="font-size:0.72rem;color:var(--success);margin-bottom:6px;font-weight:700;">הכנסות</div>
+            ${(tr.top_income_categories||[]).map(c=>`<div style="display:flex;justify-content:space-between;font-size:0.78rem;padding:3px 0;border-bottom:1px solid rgba(30,45,69,0.3);"><span>${c.category}</span><span style="color:var(--success);font-weight:700;">${ils(c.amount)}</span></div>`).join('')}
+            <div style="font-size:0.72rem;color:var(--danger);margin:10px 0 6px;font-weight:700;">הוצאות</div>
+            ${(tr.top_expense_categories||[]).map(c=>`<div style="display:flex;justify-content:space-between;font-size:0.78rem;padding:3px 0;border-bottom:1px solid rgba(30,45,69,0.3);"><span>${c.category}</span><span style="color:var(--danger);font-weight:700;">${ils(c.amount)}</span></div>`).join('')}
+          </div>
+        </div>`;
+    } else {
+      trackEl.innerHTML = '<div class="empty-state" style="padding:20px;"><p>נתוני מעקב לא זמינים — ודא שהפורטל מחובר</p></div>';
+    }
+
+    if (!d || !d.available) {
+      kpisEl.innerHTML = `<div style="grid-column:1/-1;" class="empty-state"><div class="icon">💰</div><p>פורטל הלקוחות אינו מחובר.</p><p style="font-size:0.8rem;margin-top:8px;">הוסף ל-Railway: <code>PORTAL_SUPABASE_URL</code> ו-<code>PORTAL_SUPABASE_KEY</code></p></div>`;
+      return;
+    }
+
+    const netColor = d.net_cashflow_ils >= 0 ? 'var(--success)' : 'var(--danger)';
+    kpisEl.innerHTML = `
+      <div class="stat-card"><div class="stat-number" style="font-size:1.5rem;">${ils(d.total_accounts_balance_ils)}</div><div class="stat-label">יתרה כוללת</div></div>
+      <div class="stat-card"><div class="stat-number" style="font-size:1.5rem;background:linear-gradient(135deg,var(--success),#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${ils(d.total_income_ils)}</div><div class="stat-label">הכנסות 12 חודש</div></div>
+      <div class="stat-card"><div class="stat-number" style="font-size:1.5rem;background:linear-gradient(135deg,var(--danger),#f87171);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${ils(d.total_expenses_ils)}</div><div class="stat-label">הוצאות 12 חודש</div></div>
+      <div class="stat-card"><div class="stat-number" style="font-size:1.5rem;background:linear-gradient(135deg,${netColor},${netColor});-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${ils(d.net_cashflow_ils)}</div><div class="stat-label">תזרים נטו</div></div>
+      <div class="stat-card"><div class="stat-number" style="font-size:1.6rem;">${d.transaction_count}</div><div class="stat-label">עסקאות</div></div>`;
+
+    const accounts = d.accounts || [];
+    acctEl.innerHTML = `
+      <div class="card">
+        <div class="section-title" style="margin-bottom:12px;">🏦 חשבונות בנק</div>
+        ${accounts.length === 0 ? '<p style="color:var(--muted);font-size:0.85rem;">אין חשבונות</p>' :
+          accounts.map(a => `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+            <div><div style="font-weight:600;font-size:0.9rem;">${a.name}</div><div style="font-size:0.75rem;color:var(--muted);">${a.type||''}</div></div>
+            <div style="font-size:1rem;font-weight:700;color:${a.balance>=0?'var(--success)':'var(--danger)'};">${ils(a.balance)}</div>
+          </div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="section-title" style="margin-bottom:12px;">🏧 תנועות בנק</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);font-size:0.85rem;">זיכויים</span><span style="font-weight:700;color:var(--success);">${ils(d.bank_statement.total_credits)}</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);font-size:0.85rem;">חיובים</span><span style="font-weight:700;color:var(--danger);">${ils(d.bank_statement.total_debits)}</span></div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:10px;"><span style="color:var(--muted);font-size:0.85rem;">מספר שורות</span><span style="font-weight:700;">${d.bank_statement.rows_count}</span></div>
+        </div>
+      </div>`;
+
+    const monthly = d.monthly_breakdown || {};
+    const months = Object.keys(monthly).sort();
+    if (months.length > 0) {
+      moEl.innerHTML = `
+        <div class="section-title" style="margin-bottom:16px;">📅 פירוט חודשי — 12 חודשים</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+            <thead><tr style="color:var(--muted);border-bottom:1px solid var(--border);">
+              <th style="text-align:right;padding:8px;">חודש</th>
+              <th style="text-align:left;padding:8px;">הכנסות ₪</th>
+              <th style="text-align:left;padding:8px;">הוצאות ₪</th>
+              <th style="text-align:left;padding:8px;">נטו ₪</th>
+            </tr></thead>
+            <tbody>${months.map(m => {
+              const inc = monthly[m].income, exp = monthly[m].expenses, net = inc - exp;
+              return `<tr style="border-bottom:1px solid rgba(30,45,69,0.5);">
+                <td style="padding:8px;color:var(--muted);">${m}</td>
+                <td style="padding:8px;color:var(--success);">${ils(inc)}</td>
+                <td style="padding:8px;color:var(--danger);">${ils(exp)}</td>
+                <td style="padding:8px;font-weight:700;color:${net>=0?'var(--success)':'var(--danger)'};">${net>=0?'+':''}${ils(net)}</td>
+              </tr>`;
+            }).join('')}</tbody>
+          </table>
+        </div>`;
+    }
+
+    const cats = d.top_expense_categories || [];
+    if (cats.length > 0) {
+      const maxCat = cats[0].amount_ils;
+      catEl.innerHTML = `
+        <div class="section-title" style="margin-bottom:14px;">📊 קטגוריות הוצאה מובילות</div>
+        ${cats.map(c => {
+          const pct = maxCat > 0 ? (c.amount_ils / maxCat * 100) : 0;
+          return `<div style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:0.85rem;">${c.category}</span><span style="font-size:0.85rem;font-weight:700;color:var(--danger);">${ils(c.amount_ils)}</span></div>
+            <div style="background:var(--border);border-radius:4px;height:8px;"><div style="background:linear-gradient(90deg,var(--danger),#f87171);height:100%;border-radius:4px;width:${pct}%;transition:width 0.5s;"></div></div>
+          </div>`;
+        }).join('')}`;
+    }
+
+  } catch(e) {
+    document.getElementById('dr-cf-kpis').innerHTML = `<div style="grid-column:1/-1;color:var(--danger);padding:20px;">שגיאה: ${e.message}</div>`;
+  }
+}
+
+async function drCfAnalyze() {
+  const btn = document.getElementById('dr-analyze-btn');
+  btn.disabled = true; btn.textContent = '⏳ רונית מנתחת...';
+  try {
+    const r = await fetch('/api/cashflow/analyze', { method: 'POST' }).then(x => x.json());
+    if (r.success) {
+      _drCfContent = r.content;
+      document.getElementById('dr-cf-action-title').textContent = '📊 ניתוח מצב פיננסי — רונית אברהמי, CFO';
+      document.getElementById('dr-cf-action-content').textContent = r.content;
+      document.getElementById('dr-cf-action-result').style.display = 'block';
+      document.getElementById('dr-cf-action-result').scrollIntoView({ behavior: 'smooth' });
+      toast('✅ ניתוח פיננסי הופק!', 'success');
+    } else { toast('שגיאה', 'error'); }
+  } catch(e) { toast('שגיאה: ' + e.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = '📊 ניתוח מצב פיננסי'; }
+}
+
+async function drCfBudget() {
+  const btn = document.getElementById('dr-budget-btn');
+  btn.disabled = true; btn.textContent = '⏳ בונה תקציב...';
+  try {
+    const r = await fetch('/api/cashflow/budget', { method: 'POST' }).then(x => x.json());
+    if (r.success) {
+      _drCfContent = r.content;
+      document.getElementById('dr-cf-action-title').textContent = '📋 תקציב שנתי — רונית אברהמי, CFO';
+      document.getElementById('dr-cf-action-content').textContent = r.content;
+      document.getElementById('dr-cf-action-result').style.display = 'block';
+      document.getElementById('dr-cf-action-result').scrollIntoView({ behavior: 'smooth' });
+      toast('✅ תקציב שנתי הופק!', 'success');
+    } else { toast('שגיאה', 'error'); }
+  } catch(e) { toast('שגיאה: ' + e.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = '📋 בנה תקציב שנתי'; }
+}
+
+function drCopyCf() {
+  navigator.clipboard.writeText(_drCfContent).then(() => toast('הועתק ✓', 'success'));
+}
+function drDownloadCf() {
+  const title = document.getElementById('dr-cf-action-title').textContent;
+  const blob = new Blob([_drCfContent], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: title.replace(/[^א-תa-zA-Z0-9 ]/g,'_') + '.txt' });
+  a.click(); URL.revokeObjectURL(url);
+  toast('מוריד ✓', 'success');
+}
+
+async function loadDeptDeliverables(dept) {
+  const el = document.getElementById('dr-delivs-' + dept);
+  if (!el) return;
+  el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const delivs = await fetch('/api/reports/' + dept + '/deliverables?limit=10').then(r => r.json());
+    if (!delivs || delivs.length === 0) {
+      el.innerHTML = '<div class="empty-state" style="padding:30px;"><div class="icon">📋</div><p>אין תוצרים עדיין. לחץ "הפק דוח" להתחיל.</p></div>';
+      return;
+    }
+    el.innerHTML = delivs.map(d => {
+      const preview = (d.content || '').slice(0, 280);
+      const hasMore = (d.content || '').length > 280;
+      const title   = d.agent_role || d.department || 'תוצר';
+      const sub     = timeAgo(d.created_at);
+      return `
+        <div class="dr-deliv-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">
+            <div>
+              <div style="font-weight:600;font-size:0.9rem;">${title}</div>
+              <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${sub}</div>
+            </div>
+            ${statusBadge(d.status)}
+          </div>
+          <div style="font-size:0.83rem;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:10px;white-space:pre-wrap;max-height:120px;overflow:hidden;line-height:1.55;">${preview}${hasMore?'...':''}</div>
+          <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+            <button class="read-more-btn" onclick="openModal(${JSON.stringify(title)},${JSON.stringify(sub)},${JSON.stringify(d.content||'')},${JSON.stringify(d.id)},${JSON.stringify(d.status)})">📖 קרא הכל</button>
+            <button class="btn btn-sm btn-copy" style="margin-top:0;" onclick="navigator.clipboard.writeText(${JSON.stringify(d.content||'')}).then(()=>toast('הועתק ✓','success'))">📋 העתק</button>
+            <button class="btn btn-sm btn-download" style="margin-top:0;" onclick="dlContent(${JSON.stringify(title)},${JSON.stringify(d.content||'')})">⬇️ הורד</button>
+            ${d.status === 'pending_review' ? `<button class="btn btn-success btn-sm" style="margin-top:0;" onclick="quickApprove('${d.id}')">✅ אשר</button>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state"><p>שגיאה: ${e.message}</p></div>`;
+  }
+}
+
+async function generateDeptReport(dept) {
+  const btn = document.getElementById('dr-gen-' + dept);
+  if (!btn) return;
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = '⏳ מפיק דוח...';
+  toast('הסוכן עובד על הדוח... זה יכול לקחת כ-30 שניות', '');
+  try {
+    const r = await fetch('/api/reports/' + dept + '/generate', { method: 'POST' }).then(x => x.json());
+    if (r.success) {
+      toast('✅ הדוח הופק בהצלחה!', 'success');
+      await loadDeptDeliverables(dept);
+    } else {
+      toast('שגיאה בהפקת הדוח', 'error');
+    }
+  } catch(e) {
+    toast('שגיאה: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
   }
 }
 
