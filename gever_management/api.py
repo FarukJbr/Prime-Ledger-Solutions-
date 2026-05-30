@@ -2240,6 +2240,15 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 </div>
 
 <script>
+// ── Global JS error display (remove after debugging) ───────────────────────
+window.onerror = function(msg, src, line, col, err) {
+  var d = document.getElementById('js-error-banner');
+  if (!d) { d = document.createElement('div'); d.id = 'js-error-banner';
+    d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#ef4444;color:#fff;padding:12px 16px;font-size:14px;direction:ltr;font-family:monospace;white-space:pre-wrap;';
+    document.body.appendChild(d); }
+  d.textContent = 'JS ERROR: ' + msg + '\nLine: ' + line + ', Col: ' + col + '\nFile: ' + (src || '').split('/').pop();
+  return false;
+};
 // ── State ──────────────────────────────────────────────────────────────────
 let allMeetings = [];
 let allActivities = [];
