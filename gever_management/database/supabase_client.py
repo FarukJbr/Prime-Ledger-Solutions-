@@ -159,6 +159,60 @@ class DatabaseClient:
         result = self.client.table("agent_messages").insert(data).execute()
         return result.data[0]
 
+    # ─── STRATEGIC GOALS ─────────────────────────────────────────────────────
+
+    def get_goals(self) -> list:
+        """Return active strategic goals (stored as special chairman_instructions)."""
+        try:
+            import json as _json
+            result = (
+                self.client.table("chairman_instructions")
+                .select("*")
+                .eq("language", "strategic_goal")
+                .eq("processed", False)
+                .order("created_at")
+                .execute()
+            )
+            goals = []
+            for row in result.data:
+                try:
+                    data = _json.loads(row["instruction"])
+                    data["id"] = row["id"]
+                    data["created_at"] = row.get("created_at", "")
+                    goals.append(data)
+                except Exception:
+                    pass
+            return goals
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error("get_goals: %s", e)
+            return []
+
+    def create_goal(self, title: str, description: str,
+                    kpis: list = None, departments: list = None,
+                    deadline: str = None) -> dict:
+        import json as _json
+        payload = {
+            "title": title,
+            "description": description,
+            "kpis": kpis or [],
+            "departments": departments or [],
+            "deadline": deadline,
+        }
+        result = self.client.table("chairman_instructions").insert({
+            "instruction": _json.dumps(payload, ensure_ascii=False),
+            "language": "strategic_goal",
+            "processed": False
+        }).execute()
+        return result.data[0]
+
+    def archive_goal(self, goal_id: str) -> bool:
+        self.client.table("chairman_instructions") \
+            .update({"processed": True}) \
+            .eq("id", goal_id) \
+            .execute()
+        return True
+
     # ─── CHAIRMAN INSTRUCTIONS ───────────────────────────────────────────────
 
     def save_instruction(self, instruction: str, language: str = "he") -> dict:

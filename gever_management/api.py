@@ -124,6 +124,14 @@ class SendMessageRequest(BaseModel):
     message: str
 
 
+class GoalCreateRequest(BaseModel):
+    title: str
+    description: str
+    kpis: Optional[List[str]] = None
+    departments: Optional[List[str]] = None
+    deadline: Optional[str] = None
+
+
 class DiscussionCreateRequest(BaseModel):
     title: str
     discussion_type: str = "team"
@@ -317,7 +325,7 @@ async def send_discussion_message(disc_id: str, req: SendMessageRequest,
     if disc.get("status") == "closed":
         raise HTTPException(status_code=400, detail="Discussion is closed")
 
-    db.add_discussion_message(disc_id, "פארוק ג'אבר", req.message, 'יו"ר')
+    db.add_discussion_message(disc_id, "פארוק ג'בר", req.message, 'יו"ר')
 
     disc = db.get_discussion(disc_id)
     messages = disc.get("messages", [])
@@ -344,7 +352,7 @@ async def send_discussion_message(disc_id: str, req: SendMessageRequest,
         prompt = (
             f"אתה {p.get('name','')} – {p.get('title_he', dept_code)} – בדיון פנימי.\n\n"
             f"{context}\n\n"
-            f"היו\"ר פארוק ג'אבר שאל/כתב:\n{req.message}\n\n"
+            f"היו\"ר פארוק ג'בר שאל/כתב:\n{req.message}\n\n"
             f"השב מנקודת מבט מקצועית שלך בלבד (2-4 משפטים). תשובה ישירה ותכליתית."
         )
         response = agent.think(prompt)
@@ -393,6 +401,42 @@ async def list_meetings(limit: int = 20):
 @app.get("/api/deliverables")
 async def list_deliverables(status: Optional[str] = None, limit: int = 50):
     return db.get_all_deliverables(status=status, limit=limit)
+
+
+# ─── STRATEGIC GOALS ─────────────────────────────────────────────────────────
+
+@app.get("/api/goals")
+async def list_goals():
+    return db.get_goals()
+
+
+@app.post("/api/goals/new")
+async def create_goal(req: GoalCreateRequest, user: str = Depends(require_auth)):
+    goal = db.create_goal(
+        title=req.title, description=req.description,
+        kpis=req.kpis or [], departments=req.departments or [],
+        deadline=req.deadline
+    )
+    db.log_activity(activity_type="task_created",
+                    title=f"יעד אסטרטגי חדש: {req.title}",
+                    description=req.description, department="ceo")
+    return {"success": True, "goal": goal}
+
+
+@app.delete("/api/goals/{goal_id}")
+async def archive_goal(goal_id: str, user: str = Depends(require_auth)):
+    db.archive_goal(goal_id)
+    db.log_activity(activity_type="task_completed",
+                    title="יעד אסטרטגי הושלם/הוסר", department="ceo")
+    return {"success": True}
+
+
+@app.post("/api/goals/execute")
+async def execute_goals(user: str = Depends(require_auth)):
+    result = get_task_manager().execute_strategic_goals()
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return {"success": True, "task_id": result.get("task_id"), "departments": result.get("departments_involved")}
 
 
 # ─── DASHBOARD HTML ──────────────────────────────────────────────────────────
@@ -1080,13 +1124,14 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     </div>
   </div>
   <div class="header-right">
-    <div class="chairman-badge">👑 פארוק ג'אבר — יו"ר</div>
+    <div class="chairman-badge">👑 פארוק ג'בר — יו"ר</div>
   </div>
 </div>
 
 <!-- Tabs -->
 <div class="tabs-bar">
   <div class="tab active" onclick="switchTab('home')" id="tab-home">🏠 ראשי</div>
+  <div class="tab" onclick="switchTab('strategy')" id="tab-strategy">🎯 אסטרטגיה</div>
   <div class="tab" onclick="switchTab('departments')" id="tab-departments">🏢 מחלקות</div>
   <div class="tab" onclick="switchTab('meetings')" id="tab-meetings">🎙️ ישיבות</div>
   <div class="tab" onclick="switchTab('discussions')" id="tab-discussions">💬 דיונים</div>
@@ -1099,6 +1144,81 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
 <!-- Content -->
 <div class="content">
+
+  <!-- STRATEGY TAB -->
+  <div class="tab-panel" id="panel-strategy">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,rgba(30,58,138,0.3),rgba(91,33,182,0.3));border:1px solid rgba(59,130,246,0.2);border-radius:14px;padding:20px;margin-bottom:20px;">
+      <div style="font-size:1.1rem;font-weight:700;margin-bottom:6px;">🎯 תוכנית אסטרטגית — יעדי הדירקטוריון</div>
+      <div style="font-size:0.85rem;color:var(--muted);">הגדר יעדים ברורים והצוות כולו יעבוד אוטומטית להשגתם — ללא צורך בהוראות ידניות לכל מחלקה</div>
+    </div>
+
+    <!-- Add Goal Form -->
+    <div class="card" style="margin-bottom:20px;" id="goal-form-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="font-weight:700;font-size:0.95rem;">➕ הוסף יעד אסטרטגי חדש</div>
+        <button class="filter-btn" onclick="toggleGoalForm()">סגור ▲</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;" id="goal-form-inner">
+        <div>
+          <div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">שם היעד *</div>
+          <input id="goal-title" type="text" placeholder='לדוגמה: הגעה ל-5 לידים בשבוע' class="instruction-textarea" style="min-height:auto;height:42px;padding:8px 12px;">
+        </div>
+        <div>
+          <div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">תיאור מפורט</div>
+          <textarea id="goal-desc" class="instruction-textarea" placeholder="פרט את היעד, הרקע, והציפיות..." style="min-height:70px;"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">KPIs (אחד בשורה)</div>
+            <textarea id="goal-kpis" class="instruction-textarea" placeholder="5 לידים/שבוע&#10;3 לקוחות/חודש&#10;20% גידול הכנסות" style="min-height:80px;font-size:0.82rem;"></textarea>
+          </div>
+          <div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;">תאריך יעד</div>
+            <input id="goal-deadline" type="date" class="instruction-textarea" style="min-height:auto;height:42px;padding:8px 12px;">
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:10px;margin-bottom:4px;">מחלקות אחראיות</div>
+            <div id="goal-dept-checks" style="display:flex;flex-wrap:wrap;gap:5px;">
+              <label style="display:flex;align-items:center;gap:4px;font-size:0.77rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;"><input type="checkbox" value="marketing" checked> 📣 שיווק</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:0.77rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;"><input type="checkbox" value="sales" checked> 📈 מכירות</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:0.77rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;"><input type="checkbox" value="content"> 🎨 תוכן</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:0.77rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;"><input type="checkbox" value="pr"> 🤝 יח"צ</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:0.77rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;"><input type="checkbox" value="cfo"> 💰 כספים</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:0.77rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;"><input type="checkbox" value="cto"> 💻 טכנולוגיה</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:0.77rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;"><input type="checkbox" value="legal"> ⚖️ משפטי</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:0.77rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;"><input type="checkbox" value="compliance"> 🛡️ ציות</label>
+            </div>
+          </div>
+        </div>
+        <div>
+          <button class="btn btn-success btn-sm" onclick="addGoal()">✅ הוסף יעד</button>
+          <span id="goal-form-msg" style="font-size:0.83rem;color:var(--accent);margin-right:10px;"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Goals -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="section-title" style="margin-bottom:0;border:none;">📊 יעדים פעילים</div>
+      <button class="filter-btn" onclick="loadGoals()">↻ רענן</button>
+    </div>
+    <div id="goals-list" style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+
+    <!-- Execute Panel -->
+    <div style="background:linear-gradient(135deg,rgba(5,150,105,0.1),rgba(16,185,129,0.05));border:1px solid rgba(16,185,129,0.25);border-radius:14px;padding:24px;text-align:center;">
+      <div style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">🚀 הפעלת עבודה אוטומטית</div>
+      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:16px;max-width:480px;margin-left:auto;margin-right:auto;">
+        כל המחלקות יעבדו בו-זמנית על היעדים הפעילים וייצרו תוצרים מוכנים לשימוש — פוסטים, תוכניות, סקריפטים, מספרים — ללא הוראות ידניות.
+      </div>
+      <button class="btn btn-success" onclick="executeGoals()" id="execute-btn" style="font-size:1rem;padding:12px 30px;">
+        ⚡ הפעל את כל הצוות עכשיו
+      </button>
+      <div id="execute-status" style="margin-top:14px;font-size:0.88rem;color:var(--accent);min-height:24px;"></div>
+    </div>
+
+  </div>
 
   <!-- HOME TAB -->
   <div class="tab-panel active" id="panel-home">
@@ -1545,6 +1665,7 @@ function switchTab(name) {
 function loadTab(name) {
   switch(name) {
     case 'home': loadHome(); break;
+    case 'strategy': loadGoals(); break;
     case 'departments': loadDepartments(); break;
     case 'meetings': loadMeetings(); break;
     case 'discussions': loadDiscussions(); break;
@@ -1624,6 +1745,121 @@ function initials(name) {
   const parts = name.split(' ');
   if (parts.length >= 2) return parts[0][0] + parts[1][0];
   return name[0];
+}
+
+// ── Strategy Tab ───────────────────────────────────────────────────────────
+let _goalFormVisible = true;
+
+function toggleGoalForm() {
+  _goalFormVisible = !_goalFormVisible;
+  document.getElementById('goal-form-inner').style.display = _goalFormVisible ? 'flex' : 'none';
+}
+
+async function loadGoals() {
+  const el = document.getElementById('goals-list');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const goals = await fetch('/api/goals').then(r => r.json()) || [];
+    if (goals.length === 0) {
+      el.innerHTML = '<div class="empty-state"><div class="icon">🎯</div><p>אין יעדים פעילים. הוסף יעד כדי להתחיל.</p></div>';
+      return;
+    }
+    el.innerHTML = goals.map(g => {
+      const kpis = (g.kpis || []);
+      const depts = (g.departments || []);
+      const deptIcons = { marketing:'📣', sales:'📈', content:'🎨', pr:'🤝', cfo:'💰', cto:'💻', legal:'⚖️', compliance:'🛡️', ceo:'🎯' };
+      return `
+        <div class="card" style="border-right:4px solid var(--success);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">📌 ${g.title}</div>
+              <div style="font-size:0.83rem;color:var(--muted);margin-bottom:10px;">${g.description}</div>
+              ${kpis.length > 0 ? `
+                <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;">
+                  ${kpis.map(k => `<span class="badge badge-green">📊 ${k}</span>`).join('')}
+                </div>` : ''}
+              ${g.deadline ? `<div style="font-size:0.77rem;color:var(--warning);">📅 דד-ליין: ${g.deadline}</div>` : ''}
+              ${depts.length > 0 ? `
+                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;">
+                  ${depts.map(d => `<span class="badge badge-blue">${deptIcons[d]||'🏢'} ${d}</span>`).join('')}
+                </div>` : ''}
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="archiveGoal('${g.id}')" style="flex-shrink:0;">✓ הושלם</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="empty-state"><p>שגיאה בטעינת יעדים</p></div>';
+  }
+}
+
+async function addGoal() {
+  const title = document.getElementById('goal-title').value.trim();
+  const desc  = document.getElementById('goal-desc').value.trim();
+  if (!title || !desc) { toast('מלא שם ותיאור', 'error'); return; }
+
+  const kpisRaw = document.getElementById('goal-kpis').value.trim();
+  const kpis = kpisRaw ? kpisRaw.split('\n').map(k => k.trim()).filter(Boolean) : [];
+  const deadline = document.getElementById('goal-deadline').value || null;
+  const departments = Array.from(
+    document.querySelectorAll('#goal-dept-checks input:checked')
+  ).map(cb => cb.value);
+
+  const msgEl = document.getElementById('goal-form-msg');
+  msgEl.textContent = 'שומר...';
+  try {
+    const r = await fetch('/api/goals/new', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ title, description: desc, kpis, departments, deadline })
+    }).then(x => x.json());
+
+    if (r.success) {
+      toast('✅ יעד נוסף!', 'success');
+      msgEl.textContent = '';
+      document.getElementById('goal-title').value = '';
+      document.getElementById('goal-desc').value = '';
+      document.getElementById('goal-kpis').value = '';
+      document.getElementById('goal-deadline').value = '';
+      loadGoals();
+    } else { msgEl.textContent = 'שגיאה'; }
+  } catch(e) { msgEl.textContent = 'שגיאה: ' + e.message; }
+}
+
+async function archiveGoal(id) {
+  if (!confirm('סמן יעד זה כהושלם ולהסיר אותו מהרשימה?')) return;
+  await fetch('/api/goals/' + id, { method: 'DELETE' });
+  toast('יעד הוסר ✓', 'success');
+  loadGoals();
+}
+
+async function executeGoals() {
+  const goals = await fetch('/api/goals').then(r => r.json());
+  if (!goals || goals.length === 0) {
+    toast('הוסף יעדים פעילים תחילה', 'error');
+    return;
+  }
+  const btn = document.getElementById('execute-btn');
+  const statusEl = document.getElementById('execute-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ כל המחלקות עובדות...';
+  statusEl.innerHTML = '⏳ המנכ"ל מנתח את היעדים ומחלק משימות לכל המחלקות... זה יכול לקחת 2-5 דקות.';
+
+  try {
+    const r = await fetch('/api/goals/execute', { method: 'POST' }).then(x => x.json());
+    if (r.success) {
+      const depts = (r.departments || []).join(', ');
+      statusEl.innerHTML = `✅ הצוות סיים לעבוד! מחלקות שעבדו: <strong>${depts}</strong><br>עבור ללשונית "תוצרים" לאישור התוצרים.`;
+      toast('🚀 כל המחלקות סיימו!', 'success');
+    } else {
+      statusEl.innerHTML = '❌ ' + (r.detail || 'שגיאה');
+    }
+  } catch(e) {
+    statusEl.innerHTML = '❌ שגיאה: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚡ הפעל את כל הצוות עכשיו';
+  }
 }
 
 // ── Home Tab ───────────────────────────────────────────────────────────────
@@ -2236,7 +2472,7 @@ async function sendChatMsg() {
     <div class="chat-msg chairman">
       <div class="chat-avatar">👑</div>
       <div class="chat-bubble">
-        <div class="chat-bubble-name">פארוק ג'אבר — יו"ר</div>
+        <div class="chat-bubble-name">פארוק ג'בר — יו"ר</div>
         <div class="chat-bubble-text">${msg.replace(/\n/g,'<br>')}</div>
         <div class="chat-bubble-time">עכשיו</div>
       </div>

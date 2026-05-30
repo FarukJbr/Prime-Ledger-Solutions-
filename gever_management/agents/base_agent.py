@@ -65,7 +65,7 @@ Your department: {department}
 Your responsibilities: {responsibilities}
 
 Company: {company}
-Chairman: פארוק ג'אבר (your ultimate boss – treat with utmost respect)
+Chairman: פארוק ג'בר (your ultimate boss – treat with utmost respect)
 """
 
     def __init__(self):

@@ -143,7 +143,7 @@ class TaskManager:
             activity_type="deliverable_approved",
             title='תוצר אושר על ידי יו"ר',
             description=feedback or 'היו"ר אישר את התוצר',
-            employee_name="פארוק ג'אבר",
+            employee_name="פארוק ג'בר",
             deliverable_id=deliverable_id,
             metadata={"feedback": feedback}
         )
@@ -171,7 +171,7 @@ class TaskManager:
                 activity_type="published",
                 title=f"פורסם ב-{platform}",
                 description=title,
-                employee_name="פארוק ג'אבר",
+                employee_name="פארוק ג'בר",
                 deliverable_id=deliverable_id,
             )
             try:
@@ -201,11 +201,41 @@ class TaskManager:
             activity_type="deliverable_submitted",
             title='תוצר נדחה על ידי יו"ר',
             description=feedback,
-            employee_name="פארוק ג'אבר",
+            employee_name="פארוק ג'בר",
             deliverable_id=deliverable_id,
             metadata={"feedback": feedback, "action": "rejected"}
         )
         return result
+
+    def execute_strategic_goals(self) -> dict:
+        """Run all departments autonomously based on the board's active strategic goals."""
+        goals = db.get_goals()
+        if not goals:
+            return {"error": "אין יעדים אסטרטגיים פעילים. הוסף יעדים בלשונית האסטרטגיה."}
+
+        goals_text = ""
+        for g in goals:
+            kpis = ", ".join(g.get("kpis") or [])
+            deadline = g.get("deadline") or "ללא תאריך יעד"
+            goals_text += (
+                f"■ {g.get('title','')}\n"
+                f"  תיאור: {g.get('description','')}\n"
+                f"  KPIs: {kpis or '—'}\n"
+                f"  דד-ליין: {deadline}\n\n"
+            )
+
+        instruction = (
+            f"דירקטוריון החברה קבע את היעדים האסטרטגיים הבאים שכל הצוות צריך לעבוד להשגתם:\n\n"
+            f"{goals_text}"
+            f"כל מחלקה תייצר עכשיו תוצרים אמיתיים ומוכנים לביצוע. "
+            f"תוצרים נדרשים: תוכן מוכן לפרסום, סקריפטים מכירה, תוכניות עם תאריכים ומספרים, "
+            f"אימיילים, קמפיינים, הצעות מחיר — הכל ממש מוכן לשימוש מיידי. "
+            f"כל מחלקה: מה תעשה השבוע, מה תעשה בחודש, ובאילו מדדים תמדוד הצלחה."
+        )
+
+        saved = db.save_instruction(instruction, "he")
+        result = self.process_chairman_instruction(instruction, saved["id"])
+        return {"success": True, **result}
 
     def get_pending_reviews(self) -> list:
         return db.get_pending_review()
