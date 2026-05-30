@@ -306,11 +306,12 @@ class DatabaseClient:
 
     def create_employee(self, name: str, title_he: str, title_en: str,
                         department_code: str, is_manager: bool = False,
+                        is_ai: bool = True,
                         personality: str = "", expertise: str = "") -> dict:
         data = {
             "name": name, "title_he": title_he, "title_en": title_en,
             "department_code": department_code, "is_manager": is_manager,
-            "is_ai": True, "personality": personality, "expertise": expertise,
+            "is_ai": is_ai, "personality": personality, "expertise": expertise,
         }
         result = self.client.table("employees").insert(data).execute()
         return result.data[0]

@@ -1,6 +1,6 @@
-"""FastAPI dashboard for Gever Management System."""
+"""FastAPI dashboard for Jabr Management System."""
 
-from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi import FastAPI, HTTPException, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
@@ -13,12 +13,13 @@ import secrets
 import os
 
 app = FastAPI(
-    title="Gever Management System",
+    title="Jabr Management System",
     description="גבר יזמות ייעוץ עסקי והשקעות - AI Management Platform",
     version="2.0.0"
 )
 
-security = HTTPBasic()
+security = HTTPBasic(auto_error=False)
+_sessions: dict = {}
 _task_manager = None
 _meeting_room = None
 
@@ -37,22 +38,28 @@ def get_meeting_room():
     return _meeting_room
 
 
-def require_auth(credentials: HTTPBasicCredentials = Depends(security)):
-    correct_user = secrets.compare_digest(
-        credentials.username.encode("utf8"),
-        os.getenv("DASHBOARD_USER", "chairman").encode("utf8")
-    )
-    correct_pass = secrets.compare_digest(
-        credentials.password.encode("utf8"),
-        os.getenv("DASHBOARD_PASSWORD", "gever2024").encode("utf8")
-    )
-    if not (correct_user and correct_pass):
-        raise HTTPException(
-            status_code=401,
-            detail="גישה נדחתה",
-            headers={"WWW-Authenticate": "Basic"},
+def require_auth(request: Request, credentials: Optional[HTTPBasicCredentials] = Depends(security)):
+    # Check cookie session first
+    token = request.cookies.get("jabr_session")
+    if token and token in _sessions:
+        return _sessions[token]
+    # Fall back to Basic Auth
+    if credentials:
+        correct_user = secrets.compare_digest(
+            credentials.username.encode("utf8"),
+            os.getenv("DASHBOARD_USER", "chairman").encode("utf8")
         )
-    return credentials.username
+        correct_pass = secrets.compare_digest(
+            credentials.password.encode("utf8"),
+            os.getenv("DASHBOARD_PASSWORD", "gever2024").encode("utf8")
+        )
+        if correct_user and correct_pass:
+            return credentials.username
+    raise HTTPException(
+        status_code=401,
+        detail="גישה נדחתה",
+        headers={"WWW-Authenticate": "Basic"},
+    )
 
 
 # ─── PYDANTIC MODELS ─────────────────────────────────────────────────────────
@@ -106,6 +113,7 @@ class EmployeeCreateRequest(BaseModel):
     title_en: str
     department_code: str
     is_manager: bool = False
+    is_ai: bool = True
     personality: Optional[str] = ""
     expertise: Optional[str] = ""
 
@@ -245,7 +253,7 @@ async def create_employee(req: EmployeeCreateRequest,
     emp = db.create_employee(
         name=req.name, title_he=req.title_he, title_en=req.title_en,
         department_code=req.department_code, is_manager=req.is_manager,
-        personality=req.personality or "", expertise=req.expertise or ""
+        is_ai=req.is_ai, personality=req.personality or "", expertise=req.expertise or ""
     )
     db.log_activity(activity_type="task_created", title=f"עובד חדש גויס: {req.name}",
                     description=f"מחלקה: {req.department_code}", department=req.department_code,
@@ -717,6 +725,94 @@ async def build_budget(user: str = Depends(require_auth)):
             "deliverable_id": deliverable["id"], "content": result}
 
 
+# ─── LOGIN HTML ──────────────────────────────────────────────────────────────
+
+LOGIN_HTML = """<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jabr — כניסה למערכת</title>
+<style>
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    background: #0a0f1e;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    direction: rtl;
+  }}
+  .login-card {{
+    background: #111827;
+    border: 1px solid #1e2d45;
+    border-radius: 20px;
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    animation: fadeIn 0.3s ease;
+  }}
+  @keyframes fadeIn {{ from {{ opacity:0; transform:translateY(16px); }} to {{ opacity:1; transform:none; }} }}
+  .logo {{ text-align: center; font-size: 3rem; margin-bottom: 8px; }}
+  .login-title {{ text-align: center; font-size: 1.4rem; font-weight: 800; margin-bottom: 4px;
+    background: linear-gradient(135deg, #3b82f6, #7c3aed);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; }}
+  .login-subtitle {{ text-align: center; font-size: 0.82rem; color: #64748b; margin-bottom: 30px; }}
+  .field-label {{ font-size: 0.8rem; color: #64748b; margin-bottom: 5px; }}
+  .field {{ margin-bottom: 16px; }}
+  .input {{
+    width: 100%; background: #0a0f1e; border: 1px solid #1e2d45;
+    color: #e2e8f0; border-radius: 10px; padding: 12px 14px;
+    font-size: 0.95rem; direction: rtl; font-family: inherit;
+    transition: border-color 0.2s;
+  }}
+  .input:focus {{ outline: none; border-color: #3b82f6; }}
+  .login-btn {{
+    width: 100%; background: linear-gradient(135deg, #1e40af, #6d28d9);
+    color: white; border: none; padding: 13px; border-radius: 10px;
+    font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 8px;
+    transition: opacity 0.2s, transform 0.1s;
+  }}
+  .login-btn:hover {{ opacity: 0.9; transform: translateY(-1px); }}
+  .login-btn:active {{ transform: translateY(0); }}
+  .error-msg {{
+    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+    color: #f87171; border-radius: 8px; padding: 10px 14px;
+    font-size: 0.85rem; margin-bottom: 16px; text-align: center;
+    display: {error_display};
+  }}
+  .footer-note {{ text-align: center; font-size: 0.73rem; color: #64748b; margin-top: 20px; }}
+</style>
+</head>
+<body>
+<div class="login-card">
+  <div class="logo">🏢</div>
+  <div class="login-title">Jabr Management System</div>
+  <div class="login-subtitle">גבר יזמות ייעוץ עסקי והשקעות</div>
+
+  <div class="error-msg">שם משתמש או סיסמה שגויים. נסה שוב.</div>
+
+  <form method="POST" action="/login">
+    <div class="field">
+      <div class="field-label">שם משתמש</div>
+      <input class="input" type="text" name="username" placeholder="הזן שם משתמש" autocomplete="username" required>
+    </div>
+    <div class="field">
+      <div class="field-label">סיסמה</div>
+      <input class="input" type="password" name="password" placeholder="הזן סיסמה" autocomplete="current-password" required>
+    </div>
+    <button type="submit" class="login-btn">🔐 כניסה למערכת</button>
+  </form>
+
+  <div class="footer-note">מערכת ניהול AI פנימית • גישה מורשית בלבד</div>
+</div>
+</body>
+</html>"""
+
+
 # ─── DASHBOARD HTML ──────────────────────────────────────────────────────────
 
 DASHBOARD_HTML = """<!DOCTYPE html>
@@ -724,7 +820,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>גבר יזמות - מרכז ניהול AI</title>
+<title>Jabr — מרכז ניהול AI</title>
 <style>
   :root {
     --bg: #0a0f1e;
@@ -1427,11 +1523,12 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     <div class="header-logo">🏢</div>
     <div>
       <div class="header-title">גבר יזמות ייעוץ עסקי והשקעות</div>
-      <div class="header-subtitle">מרכז ניהול AI • Gever Entrepreneurship Management</div>
+      <div class="header-subtitle">מרכז ניהול AI • Jabr Management System</div>
     </div>
   </div>
   <div class="header-right">
     <div class="chairman-badge">👑 פארוק ג'בר — יו"ר</div>
+    <a href="/logout" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;border-radius:8px;padding:6px 12px;font-size:0.78rem;text-decoration:none;transition:background 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.3)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">🚪 יציאה</a>
   </div>
 </div>
 
@@ -1446,6 +1543,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   <div class="tab" onclick="switchTab('reports')" id="tab-reports">📊 דוחות מחלקות</div>
   <div class="tab" onclick="switchTab('activity')" id="tab-activity">📊 פעילות</div>
   <div class="tab" onclick="switchTab('deliverables')" id="tab-deliverables">📋 תוצרים</div>
+  <div class="tab" onclick="switchTab('settings')" id="tab-settings">⚙️ הגדרות</div>
 </div>
 
 <!-- Toast -->
@@ -1853,6 +1951,61 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
   </div><!-- /panel-reports -->
 
+  <!-- SETTINGS TAB -->
+  <div class="tab-panel" id="panel-settings">
+    <div style="background:linear-gradient(135deg,rgba(30,58,138,0.25),rgba(91,33,182,0.2));border:1px solid rgba(59,130,246,0.2);border-radius:14px;padding:20px;margin-bottom:20px;">
+      <div style="font-size:1.1rem;font-weight:700;margin-bottom:6px;">⚙️ הגדרות מערכת</div>
+      <div style="font-size:0.85rem;color:var(--muted);">פרטי החברה, סטטוס מערכת, ומידע על הפלטפורמה</div>
+    </div>
+
+    <!-- Company Info -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="section-title">🏢 פרטי החברה</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--muted);font-size:0.87rem;">שם החברה</span>
+          <span style="font-weight:600;">גבר יזמות ייעוץ עסקי והשקעות</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--muted);font-size:0.87rem;">מערכת</span>
+          <span style="font-weight:600;">Jabr Management System</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--muted);font-size:0.87rem;">גרסה</span>
+          <span style="font-weight:600;">2.0.0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--muted);font-size:0.87rem;">פיתוח</span>
+          <span style="font-weight:600;">Claude AI • Anthropic</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;">
+          <span style="color:var(--muted);font-size:0.87rem;">משתמש מחובר</span>
+          <span id="settings-user" style="font-weight:600;color:var(--accent);">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="card" style="margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div class="section-title" style="margin-bottom:0;border:none;">🔌 סטטוס מערכת</div>
+        <button class="filter-btn" onclick="loadSettings()">↻ רענן</button>
+      </div>
+      <div id="settings-status" style="display:flex;flex-direction:column;gap:12px;">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="card">
+      <div class="section-title">⚡ פעולות</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="/logout" class="btn btn-danger btn-sm" style="text-decoration:none;">🚪 התנתק מהמערכת</a>
+        <button class="btn btn-sm" onclick="loadSettings()">↻ רענן סטטוס</button>
+      </div>
+    </div>
+  </div><!-- /panel-settings -->
+
 </div><!-- /content -->
 
 <!-- ── Hire Employee Modal ────────────────────────────────────────────────── -->
@@ -1878,6 +2031,11 @@ DASHBOARD_HTML = """<!DOCTYPE html>
         <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;cursor:pointer;">
           <input type="checkbox" id="hire-manager" style="width:16px;height:16px;"> מנהל/ת מחלקה
         </label>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:0.85rem;color:var(--muted);">סוג עובד:</span>
+          <button onclick="setEmpType(true,this)" id="emp-type-ai" class="type-btn selected">🤖 סוכן AI</button>
+          <button onclick="setEmpType(false,this)" id="emp-type-human" class="type-btn">👤 עובד אמיתי</button>
+        </div>
         <textarea id="hire-expertise"   class="instruction-textarea" placeholder="תחומי מומחיות"           style="min-height:60px;"></textarea>
         <textarea id="hire-personality" class="instruction-textarea" placeholder="אופי ואישיות (לסוכן AI)" style="min-height:60px;"></textarea>
       </div>
@@ -2168,6 +2326,7 @@ function loadTab(name) {
     case 'reports': switchDR('cfo', document.getElementById('drt-cfo')); break;
     case 'activity': loadActivity(); break;
     case 'deliverables': loadDeliverables(); break;
+    case 'settings': loadSettings(); break;
   }
 }
 
@@ -2775,14 +2934,24 @@ async function loadHome() {
 // ── Employee Management ────────────────────────────────────────────────────
 let _currentEmpId = null;
 let _currentEmpData = null;
+let _hireIsAI = true;
 
 function showHireModal() {
+  _hireIsAI = true;
+  document.getElementById('emp-type-ai').classList.add('selected');
+  document.getElementById('emp-type-human').classList.remove('selected');
   document.getElementById('hire-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 function closeHireModal() {
   document.getElementById('hire-modal').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+function setEmpType(isAI, btn) {
+  _hireIsAI = isAI;
+  document.getElementById('emp-type-ai').classList.toggle('selected', isAI);
+  document.getElementById('emp-type-human').classList.toggle('selected', !isAI);
 }
 
 async function submitHire() {
@@ -2797,6 +2966,7 @@ async function submitHire() {
       body: JSON.stringify({
         name, title_he: titleHe, title_en: titleEn, department_code: dept,
         is_manager: document.getElementById('hire-manager').checked,
+        is_ai: _hireIsAI,
         expertise: document.getElementById('hire-expertise').value.trim(),
         personality: document.getElementById('hire-personality').value.trim(),
       })
@@ -3736,6 +3906,26 @@ async function publishDirect(deliverableId, taskTitle) {
 let _currentDR = 'cfo';
 let _drCfContent = '';
 
+// drPeriodCard is defined at module level to avoid function-declaration-inside-if-block bugs
+const drPeriodCard = (title, icon, data, prev_label, prev_data, incChg, expChg, netChg, label) => {
+  const arrowInc = incChg === null ? '' : incChg >= 0 ? `<span style="color:var(--success)">↑${Math.abs(incChg)}%</span>` : `<span style="color:var(--danger)">↓${Math.abs(incChg)}%</span>`;
+  const arrowExp = expChg === null ? '' : expChg >= 0 ? `<span style="color:var(--danger)">↑${Math.abs(expChg)}%</span>` : `<span style="color:var(--success)">↓${Math.abs(expChg)}%</span>`;
+  const netColor = data.net >= 0 ? 'var(--success)' : 'var(--danger)';
+  const prevNetColor = prev_data.net >= 0 ? 'var(--success)' : 'var(--danger)';
+  return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;flex:1;min-width:200px;">
+    <div style="font-size:0.75rem;color:var(--muted);margin-bottom:2px;">${icon} ${title}</div>
+    <div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;">${label}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem;">
+      <div><div style="color:var(--muted);font-size:0.7rem;">הכנסות</div><div style="font-weight:700;color:var(--success);">${ils(data.income)}</div><div style="font-size:0.7rem;">${arrowInc}</div></div>
+      <div><div style="color:var(--muted);font-size:0.7rem;">הוצאות</div><div style="font-weight:700;color:var(--danger);">${ils(data.expenses)}</div><div style="font-size:0.7rem;">${arrowExp}</div></div>
+    </div>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-size:0.7rem;color:var(--muted);">נטו</div><div style="font-size:1.1rem;font-weight:800;color:${netColor};">${data.net >= 0 ? '+' : ''}${ils(data.net)}</div></div>
+      <div style="text-align:left;"><div style="font-size:0.7rem;color:var(--muted);">${prev_label}</div><div style="font-size:0.82rem;font-weight:600;color:${prevNetColor};">${prev_data.net >= 0 ? '+' : ''}${ils(prev_data.net)}</div></div>
+    </div>
+  </div>`;
+};
+
 function switchDR(dept, btn) {
   document.querySelectorAll('.dr-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.dr-tab').forEach(t => t.classList.remove('active'));
@@ -3778,24 +3968,6 @@ async function loadDRCashflow() {
       const profBdr = tr.overall_profitable ? 'rgba(16,185,129,0.4)'  : 'rgba(239,68,68,0.4)';
       const profIco = tr.overall_profitable ? '✅' : '❌';
       const profTxt = tr.overall_profitable ? 'רווחי' : 'בהפסד';
-      function drPeriodCard(title, icon, data, prev_label, prev_data, incChg, expChg, netChg, label) {
-        const arrowInc = incChg === null ? '' : incChg >= 0 ? `<span style="color:var(--success)">↑${Math.abs(incChg)}%</span>` : `<span style="color:var(--danger)">↓${Math.abs(incChg)}%</span>`;
-        const arrowExp = expChg === null ? '' : expChg >= 0 ? `<span style="color:var(--danger)">↑${Math.abs(expChg)}%</span>` : `<span style="color:var(--success)">↓${Math.abs(expChg)}%</span>`;
-        const netColor = data.net >= 0 ? 'var(--success)' : 'var(--danger)';
-        const prevNetColor = prev_data.net >= 0 ? 'var(--success)' : 'var(--danger)';
-        return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;flex:1;min-width:200px;">
-          <div style="font-size:0.75rem;color:var(--muted);margin-bottom:2px;">${icon} ${title}</div>
-          <div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;">${label}</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem;">
-            <div><div style="color:var(--muted);font-size:0.7rem;">הכנסות</div><div style="font-weight:700;color:var(--success);">${ils(data.income)}</div><div style="font-size:0.7rem;">${arrowInc}</div></div>
-            <div><div style="color:var(--muted);font-size:0.7rem;">הוצאות</div><div style="font-weight:700;color:var(--danger);">${ils(data.expenses)}</div><div style="font-size:0.7rem;">${arrowExp}</div></div>
-          </div>
-          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-            <div><div style="font-size:0.7rem;color:var(--muted);">נטו</div><div style="font-size:1.1rem;font-weight:800;color:${netColor};">${data.net >= 0 ? '+' : ''}${ils(data.net)}</div></div>
-            <div style="text-align:left;"><div style="font-size:0.7rem;color:var(--muted);">${prev_label}</div><div style="font-size:0.82rem;font-weight:600;color:${prevNetColor};">${prev_data.net >= 0 ? '+' : ''}${ils(prev_data.net)}</div></div>
-          </div>
-        </div>`;
-      }
       const wk = tr.weekly, mo = tr.monthly, yr = tr.annual;
       trackEl.innerHTML = `
         <div style="background:${profBg};border:2px solid ${profBdr};border-radius:14px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
@@ -4050,6 +4222,38 @@ async function generateDeptReport(dept) {
   }
 }
 
+// ── Settings Tab ───────────────────────────────────────────────────────────
+async function loadSettings() {
+  const statusEl = document.getElementById('settings-status');
+  const userEl   = document.getElementById('settings-user');
+  if (statusEl) statusEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const h = await fetch('/api/health').then(r => r.json());
+    const portalOk = h.portal_connected !== false;
+    const supabaseOk = h.supabase_connected !== false;
+    if (userEl) userEl.textContent = h.user || 'מחובר';
+    if (statusEl) statusEl.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:0.87rem;">סטטוס מערכת</span>
+        <span class="badge badge-green">✅ פעיל</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:0.87rem;">גרסה</span>
+        <span style="font-weight:600;">${h.version || '2.0.0'}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:0.87rem;">חיבור Supabase</span>
+        <span class="badge ${supabaseOk ? 'badge-green' : 'badge-red'}">${supabaseOk ? '✅ מחובר' : '❌ לא מחובר'}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
+        <span style="font-size:0.87rem;">חיבור פורטל לקוחות</span>
+        <span class="badge ${portalOk ? 'badge-green' : 'badge-yellow'}">${portalOk ? '✅ מחובר' : '⚠️ לא מוגדר'}</span>
+      </div>`;
+  } catch(e) {
+    if (statusEl) statusEl.innerHTML = `<div style="color:var(--danger);font-size:0.87rem;">שגיאה בטעינת סטטוס: ${e.message}</div>`;
+  }
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────
 loadHome();
 </script>
@@ -4057,8 +4261,46 @@ loadHome();
 </html>"""
 
 
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(error: Optional[str] = None):
+    error_display = "block" if error else "none"
+    return LOGIN_HTML.format(error_display=error_display)
+
+
+@app.post("/login")
+async def login_submit(username: str = Form(...), password: str = Form(...)):
+    correct_user = secrets.compare_digest(
+        username.encode("utf8"),
+        os.getenv("DASHBOARD_USER", "chairman").encode("utf8")
+    )
+    correct_pass = secrets.compare_digest(
+        password.encode("utf8"),
+        os.getenv("DASHBOARD_PASSWORD", "gever2024").encode("utf8")
+    )
+    if correct_user and correct_pass:
+        token = secrets.token_urlsafe(32)
+        _sessions[token] = username
+        response = RedirectResponse(url="/", status_code=303)
+        response.set_cookie("jabr_session", token, httponly=True, max_age=86400 * 7, samesite="lax")
+        return response
+    return RedirectResponse(url="/login?error=1", status_code=303)
+
+
+@app.get("/logout")
+async def logout(request: Request):
+    token = request.cookies.get("jabr_session")
+    if token and token in _sessions:
+        del _sessions[token]
+    response = RedirectResponse(url="/login", status_code=303)
+    response.delete_cookie("jabr_session")
+    return response
+
+
 @app.get("/", response_class=HTMLResponse)
-async def dashboard(user: str = Depends(require_auth)):
+async def dashboard(request: Request):
+    token = request.cookies.get("jabr_session")
+    if not token or token not in _sessions:
+        return RedirectResponse(url="/login", status_code=303)
     return DASHBOARD_HTML
 
 
