@@ -2318,7 +2318,7 @@ async function publishModal() {
       toast('פורסם בהצלחה! 🚀', 'success');
     } else {
       // Show download option – content is ready
-      const pkg = Object.values(r.results || {})[0]?.package;
+      const pkg = (Object.values(r.results || {})[0] || {}).package;
       if (pkg) {
         toast('אין חיבור API – מוריד קובץ תוכן מוכן ✓', 'success');
         const blob = new Blob([pkg.content], { type: 'text/plain;charset=utf-8' });
