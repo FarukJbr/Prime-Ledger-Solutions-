@@ -10,6 +10,9 @@ from tasks import TaskManager
 from meetings import MeetingRoom
 from config import settings
 import secrets
+import hmac
+import hashlib
+import base64
 import os
 
 app = FastAPI(
@@ -19,9 +22,31 @@ app = FastAPI(
 )
 
 security = HTTPBasic(auto_error=False)
-_sessions: dict = {}
 _task_manager = None
 _meeting_room = None
+
+# Secret key for signing session cookies — stable across restarts
+_SECRET = os.getenv("SESSION_SECRET", settings.dashboard_password + "_jabr_session_key")
+
+
+def _sign(value: str) -> str:
+    """Return value:signature so cookie survives server restarts."""
+    sig = hmac.new(_SECRET.encode(), value.encode(), hashlib.sha256).hexdigest()
+    payload = f"{value}:{sig}"
+    return base64.urlsafe_b64encode(payload.encode()).decode()
+
+
+def _verify(cookie: str) -> Optional[str]:
+    """Return username if cookie signature is valid, else None."""
+    try:
+        payload = base64.urlsafe_b64decode(cookie.encode()).decode()
+        value, sig = payload.rsplit(":", 1)
+        expected = hmac.new(_SECRET.encode(), value.encode(), hashlib.sha256).hexdigest()
+        if hmac.compare_digest(sig, expected):
+            return value
+    except Exception:
+        pass
+    return None
 
 
 def get_task_manager():
@@ -50,15 +75,21 @@ def _check_credentials(username: str, password: str) -> bool:
     return ok_user and ok_pass
 
 
+def _get_session_user(request: Request) -> Optional[str]:
+    """Return logged-in username from signed cookie, or None."""
+    cookie = request.cookies.get("jabr_session")
+    if cookie:
+        return _verify(cookie)
+    return None
+
+
 def require_auth(request: Request, credentials: Optional[HTTPBasicCredentials] = Depends(security)):
-    # Cookie session first
-    token = request.cookies.get("jabr_session")
-    if token and token in _sessions:
-        return _sessions[token]
-    # Basic Auth fallback (no WWW-Authenticate header so browser won't popup)
+    user = _get_session_user(request)
+    if user:
+        return user
+    # Basic Auth fallback — no WWW-Authenticate so browser won't show native popup
     if credentials and _check_credentials(credentials.username, credentials.password):
         return credentials.username
-    # Return 401 WITHOUT WWW-Authenticate so browser doesn't show native popup
     raise HTTPException(status_code=401, detail="נדרשת כניסה למערכת")
 
 
@@ -4270,7 +4301,10 @@ loadHome();
 
 
 @app.get("/login", response_class=HTMLResponse)
-async def login_page(error: Optional[str] = None):
+async def login_page(request: Request, error: Optional[str] = None):
+    # Already logged in → go straight to dashboard
+    if _get_session_user(request):
+        return RedirectResponse(url="/", status_code=303)
     error_display = "block" if error else "none"
     return LOGIN_HTML.format(error_display=error_display)
 
@@ -4278,19 +4312,18 @@ async def login_page(error: Optional[str] = None):
 @app.post("/login")
 async def login_submit(username: str = Form(...), password: str = Form(...)):
     if _check_credentials(username, password):
-        token = secrets.token_urlsafe(32)
-        _sessions[token] = username
+        signed = _sign(username)
         response = RedirectResponse(url="/", status_code=303)
-        response.set_cookie("jabr_session", token, httponly=True, max_age=86400 * 7, samesite="lax")
+        response.set_cookie(
+            "jabr_session", signed,
+            httponly=True, max_age=86400 * 30, samesite="lax"
+        )
         return response
     return RedirectResponse(url="/login?error=1", status_code=303)
 
 
 @app.get("/logout")
-async def logout(request: Request):
-    token = request.cookies.get("jabr_session")
-    if token and token in _sessions:
-        del _sessions[token]
+async def logout():
     response = RedirectResponse(url="/login", status_code=303)
     response.delete_cookie("jabr_session")
     return response
@@ -4298,8 +4331,7 @@ async def logout(request: Request):
 
 @app.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
-    token = request.cookies.get("jabr_session")
-    if not token or token not in _sessions:
+    if not _get_session_user(request):
         return RedirectResponse(url="/login", status_code=303)
     return DASHBOARD_HTML
 
