@@ -2239,16 +2239,25 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   </div>
 </div>
 
+<!-- Error catcher in separate script so it loads even if main script has syntax error -->
 <script>
-// ── Global JS error display (remove after debugging) ───────────────────────
 window.onerror = function(msg, src, line, col, err) {
   var d = document.getElementById('js-error-banner');
-  if (!d) { d = document.createElement('div'); d.id = 'js-error-banner';
-    d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#ef4444;color:#fff;padding:12px 16px;font-size:14px;direction:ltr;font-family:monospace;white-space:pre-wrap;';
-    document.body.appendChild(d); }
-  d.textContent = 'JS ERROR: ' + msg + '\nLine: ' + line + ', Col: ' + col + '\nFile: ' + (src || '').split('/').pop();
+  if (!d) {
+    d = document.createElement('div');
+    d.id = 'js-error-banner';
+    d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;padding:14px 16px;font-size:13px;direction:ltr;font-family:monospace;white-space:pre-wrap;border-bottom:3px solid #991b1b;';
+    document.body.appendChild(d);
+  }
+  d.textContent = 'JS ERROR: ' + msg + '\nLine: ' + line + ', Col: ' + col;
   return false;
 };
+window.addEventListener('unhandledrejection', function(e) {
+  window.onerror('Unhandled Promise: ' + (e.reason && e.reason.message || e.reason), '', 0, 0);
+});
+</script>
+
+<script>
 // ── State ──────────────────────────────────────────────────────────────────
 let allMeetings = [];
 let allActivities = [];
