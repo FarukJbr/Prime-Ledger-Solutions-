@@ -445,6 +445,12 @@ async def get_cashflow():
     return portal_db.get_financial_summary()
 
 
+@app.get("/api/cashflow/tracking")
+async def get_cashflow_tracking():
+    from database.portal_client import portal_db
+    return portal_db.get_tracking_report()
+
+
 @app.post("/api/cashflow/analyze")
 async def cashflow_analyze(user: str = Depends(require_auth)):
     """CFO produces a financial status report based on real portal data."""
@@ -1449,6 +1455,11 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       </div>
     </div>
 
+    <!-- Profitability + period tracking -->
+    <div id="cf-tracking" style="margin-bottom:24px;">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+
     <!-- KPI row -->
     <div class="stats-grid" id="cf-kpis" style="margin-bottom:24px;">
       <div class="loading"><div class="spinner"></div></div>
@@ -1945,13 +1956,152 @@ function ils(n) {
 }
 
 async function loadCashflow() {
+  document.getElementById('cf-tracking').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   document.getElementById('cf-kpis').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   document.getElementById('cf-accounts-row').innerHTML = '';
   document.getElementById('cf-monthly').innerHTML = '';
   document.getElementById('cf-categories').innerHTML = '';
 
   try {
-    const d = await fetch('/api/cashflow').then(r => r.json());
+    const [d, tr] = await Promise.all([
+      fetch('/api/cashflow').then(r => r.json()),
+      fetch('/api/cashflow/tracking').then(r => r.json()),
+    ]);
+
+    // ── Tracking panel ───────────────────────────────────────────────────
+    if (tr && tr.available) {
+      const profBg  = tr.overall_profitable ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)';
+      const profBdr = tr.overall_profitable ? 'rgba(16,185,129,0.4)'  : 'rgba(239,68,68,0.4)';
+      const profIco = tr.overall_profitable ? '✅' : '❌';
+      const profTxt = tr.overall_profitable ? 'רווחי' : 'בהפסד';
+
+      function periodCard(title, icon, data, prev_label, prev_data, incChg, expChg, netChg, label) {
+        const arrowInc = incChg === null ? '' : incChg >= 0 ? `<span style="color:var(--success)">↑${Math.abs(incChg)}%</span>` : `<span style="color:var(--danger)">↓${Math.abs(incChg)}%</span>`;
+        const arrowExp = expChg === null ? '' : expChg >= 0 ? `<span style="color:var(--danger)">↑${Math.abs(expChg)}%</span>` : `<span style="color:var(--success)">↓${Math.abs(expChg)}%</span>`;
+        const netColor = data.net >= 0 ? 'var(--success)' : 'var(--danger)';
+        const prevNetColor = prev_data.net >= 0 ? 'var(--success)' : 'var(--danger)';
+        return `
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;flex:1;min-width:200px;">
+            <div style="font-size:0.75rem;color:var(--muted);margin-bottom:2px;">${icon} ${title}</div>
+            <div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;">${label}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem;">
+              <div>
+                <div style="color:var(--muted);font-size:0.7rem;">הכנסות</div>
+                <div style="font-weight:700;color:var(--success);">${ils(data.income)}</div>
+                <div style="font-size:0.7rem;">${arrowInc}</div>
+              </div>
+              <div>
+                <div style="color:var(--muted);font-size:0.7rem;">הוצאות</div>
+                <div style="font-weight:700;color:var(--danger);">${ils(data.expenses)}</div>
+                <div style="font-size:0.7rem;">${arrowExp}</div>
+              </div>
+            </div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted);">נטו</div>
+                <div style="font-size:1.1rem;font-weight:800;color:${netColor};">${data.net >= 0 ? '+' : ''}${ils(data.net)}</div>
+              </div>
+              <div style="text-align:left;">
+                <div style="font-size:0.7rem;color:var(--muted);">${prev_label}</div>
+                <div style="font-size:0.82rem;font-weight:600;color:${prevNetColor};">${prev_data.net >= 0 ? '+' : ''}${ils(prev_data.net)}</div>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      const wk = tr.weekly, mo = tr.monthly, yr = tr.annual;
+      const trackHtml = `
+        <!-- Profitability Badge -->
+        <div style="background:${profBg};border:2px solid ${profBdr};border-radius:14px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <div style="font-size:2.2rem;">${profIco}</div>
+          <div>
+            <div style="font-size:1.1rem;font-weight:800;">החברה ${profTxt} ${tr.overall_profitable ? '— כל הכבוד! 🎉' : '— דורש תשומת לב'}</div>
+            <div style="font-size:0.8rem;color:var(--muted);">עדכון נכון ל-${tr.as_of} • חודש נוכחי: ${mo.this_month.profitable ? 'רווחי' : 'בהפסד'} • שנה שוטפת: ${yr.this_year.profitable ? 'רווחית' : 'בהפסד'}</div>
+          </div>
+        </div>
+
+        <!-- Period Cards -->
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+          ${periodCard('שבועי', '📅', wk.this_week, 'שבוע קודם', wk.last_week, wk.income_change_pct, wk.expense_change_pct, wk.net_change_pct, wk.label)}
+          ${periodCard('חודשי', '📆', mo.this_month, 'חודש קודם', mo.last_month, mo.income_change_pct, mo.expense_change_pct, mo.net_change_pct, mo.label)}
+          ${periodCard('שנתי (YTD)', '📊', yr.this_year, `${parseInt(tr.as_of)-1}`, yr.last_year, yr.income_change_pct, yr.expense_change_pct, yr.net_change_pct, yr.label + ' עד היום')}
+        </div>
+
+        <!-- Monthly 13-month trend table -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="section-title" style="margin-bottom:12px;">📈 מגמה 13 חודשים אחרונים</div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:0.8rem;white-space:nowrap;">
+              <thead>
+                <tr style="color:var(--muted);border-bottom:1px solid var(--border);">
+                  <th style="text-align:right;padding:7px 10px;">חודש</th>
+                  <th style="text-align:left;padding:7px 10px;color:var(--success);">הכנסות ₪</th>
+                  <th style="text-align:left;padding:7px 10px;color:var(--danger);">הוצאות ₪</th>
+                  <th style="text-align:left;padding:7px 10px;">נטו ₪</th>
+                  <th style="text-align:center;padding:7px 10px;">סטטוס</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(tr.monthly_trend || []).map(m => {
+                  const nc = m.net >= 0 ? 'var(--success)' : 'var(--danger)';
+                  const isCurrentMonth = m.key === tr.as_of.slice(0,7);
+                  return `<tr style="border-bottom:1px solid rgba(30,45,69,0.5);${isCurrentMonth ? 'background:rgba(59,130,246,0.07);' : ''}">
+                    <td style="padding:7px 10px;${isCurrentMonth ? 'font-weight:700;' : ''}">${m.label}${isCurrentMonth ? ' ◀' : ''}</td>
+                    <td style="padding:7px 10px;color:var(--success);">${ils(m.income)}</td>
+                    <td style="padding:7px 10px;color:var(--danger);">${ils(m.expenses)}</td>
+                    <td style="padding:7px 10px;font-weight:700;color:${nc};">${m.net >= 0 ? '+' : ''}${ils(m.net)}</td>
+                    <td style="padding:7px 10px;text-align:center;">${m.profitable ? '✅' : '❌'}</td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Weeks this month + category breakdown -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;flex-wrap:wrap;">
+          <div class="card">
+            <div class="section-title" style="margin-bottom:12px;">📅 שבועות החודש הנוכחי</div>
+            <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+              <thead><tr style="color:var(--muted);border-bottom:1px solid var(--border);">
+                <th style="text-align:right;padding:6px;">שבוע</th>
+                <th style="text-align:left;padding:6px;">הכנסות</th>
+                <th style="text-align:left;padding:6px;">הוצאות</th>
+                <th style="text-align:left;padding:6px;">נטו</th>
+              </tr></thead>
+              <tbody>
+                ${(tr.weeks_this_month || []).map(w => {
+                  const nc = w.net >= 0 ? 'var(--success)' : 'var(--danger)';
+                  return `<tr style="border-bottom:1px solid rgba(30,45,69,0.4);">
+                    <td style="padding:6px;font-size:0.75rem;">${w.label}</td>
+                    <td style="padding:6px;color:var(--success);">${ils(w.income)}</td>
+                    <td style="padding:6px;color:var(--danger);">${ils(w.expenses)}</td>
+                    <td style="padding:6px;font-weight:700;color:${nc};">${w.net>=0?'+':''}${ils(w.net)}</td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="section-title" style="margin-bottom:12px;">📂 קטגוריות שנה שוטפת</div>
+            <div style="font-size:0.72rem;color:var(--success);margin-bottom:6px;font-weight:700;">הכנסות לפי מקור</div>
+            ${(tr.top_income_categories || []).map(c => `
+              <div style="display:flex;justify-content:space-between;font-size:0.78rem;padding:3px 0;border-bottom:1px solid rgba(30,45,69,0.3);">
+                <span>${c.category}</span><span style="color:var(--success);font-weight:700;">${ils(c.amount)}</span>
+              </div>`).join('')}
+            <div style="font-size:0.72rem;color:var(--danger);margin:10px 0 6px;font-weight:700;">הוצאות לפי קטגוריה</div>
+            ${(tr.top_expense_categories || []).map(c => `
+              <div style="display:flex;justify-content:space-between;font-size:0.78rem;padding:3px 0;border-bottom:1px solid rgba(30,45,69,0.3);">
+                <span>${c.category}</span><span style="color:var(--danger);font-weight:700;">${ils(c.amount)}</span>
+              </div>`).join('')}
+          </div>
+        </div>`;
+
+      document.getElementById('cf-tracking').innerHTML = trackHtml;
+    } else {
+      document.getElementById('cf-tracking').innerHTML =
+        '<div class="empty-state" style="padding:20px;"><p>נתוני מעקב לא זמינים — ודא שהפורטל מחובר</p></div>';
+    }
 
     if (!d || !d.available) {
       document.getElementById('cf-kpis').innerHTML = `
