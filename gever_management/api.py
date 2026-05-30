@@ -38,28 +38,28 @@ def get_meeting_room():
     return _meeting_room
 
 
+def _check_credentials(username: str, password: str) -> bool:
+    ok_user = secrets.compare_digest(
+        username.encode("utf8"),
+        os.getenv("DASHBOARD_USER", "chairman").encode("utf8")
+    )
+    ok_pass = secrets.compare_digest(
+        password.encode("utf8"),
+        os.getenv("DASHBOARD_PASSWORD", "gever2024").encode("utf8")
+    )
+    return ok_user and ok_pass
+
+
 def require_auth(request: Request, credentials: Optional[HTTPBasicCredentials] = Depends(security)):
-    # Check cookie session first
+    # Cookie session first
     token = request.cookies.get("jabr_session")
     if token and token in _sessions:
         return _sessions[token]
-    # Fall back to Basic Auth
-    if credentials:
-        correct_user = secrets.compare_digest(
-            credentials.username.encode("utf8"),
-            os.getenv("DASHBOARD_USER", "chairman").encode("utf8")
-        )
-        correct_pass = secrets.compare_digest(
-            credentials.password.encode("utf8"),
-            os.getenv("DASHBOARD_PASSWORD", "gever2024").encode("utf8")
-        )
-        if correct_user and correct_pass:
-            return credentials.username
-    raise HTTPException(
-        status_code=401,
-        detail="גישה נדחתה",
-        headers={"WWW-Authenticate": "Basic"},
-    )
+    # Basic Auth fallback (no WWW-Authenticate header so browser won't popup)
+    if credentials and _check_credentials(credentials.username, credentials.password):
+        return credentials.username
+    # Return 401 WITHOUT WWW-Authenticate so browser doesn't show native popup
+    raise HTTPException(status_code=401, detail="נדרשת כניסה למערכת")
 
 
 # ─── PYDANTIC MODELS ─────────────────────────────────────────────────────────
@@ -2304,6 +2304,13 @@ async function publishModal() {
   } catch(e) {
     toast('שגיאה: ' + e.message, 'error');
   }
+}
+
+// ── API fetch helper — redirects to login on 401 ──────────────────────────
+async function apiFetch(url, opts = {}) {
+  const r = await fetch(url, opts);
+  if (r.status === 401) { window.location.href = '/login'; return null; }
+  return r;
 }
 
 // ── Tab Switching ──────────────────────────────────────────────────────────
