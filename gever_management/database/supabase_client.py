@@ -289,6 +289,25 @@ class DatabaseClient:
 
     # ─── DISCUSSIONS ─────────────────────────────────────────────────────────
 
+    def get_discussion(self, discussion_id: str) -> dict:
+        result = (
+            self.client.table("discussions")
+            .select("*")
+            .eq("id", discussion_id)
+            .single()
+            .execute()
+        )
+        return result.data
+
+    def close_discussion(self, discussion_id: str) -> dict:
+        result = (
+            self.client.table("discussions")
+            .update({"status": "closed"})
+            .eq("id", discussion_id)
+            .execute()
+        )
+        return result.data[0] if result.data else {}
+
     def get_discussions(self, limit: int = 50) -> list:
         try:
             result = (

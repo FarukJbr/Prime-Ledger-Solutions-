@@ -120,6 +120,17 @@ class EmployeeUpdateRequest(BaseModel):
     expertise: Optional[str] = None
 
 
+class SendMessageRequest(BaseModel):
+    message: str
+
+
+class DiscussionCreateRequest(BaseModel):
+    title: str
+    discussion_type: str = "team"
+    task_id: Optional[str] = None
+    participants: Optional[List[dict]] = None
+
+
 # ─── TASK ENDPOINTS ──────────────────────────────────────────────────────────
 
 @app.post("/api/tasks/new")
@@ -277,15 +288,81 @@ async def list_discussions():
 
 
 @app.post("/api/discussions/new")
-async def create_discussion(req: DiscussionRequest,
+async def create_discussion(req: DiscussionCreateRequest,
                              user: str = Depends(require_auth)):
     result = db.create_discussion(
         title=req.title,
         discussion_type=req.discussion_type,
         task_id=req.task_id,
-        participants=req.participants
+        participants=req.participants or []
     )
+    db.log_activity(activity_type="discussion",
+                    title=f"דיון חדש נפתח: {req.title}",
+                    description=f"סוג: {req.discussion_type} • משתתפים: {len(req.participants or [])}")
     return {"success": True, "discussion": result}
+
+
+@app.get("/api/discussions/{disc_id}")
+async def get_discussion(disc_id: str):
+    return db.get_discussion(disc_id)
+
+
+@app.post("/api/discussions/{disc_id}/send")
+async def send_discussion_message(disc_id: str, req: SendMessageRequest,
+                                   user: str = Depends(require_auth)):
+    from agents import DEPARTMENT_AGENTS
+    disc = db.get_discussion(disc_id)
+    if not disc:
+        raise HTTPException(status_code=404, detail="Discussion not found")
+    if disc.get("status") == "closed":
+        raise HTTPException(status_code=400, detail="Discussion is closed")
+
+    db.add_discussion_message(disc_id, "פארוק ג'אבר", req.message, 'יו"ר')
+
+    disc = db.get_discussion(disc_id)
+    messages = disc.get("messages", [])
+    participants = disc.get("participants", [])
+
+    context = (
+        f"דיון פנימי בחברה: {disc['title']}\n"
+        f"סוג: {disc.get('discussion_type','')}\n\n"
+        "שיחה אחרונה:\n" +
+        "\n".join(
+            f"{m['sender']} ({m.get('role','')}): {m['message']}"
+            for m in messages[-12:]
+        )
+    )
+
+    ai_responses = []
+    for p in participants:
+        if not isinstance(p, dict):
+            continue
+        dept_code = p.get("department_code")
+        if not dept_code or dept_code not in DEPARTMENT_AGENTS:
+            continue
+        agent = DEPARTMENT_AGENTS[dept_code]()
+        prompt = (
+            f"אתה {p.get('name','')} – {p.get('title_he', dept_code)} – בדיון פנימי.\n\n"
+            f"{context}\n\n"
+            f"היו\"ר פארוק ג'אבר שאל/כתב:\n{req.message}\n\n"
+            f"השב מנקודת מבט מקצועית שלך בלבד (2-4 משפטים). תשובה ישירה ותכליתית."
+        )
+        response = agent.think(prompt)
+        db.add_discussion_message(disc_id, p["name"], response, p.get("title_he", ""))
+        ai_responses.append({"name": p["name"], "response": response})
+
+    updated = db.get_discussion(disc_id)
+    return {"success": True, "messages": updated.get("messages", []), "ai_responses": ai_responses}
+
+
+@app.post("/api/discussions/{disc_id}/close")
+async def close_discussion(disc_id: str, user: str = Depends(require_auth)):
+    disc = db.get_discussion(disc_id)
+    db.close_discussion(disc_id)
+    db.log_activity(activity_type="discussion",
+                    title=f"דיון נסגר: {disc.get('title','')}",
+                    description="הדיון הסתיים ונסגר")
+    return {"success": True}
 
 
 @app.get("/api/activities")
@@ -849,6 +926,146 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   .toast.show { transform: translateX(-50%) translateY(0); }
   .toast.success { border-color: var(--success); color: var(--success); }
   .toast.error { border-color: var(--danger); color: var(--danger); }
+
+  /* ── Participant Picker ───────────────────────────────────── */
+  .picker-search {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem;
+    direction: rtl; margin-bottom: 10px; font-family: inherit;
+  }
+  .picker-search:focus { outline: none; border-color: var(--accent); }
+  .picker-scroll {
+    max-height: 260px; overflow-y: auto; border: 1px solid var(--border);
+    border-radius: 10px; background: var(--bg);
+  }
+  .picker-dept-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; background: var(--surface2);
+    font-size: 0.78rem; font-weight: 700; color: var(--muted);
+    border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1;
+  }
+  .picker-dept-head .pick-all { font-size: 0.72rem; color: var(--accent); cursor: pointer; }
+  .picker-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+    cursor: pointer; font-size: 0.85rem; border-bottom: 1px solid rgba(30,45,69,0.5);
+    transition: background 0.15s;
+  }
+  .picker-item:hover { background: rgba(59,130,246,0.07); }
+  .picker-item:last-child { border-bottom: none; }
+  .picker-item input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--accent); }
+  .picker-item .pi-name { font-weight: 600; }
+  .picker-item .pi-title { font-size: 0.75rem; color: var(--muted); }
+  .selected-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; min-height: 28px; }
+  .sel-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.35);
+    border-radius: 20px; padding: 3px 10px; font-size: 0.75rem; color: #60a5fa;
+  }
+  .sel-chip button { background: none; border: none; color: #60a5fa; cursor: pointer; font-size: 0.8rem; padding: 0; }
+
+  /* ── Discussion Cards (new) ───────────────────────────────── */
+  .disc-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-right: 4px solid var(--accent2); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 10px; transition: border-color 0.2s;
+    cursor: pointer;
+  }
+  .disc-card:hover { border-color: var(--accent2); box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
+  .disc-card.closed { border-right-color: var(--muted); opacity: 0.7; }
+  .disc-card.committee { border-right-color: var(--gold); }
+  .disc-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .disc-title { font-weight: 700; font-size: 0.95rem; }
+  .disc-meta { font-size: 0.77rem; color: var(--muted); margin-top: 5px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .disc-participants { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .disc-participant {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 2px 9px; font-size: 0.72rem; color: var(--muted);
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .disc-last-msg {
+    margin-top: 8px; padding: 8px 10px; background: var(--bg);
+    border-radius: 7px; font-size: 0.8rem; color: var(--muted);
+    border: 1px solid var(--border); overflow: hidden;
+    white-space: nowrap; text-overflow: ellipsis;
+  }
+
+  /* ── Discussion Chat Modal ────────────────────────────────── */
+  .disc-chat-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; width: 100%; max-width: 900px; max-height: 92vh;
+    display: flex; flex-direction: column; animation: modalIn 0.2s ease;
+  }
+  .chat-participants-bar {
+    padding: 10px 18px; background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  }
+  .chat-participants-bar .label { font-size: 0.75rem; color: var(--muted); margin-left: 4px; }
+  .chat-thread {
+    flex: 1; overflow-y: auto; padding: 16px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .chat-msg {
+    display: flex; gap: 10px; align-items: flex-start;
+    animation: fadeInUp 0.2s ease;
+  }
+  @keyframes fadeInUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+  .chat-msg.chairman { flex-direction: row-reverse; }
+  .chat-avatar {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 700;
+    background: linear-gradient(135deg, #1e40af, #7c3aed);
+  }
+  .chat-msg.chairman .chat-avatar { background: linear-gradient(135deg, #92400e, #f59e0b); }
+  .chat-bubble {
+    background: var(--surface2); border-radius: 12px 12px 12px 2px;
+    padding: 10px 14px; max-width: 72%;
+  }
+  .chat-msg.chairman .chat-bubble { background: rgba(30,64,175,0.25); border-radius: 12px 12px 2px 12px; }
+  .chat-bubble-name { font-size: 0.73rem; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+  .chat-msg.chairman .chat-bubble-name { color: var(--gold); }
+  .chat-bubble-text { font-size: 0.87rem; line-height: 1.55; }
+  .chat-bubble-time { font-size: 0.68rem; color: var(--muted); margin-top: 4px; }
+  .chat-input-row {
+    display: flex; gap: 8px; padding: 12px 16px;
+    background: var(--surface2); border-top: 1px solid var(--border);
+    border-radius: 0 0 16px 16px;
+  }
+  .chat-input {
+    flex: 1; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); border-radius: 10px; padding: 9px 13px;
+    font-size: 0.9rem; direction: rtl; font-family: inherit;
+    resize: none; min-height: 40px; max-height: 100px;
+  }
+  .chat-input:focus { outline: none; border-color: var(--accent); }
+  .chat-typing {
+    display: none; padding: 8px 18px; font-size: 0.78rem; color: var(--muted);
+    font-style: italic;
+  }
+  .chat-typing.show { display: block; }
+
+  /* ── Meeting Creation Form ────────────────────────────────── */
+  .meeting-dept-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px; margin-top: 6px;
+  }
+  .meeting-dept-item {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 10px; cursor: pointer;
+    transition: all 0.15s; font-size: 0.83rem;
+  }
+  .meeting-dept-item:hover { border-color: var(--accent); }
+  .meeting-dept-item.selected { border-color: var(--accent); background: rgba(59,130,246,0.12); color: white; }
+  .meeting-dept-item input { accent-color: var(--accent); }
+  .meeting-type-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .type-btn {
+    padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--muted); cursor: pointer;
+    font-size: 0.82rem; transition: all 0.15s;
+  }
+  .type-btn.selected { border-color: var(--accent); background: rgba(59,130,246,0.15); color: white; }
 </style>
 </head>
 <body>
@@ -950,13 +1167,14 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   <div class="tab-panel" id="panel-meetings">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
       <div class="section-title" style="margin-bottom:0; border:none;">🎙️ ישיבות ופגישות</div>
-      <div class="filter-bar" id="meetings-filter">
-        <button class="filter-btn active" onclick="filterMeetings('all', this)">הכל</button>
-        <button class="filter-btn" onclick="filterMeetings('board', this)">דירקטוריון</button>
-        <button class="filter-btn" onclick="filterMeetings('management', this)">הנהלה</button>
-        <button class="filter-btn" onclick="filterMeetings('department', this)">מחלקה</button>
-        <button class="filter-btn" onclick="filterMeetings('emergency', this)">חירום</button>
-      </div>
+      <button class="btn btn-sm" onclick="showMeetingModal()">+ ישיבה חדשה</button>
+    </div>
+    <div class="filter-bar" id="meetings-filter" style="margin-bottom:16px;">
+      <button class="filter-btn active" onclick="filterMeetings('all', this)">הכל</button>
+      <button class="filter-btn" onclick="filterMeetings('board', this)">דירקטוריון</button>
+      <button class="filter-btn" onclick="filterMeetings('management', this)">הנהלה</button>
+      <button class="filter-btn" onclick="filterMeetings('department', this)">מחלקה</button>
+      <button class="filter-btn" onclick="filterMeetings('emergency', this)">חירום</button>
     </div>
     <div class="meetings-list" id="meetings-list">
       <div class="loading"><div class="spinner"></div></div>
@@ -966,27 +1184,22 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   <!-- DISCUSSIONS TAB -->
   <div class="tab-panel" id="panel-discussions">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-      <div class="section-title" style="margin-bottom:0; border:none;">💬 דיונים צוותיים</div>
-      <button class="btn btn-sm" onclick="showNewDiscussionForm()">+ דיון חדש</button>
-    </div>
-    <div id="new-discussion-form" style="display:none; margin-bottom:16px;">
-      <div class="card">
-        <h4 style="margin-bottom:12px; font-size:0.9rem;">דיון חדש</h4>
-        <input type="text" id="disc-title" placeholder="כותרת הדיון" style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px 12px; font-size:0.9rem; direction:rtl; margin-bottom:10px; font-family:inherit;">
-        <select id="disc-type" style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px 12px; font-size:0.9rem; direction:rtl; margin-bottom:10px; font-family:inherit;">
-          <option value="team">צוות</option>
-          <option value="management">הנהלה</option>
-          <option value="board">דירקטוריון</option>
-          <option value="committee">ועדה</option>
-          <option value="employee">עובד</option>
-        </select>
-        <div style="display:flex; gap:8px;">
-          <button class="btn btn-sm" onclick="createDiscussion()">צור דיון</button>
-          <button class="filter-btn" onclick="hideNewDiscussionForm()">ביטול</button>
-        </div>
+      <div class="section-title" style="margin-bottom:0; border:none;">💬 דיונים וועדות</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-sm" onclick="openDiscModal('discussion')">+ דיון חדש</button>
+        <button class="btn btn-sm btn-success" onclick="openDiscModal('committee')">🏛️ ועדה חדשה</button>
       </div>
     </div>
-    <div class="discussions-list" id="discussions-list">
+    <div class="filter-bar" id="disc-filter-bar" style="margin-bottom:16px;">
+      <button class="filter-btn active" onclick="filterDiscs('all',this)">הכל</button>
+      <button class="filter-btn" onclick="filterDiscs('active',this)">פעילים</button>
+      <button class="filter-btn" onclick="filterDiscs('closed',this)">סגורים</button>
+      <button class="filter-btn" onclick="filterDiscs('committee',this)">ועדות</button>
+      <button class="filter-btn" onclick="filterDiscs('management',this)">הנהלה</button>
+      <button class="filter-btn" onclick="filterDiscs('team',this)">צוות</button>
+      <button class="filter-btn" onclick="filterDiscs('board',this)">דירקטוריון</button>
+    </div>
+    <div id="discussions-list">
       <div class="loading"><div class="spinner"></div></div>
     </div>
   </div>
@@ -1077,6 +1290,125 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       <button class="btn btn-sm" onclick="editEmployee()">✏️ ערוך</button>
       <div class="spacer"></div>
       <button class="btn btn-danger btn-sm" onclick="fireEmployee()">🔴 פטר</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── New Meeting Modal ───────────────────────────────────────────────── -->
+<div id="meeting-modal" class="modal-overlay" onclick="if(event.target===this)closeMeetingModal()">
+  <div class="modal-box" style="max-width:580px;">
+    <div class="modal-header">
+      <div><div class="modal-title">🎙️ ישיבה חדשה</div><div class="modal-subtitle">הסוכנים ינהלו את הישיבה ויפיקו פרוטוקול</div></div>
+      <button class="modal-close" onclick="closeMeetingModal()">✕</button>
+    </div>
+    <div class="modal-body" style="white-space:normal;">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <div style="font-size:0.82rem;color:var(--muted);margin-bottom:5px;">כותרת הישיבה *</div>
+          <input id="mtg-title" type="text" placeholder='לדוגמה: ישיבת הנהלה - אסטרטגיה 2025' class="instruction-textarea" style="min-height:auto;height:42px;padding:8px 12px;">
+        </div>
+        <div>
+          <div style="font-size:0.82rem;color:var(--muted);margin-bottom:5px;">נושא / סדר יום *</div>
+          <textarea id="mtg-topic" class="instruction-textarea" placeholder="מה נדון בישיבה? פרט את הנושאים..." style="min-height:80px;"></textarea>
+        </div>
+        <div>
+          <div style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;">סוג ישיבה</div>
+          <div class="meeting-type-btns">
+            <button class="type-btn selected" onclick="selectMtgType('management',this)">🏢 הנהלה</button>
+            <button class="type-btn" onclick="selectMtgType('board',this)">👑 דירקטוריון</button>
+            <button class="type-btn" onclick="selectMtgType('department',this)">🏗️ מחלקה</button>
+            <button class="type-btn" onclick="selectMtgType('emergency',this)">🚨 חירום</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;">משתתפים — בחר מחלקות</div>
+          <div class="meeting-dept-grid" id="mtg-dept-grid">
+            <label class="meeting-dept-item selected"><input type="checkbox" value="ceo" checked> 🎯 מנכ"ל</label>
+            <label class="meeting-dept-item selected"><input type="checkbox" value="cfo" checked> 💰 כספים</label>
+            <label class="meeting-dept-item"><input type="checkbox" value="marketing"> 📣 שיווק</label>
+            <label class="meeting-dept-item"><input type="checkbox" value="sales"> 📈 מכירות</label>
+            <label class="meeting-dept-item"><input type="checkbox" value="legal"> ⚖️ משפטי</label>
+            <label class="meeting-dept-item"><input type="checkbox" value="cto"> 💻 טכנולוגיה</label>
+            <label class="meeting-dept-item"><input type="checkbox" value="content"> 🎨 תוכן</label>
+            <label class="meeting-dept-item"><input type="checkbox" value="pr"> 🤝 יח"צ</label>
+            <label class="meeting-dept-item"><input type="checkbox" value="compliance"> 🛡️ ציות</label>
+          </div>
+        </div>
+        <div id="mtg-status" style="font-size:0.85rem;color:var(--accent);min-height:20px;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sm btn-success" onclick="submitMeeting()" id="mtg-submit-btn">🎙️ התחל ישיבה</button>
+      <button class="filter-btn" onclick="closeMeetingModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Create Discussion / Committee Modal ─────────────────────────────── -->
+<div id="disc-create-modal" class="modal-overlay" onclick="if(event.target===this)closeDiscModal()">
+  <div class="modal-box" style="max-width:600px;">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="disc-modal-title">+ דיון חדש</div>
+        <div class="modal-subtitle" id="disc-modal-sub">בחר משתתפים — הם יוכלו לדון ולהשיב</div>
+      </div>
+      <button class="modal-close" onclick="closeDiscModal()">✕</button>
+    </div>
+    <div class="modal-body" style="white-space:normal;">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <div style="font-size:0.82rem;color:var(--muted);margin-bottom:5px;" id="disc-title-label">כותרת הדיון *</div>
+          <input id="new-disc-title" type="text" placeholder="נושא הדיון..." class="instruction-textarea" style="min-height:auto;height:42px;padding:8px 12px;">
+        </div>
+        <div id="disc-type-row">
+          <div style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;">סוג</div>
+          <div class="meeting-type-btns">
+            <button class="type-btn selected" onclick="selectDiscType('team',this)">👥 צוות</button>
+            <button class="type-btn" onclick="selectDiscType('management',this)">🏢 הנהלה</button>
+            <button class="type-btn" onclick="selectDiscType('board',this)">👑 דירקטוריון</button>
+            <button class="type-btn" onclick="selectDiscType('direct',this)">👤 ישיר</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.82rem;color:var(--muted);margin-bottom:5px;">משתתפים</div>
+          <input class="picker-search" id="disc-picker-search" type="text" placeholder="חפש שם עובד..." oninput="filterPicker(this.value)">
+          <div class="picker-scroll" id="disc-picker-list">
+            <div style="padding:20px;text-align:center;color:var(--muted);font-size:0.85rem;">טוען עובדים...</div>
+          </div>
+          <div style="font-size:0.77rem;color:var(--muted);margin-top:6px;">נבחרו:</div>
+          <div class="selected-chips" id="disc-selected-chips"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sm btn-success" onclick="submitDiscussion()" id="disc-submit-btn">✅ צור</button>
+      <button class="filter-btn" onclick="closeDiscModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Discussion Chat Modal ──────────────────────────────────────────────── -->
+<div id="disc-chat-modal" class="modal-overlay" onclick="if(event.target===this)closeDiscChat()">
+  <div class="disc-chat-box">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="chat-disc-title">דיון</div>
+        <div class="modal-subtitle" id="chat-disc-meta"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button id="chat-close-disc-btn" class="btn btn-danger btn-sm" onclick="closeChatDiscussion()" style="display:none;">🔒 סגור דיון</button>
+        <button class="modal-close" onclick="closeDiscChat()">✕</button>
+      </div>
+    </div>
+    <div class="chat-participants-bar" id="chat-participants-bar">
+      <span class="label">משתתפים:</span>
+    </div>
+    <div class="chat-thread" id="chat-thread"></div>
+    <div class="chat-typing" id="chat-typing">⏳ הסוכנים מגיבים...</div>
+    <div class="chat-input-row" id="chat-input-area">
+      <textarea class="chat-input" id="chat-msg-input" placeholder="כתוב הודעה לצוות..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMsg();}"></textarea>
+      <button class="btn btn-sm" onclick="sendChatMsg()" id="chat-send-btn">שלח ▶</button>
     </div>
   </div>
 </div>
@@ -1672,95 +2004,453 @@ function toggleMeeting(id) {
   }
 }
 
-// ── Discussions Tab ────────────────────────────────────────────────────────
+// ── Meeting Modal ──────────────────────────────────────────────────────────
+let _mtgType = 'management';
+
+function showMeetingModal() {
+  document.getElementById('meeting-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('mtg-status').textContent = '';
+  document.getElementById('mtg-submit-btn').disabled = false;
+  // visual sync checkboxes with label styles
+  document.querySelectorAll('#mtg-dept-grid label').forEach(lbl => {
+    const cb = lbl.querySelector('input');
+    if (cb.checked) lbl.classList.add('selected'); else lbl.classList.remove('selected');
+    cb.onchange = () => {
+      if (cb.checked) lbl.classList.add('selected'); else lbl.classList.remove('selected');
+    };
+  });
+}
+
+function closeMeetingModal() {
+  document.getElementById('meeting-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function selectMtgType(type, btn) {
+  _mtgType = type;
+  document.querySelectorAll('.meeting-type-btns .type-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+async function submitMeeting() {
+  const title = document.getElementById('mtg-title').value.trim();
+  const topic = document.getElementById('mtg-topic').value.trim();
+  if (!title || !topic) { toast('מלא כותרת ונושא', 'error'); return; }
+
+  const participants = Array.from(
+    document.querySelectorAll('#mtg-dept-grid input[type=checkbox]:checked')
+  ).map(cb => cb.value);
+
+  if (participants.length === 0) { toast('בחר לפחות משתתף אחד', 'error'); return; }
+
+  const statusEl = document.getElementById('mtg-status');
+  const submitBtn = document.getElementById('mtg-submit-btn');
+  statusEl.innerHTML = '⏳ הישיבה מתנהלת... הסוכנים דנים בנושא. זה יכול לקחת כמה דקות.';
+  submitBtn.disabled = true;
+
+  try {
+    const r = await fetch('/api/meetings/new', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ title, topic, participants, meeting_type: _mtgType })
+    }).then(x => x.json());
+
+    if (r.success) {
+      toast('✅ הישיבה הסתיימה! הפרוטוקול נשמר.', 'success');
+      closeMeetingModal();
+      document.getElementById('mtg-title').value = '';
+      document.getElementById('mtg-topic').value = '';
+      loadMeetings();
+    } else {
+      statusEl.textContent = 'שגיאה בקיום הישיבה';
+      submitBtn.disabled = false;
+    }
+  } catch(e) {
+    statusEl.textContent = 'שגיאה: ' + e.message;
+    submitBtn.disabled = false;
+  }
+}
+
+// ── Discussions ────────────────────────────────────────────────────────────
+let _allDiscs = [];
+let _discType = 'discussion';
+let _discSelectedType = 'team';
+let _discPickerEmployees = [];
+let _discSelectedParticipants = [];
+let _chatDiscId = null;
+
 async function loadDiscussions() {
   try {
-    const discussions = await fetch('/api/discussions').then(r => r.json());
-    renderDiscussions(discussions);
+    _allDiscs = await fetch('/api/discussions').then(r => r.json()) || [];
+    renderDiscussions(_allDiscs);
   } catch(e) {
     document.getElementById('discussions-list').innerHTML = '<div class="empty-state"><p>שגיאה בטעינת דיונים</p></div>';
   }
 }
 
+function filterDiscs(filter, btn) {
+  document.querySelectorAll('#disc-filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  let filtered = _allDiscs;
+  if (filter === 'active')     filtered = _allDiscs.filter(d => d.status !== 'closed');
+  else if (filter === 'closed') filtered = _allDiscs.filter(d => d.status === 'closed');
+  else if (filter !== 'all')   filtered = _allDiscs.filter(d => d.discussion_type === filter);
+  renderDiscussions(filtered);
+}
+
+const _discTypeLabel = { team: 'צוות', management: 'הנהלה', board: 'דירקטוריון', committee: 'ועדה', direct: 'ישיר', employee: 'עובד' };
+const _discTypeBadge = { team: 'badge-blue', management: 'badge-purple', board: 'badge-yellow', committee: 'badge-green', direct: 'badge-gray' };
+
 function renderDiscussions(discussions) {
   const el = document.getElementById('discussions-list');
   if (!discussions || discussions.length === 0) {
-    el.innerHTML = '<div class="empty-state"><div class="icon">💬</div><p>אין דיונים עדיין. צור דיון חדש.</p></div>';
+    el.innerHTML = '<div class="empty-state"><div class="icon">💬</div><p>אין דיונים עדיין. לחץ "+ דיון חדש" כדי להתחיל.</p></div>';
     return;
   }
-  const typeLabels = { team: 'צוות', management: 'הנהלה', board: 'דירקטוריון', committee: 'ועדה', employee: 'עובד' };
-  el.innerHTML = discussions.map((d, i) => {
-    const messages = Array.isArray(d.messages) ? d.messages : [];
-    const participants = Array.isArray(d.participants) ? d.participants : [];
+  el.innerHTML = discussions.map(d => {
+    const msgs = Array.isArray(d.messages) ? d.messages : [];
+    const parts = Array.isArray(d.participants) ? d.participants : [];
+    const isClosed = d.status === 'closed';
+    const isCommittee = d.discussion_type === 'committee';
+    const lastMsg = msgs[msgs.length - 1];
+    const badgeClass = _discTypeBadge[d.discussion_type] || 'badge-gray';
+    const typeLabel = _discTypeLabel[d.discussion_type] || d.discussion_type;
+
+    const partsHtml = parts.slice(0, 5).map(p => {
+      const n = typeof p === 'string' ? p : (p.name || '');
+      return `<span class="disc-participant">${initials(n)} ${n}</span>`;
+    }).join('') + (parts.length > 5 ? `<span class="disc-participant">+${parts.length-5}</span>` : '');
+
     return `
-      <div class="discussion-card">
-        <div class="discussion-header" onclick="toggleDiscussion('d${i}')">
-          <div>
-            <div style="font-weight:600;font-size:0.9rem;">${d.title}</div>
-            <div style="font-size:0.75rem;color:var(--muted);margin-top:3px;">
-              <span class="badge badge-blue">${typeLabels[d.discussion_type] || d.discussion_type}</span>
-              ${participants.length > 0 ? '• ' + participants.slice(0,3).join(', ') : ''}
-              • ${messages.length} הודעות • ${timeAgo(d.updated_at)}
-            </div>
+      <div class="disc-card ${isClosed ? 'closed' : ''} ${isCommittee ? 'committee' : ''}"
+           onclick="openDiscChat(${JSON.stringify(d.id)})">
+        <div class="disc-card-header">
+          <div class="disc-title">${isCommittee ? '🏛️ ' : '💬 '}${d.title}</div>
+          <div style="display:flex;gap:5px;flex-shrink:0;">
+            <span class="badge ${badgeClass}">${typeLabel}</span>
+            ${isClosed ? '<span class="badge badge-gray">סגור</span>' : '<span class="badge badge-green">פעיל</span>'}
           </div>
-          <span style="color:var(--muted);" id="arr-d${i}">▾</span>
         </div>
-        <div class="discussion-msgs" id="d${i}">
-          ${messages.length === 0 ? '<p style="color:var(--muted);font-size:0.85rem;">אין הודעות עדיין</p>' :
-            messages.map(m => `
-              <div class="msg-row">
-                <div class="msg-avatar">${initials(m.sender || '?')}</div>
-                <div class="msg-bubble">
-                  <div class="msg-sender">${m.sender || '?'} ${m.role ? '— ' + m.role : ''}</div>
-                  <div class="msg-text">${m.message || ''}</div>
-                  ${m.timestamp ? `<div class="msg-time">${timeAgo(m.timestamp)}</div>` : ''}
-                </div>
-              </div>
-            `).join('')
-          }
+        <div class="disc-meta">
+          <span>💬 ${msgs.length} הודעות</span>
+          <span>•</span>
+          <span>${timeAgo(d.updated_at || d.created_at)}</span>
         </div>
+        ${parts.length > 0 ? `<div class="disc-participants">${partsHtml}</div>` : ''}
+        ${lastMsg ? `<div class="disc-last-msg"><strong>${lastMsg.sender}:</strong> ${(lastMsg.message||'').slice(0,100)}${(lastMsg.message||'').length > 100 ? '...' : ''}</div>` : ''}
       </div>
     `;
   }).join('');
 }
 
-function toggleDiscussion(id) {
-  const el = document.getElementById(id);
-  const arr = document.getElementById('arr-' + id);
-  if (el.classList.contains('open')) {
-    el.classList.remove('open');
-    if (arr) arr.textContent = '▾';
-  } else {
-    el.classList.add('open');
-    if (arr) arr.textContent = '▴';
+// ── Discussion Chat Modal ──────────────────────────────────────────────────
+async function openDiscChat(discId) {
+  _chatDiscId = discId;
+  document.getElementById('disc-chat-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('chat-thread').innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);">⏳ טוען...</div>';
+
+  try {
+    const disc = await fetch('/api/discussions/' + discId).then(r => r.json());
+    renderChatModal(disc);
+  } catch(e) {
+    document.getElementById('chat-thread').innerHTML = '<div class="empty-state"><p>שגיאה בטעינת הדיון</p></div>';
   }
 }
 
-function showNewDiscussionForm() {
-  document.getElementById('new-discussion-form').style.display = 'block';
+function renderChatModal(disc) {
+  const parts = Array.isArray(disc.participants) ? disc.participants : [];
+  const msgs  = Array.isArray(disc.messages)     ? disc.messages     : [];
+  const isClosed = disc.status === 'closed';
+
+  document.getElementById('chat-disc-title').textContent = (_discTypeLabel[disc.discussion_type] === 'ועדה' ? '🏛️ ' : '💬 ') + disc.title;
+  document.getElementById('chat-disc-meta').textContent =
+    `${_discTypeLabel[disc.discussion_type] || disc.discussion_type} • ${msgs.length} הודעות • ${isClosed ? 'סגור' : 'פעיל'}`;
+
+  // Participants bar
+  const partsBar = document.getElementById('chat-participants-bar');
+  partsBar.innerHTML = '<span class="label">משתתפים:</span>';
+  if (parts.length === 0) {
+    partsBar.innerHTML += '<span style="font-size:0.78rem;color:var(--muted);">אין משתתפים</span>';
+  } else {
+    parts.forEach(p => {
+      const n = typeof p === 'string' ? p : (p.name || '');
+      const t = typeof p === 'object' ? (p.title_he || '') : '';
+      partsBar.innerHTML += `<span class="disc-participant" title="${t}">${deptIcon(typeof p === 'object' ? p.department_code : '')} ${n}</span>`;
+    });
+  }
+
+  // Messages
+  const thread = document.getElementById('chat-thread');
+  if (msgs.length === 0) {
+    thread.innerHTML = '<div class="empty-state" style="padding:30px;"><div class="icon">💬</div><p>אין הודעות עדיין. שלח הודעה ראשונה!</p></div>';
+  } else {
+    thread.innerHTML = msgs.map(m => {
+      const isChairman = (m.sender || '').includes('פארוק') || (m.role || '').includes('יו"ר');
+      return `
+        <div class="chat-msg ${isChairman ? 'chairman' : ''}">
+          <div class="chat-avatar">${initials(m.sender || '?')}</div>
+          <div class="chat-bubble">
+            <div class="chat-bubble-name">${m.sender || ''} ${m.role ? '— ' + m.role : ''}</div>
+            <div class="chat-bubble-text">${(m.message || '').replace(/\n/g,'<br>')}</div>
+            <div class="chat-bubble-time">${m.timestamp ? timeAgo(m.timestamp) : ''}</div>
+          </div>
+        </div>`;
+    }).join('');
+    thread.scrollTop = thread.scrollHeight;
+  }
+
+  // Close discussion button
+  const closeBtn = document.getElementById('chat-close-disc-btn');
+  closeBtn.style.display = isClosed ? 'none' : 'inline-flex';
+
+  // Input area
+  const inputArea = document.getElementById('chat-input-area');
+  inputArea.style.display = isClosed ? 'none' : 'flex';
+  if (isClosed) {
+    thread.innerHTML += '<div style="text-align:center;padding:10px;font-size:0.8rem;color:var(--muted);">🔒 הדיון נסגר</div>';
+  }
 }
 
-function hideNewDiscussionForm() {
-  document.getElementById('new-discussion-form').style.display = 'none';
+function closeDiscChat() {
+  document.getElementById('disc-chat-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  _chatDiscId = null;
 }
 
-async function createDiscussion() {
-  const title = document.getElementById('disc-title').value.trim();
-  const type = document.getElementById('disc-type').value;
-  if (!title) { toast('אנא הכנס כותרת לדיון', 'error'); return; }
+async function sendChatMsg() {
+  if (!_chatDiscId) return;
+  const input = document.getElementById('chat-msg-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  input.value = '';
+  input.disabled = true;
+  document.getElementById('chat-send-btn').disabled = true;
+  document.getElementById('chat-typing').classList.add('show');
+
+  // Optimistically add chairman's message
+  const thread = document.getElementById('chat-thread');
+  thread.innerHTML += `
+    <div class="chat-msg chairman">
+      <div class="chat-avatar">👑</div>
+      <div class="chat-bubble">
+        <div class="chat-bubble-name">פארוק ג'אבר — יו"ר</div>
+        <div class="chat-bubble-text">${msg.replace(/\n/g,'<br>')}</div>
+        <div class="chat-bubble-time">עכשיו</div>
+      </div>
+    </div>`;
+  thread.scrollTop = thread.scrollHeight;
+
   try {
-    await fetch('/api/discussions/new', {
+    const r = await fetch('/api/discussions/' + _chatDiscId + '/send', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ title, discussion_type: type })
-    });
-    hideNewDiscussionForm();
-    document.getElementById('disc-title').value = '';
-    toast('דיון נוצר בהצלחה!', 'success');
-    loadDiscussions();
+      body: JSON.stringify({ message: msg })
+    }).then(x => x.json());
+
+    if (r.success) {
+      // Re-render with full updated messages
+      const disc = await fetch('/api/discussions/' + _chatDiscId).then(x => x.json());
+      renderChatModal(disc);
+      // Refresh list
+      _allDiscs = await fetch('/api/discussions').then(x => x.json()) || [];
+      renderDiscussions(_allDiscs);
+    } else {
+      toast('שגיאה בשליחת הודעה', 'error');
+    }
   } catch(e) {
-    toast('שגיאה ביצירת דיון: ' + e.message, 'error');
+    toast('שגיאה: ' + e.message, 'error');
+  } finally {
+    input.disabled = false;
+    document.getElementById('chat-send-btn').disabled = false;
+    document.getElementById('chat-typing').classList.remove('show');
+    input.focus();
   }
+}
+
+async function closeChatDiscussion() {
+  if (!_chatDiscId) return;
+  if (!confirm('לסגור את הדיון? לא ניתן יהיה לשלוח הודעות חדשות.')) return;
+  try {
+    await fetch('/api/discussions/' + _chatDiscId + '/close', { method: 'POST' });
+    toast('הדיון נסגר', 'success');
+    const disc = await fetch('/api/discussions/' + _chatDiscId).then(r => r.json());
+    renderChatModal(disc);
+    _allDiscs = await fetch('/api/discussions').then(r => r.json()) || [];
+    renderDiscussions(_allDiscs);
+  } catch(e) { toast('שגיאה', 'error'); }
+}
+
+// ── Create Discussion Modal ────────────────────────────────────────────────
+async function openDiscModal(mode) {
+  _discType = mode;
+  _discSelectedParticipants = [];
+  _discSelectedType = mode === 'committee' ? 'committee' : 'team';
+
+  document.getElementById('disc-modal-title').textContent = mode === 'committee' ? '🏛️ ועדה חדשה' : '+ דיון חדש';
+  document.getElementById('disc-modal-sub').textContent   = mode === 'committee' ? 'הגדר ועדה ובחר חברים' : 'בחר משתתפים — הם יגיבו על הודעותיך';
+  document.getElementById('disc-title-label').textContent = mode === 'committee' ? 'שם הוועדה *' : 'כותרת הדיון *';
+  document.getElementById('new-disc-title').value = '';
+
+  // Hide type selector for committee (always "committee")
+  document.getElementById('disc-type-row').style.display = mode === 'committee' ? 'none' : 'block';
+
+  document.getElementById('disc-create-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  renderSelectedChips();
+  await loadPickerEmployees();
+}
+
+function closeDiscModal() {
+  document.getElementById('disc-create-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function selectDiscType(type, btn) {
+  _discSelectedType = type;
+  document.querySelectorAll('#disc-type-row .type-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+async function loadPickerEmployees() {
+  const listEl = document.getElementById('disc-picker-list');
+  listEl.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:0.85rem;">טוען...</div>';
+  try {
+    const [employees, board] = await Promise.all([
+      fetch('/api/employees').then(r => r.json()),
+      fetch('/api/board').then(r => r.json()),
+    ]);
+
+    // Board members with synthetic dept codes
+    const boardEmps = (board || []).filter(b => b.role !== 'chairman').map(b => ({
+      id: 'board-' + b.id, name: b.name, title_he: b.title_he,
+      department_code: b.role || 'ceo', is_ai: b.is_ai !== false,
+      _dept_label: '👑 דירקטוריון'
+    }));
+
+    // Group employees by department
+    const deptGroups = {};
+    const deptNames = { ceo:'🎯 הנהלה', cfo:'💰 כספים', marketing:'📣 שיווק', sales:'📈 מכירות',
+                        legal:'⚖️ משפטי', cto:'💻 טכנולוגיה', content:'🎨 תוכן', pr:'🤝 יח"צ', compliance:'🛡️ ציות' };
+    (employees || []).forEach(e => {
+      const dk = e.department_code || 'other';
+      if (!deptGroups[dk]) deptGroups[dk] = [];
+      deptGroups[dk].push({ id: e.id, name: e.name, title_he: e.title_he,
+                            department_code: e.department_code, is_ai: e.is_ai !== false });
+    });
+
+    _discPickerEmployees = [...boardEmps, ...(employees || []).map(e => ({
+      id: e.id, name: e.name, title_he: e.title_he,
+      department_code: e.department_code, is_ai: e.is_ai !== false
+    }))];
+
+    let html = '';
+    if (boardEmps.length > 0) {
+      html += `<div class="picker-dept-head">👑 דירקטוריון <span class="pick-all" onclick="pickAllDept('board')">בחר הכל</span></div>`;
+      boardEmps.forEach(e => {
+        html += pickerItemHtml(e);
+      });
+    }
+    Object.entries(deptGroups).forEach(([code, emps]) => {
+      html += `<div class="picker-dept-head">${deptNames[code]||code} <span class="pick-all" onclick="pickAllDept('${code}')">בחר הכל</span></div>`;
+      emps.forEach(e => { html += pickerItemHtml(e); });
+    });
+    listEl.innerHTML = html;
+  } catch(e) {
+    listEl.innerHTML = '<div style="padding:16px;color:var(--danger);font-size:0.85rem;">שגיאה בטעינת עובדים</div>';
+  }
+}
+
+function pickerItemHtml(e) {
+  const isSelected = _discSelectedParticipants.some(p => p.id === e.id);
+  return `<label class="picker-item" id="pi-${e.id}">
+    <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleParticipant('${e.id}')">
+    <div>
+      <div class="pi-name">${e.name} ${e.is_ai ? '🤖' : '👤'}</div>
+      <div class="pi-title">${e.title_he || ''} ${e.department_code ? '• ' + e.department_code : ''}</div>
+    </div>
+  </label>`;
+}
+
+function toggleParticipant(empId) {
+  const emp = _discPickerEmployees.find(e => e.id === empId || e.id === empId);
+  if (!emp) return;
+  const idx = _discSelectedParticipants.findIndex(p => p.id === empId);
+  if (idx >= 0) {
+    _discSelectedParticipants.splice(idx, 1);
+  } else {
+    _discSelectedParticipants.push(emp);
+  }
+  renderSelectedChips();
+}
+
+function pickAllDept(code) {
+  const deptEmps = _discPickerEmployees.filter(e =>
+    code === 'board' ? (e._dept_label || '').includes('דירקטוריון') : e.department_code === code
+  );
+  deptEmps.forEach(e => {
+    if (!_discSelectedParticipants.find(p => p.id === e.id)) {
+      _discSelectedParticipants.push(e);
+    }
+    const cb = document.querySelector(`#pi-${e.id} input`);
+    if (cb) cb.checked = true;
+  });
+  renderSelectedChips();
+}
+
+function renderSelectedChips() {
+  const el = document.getElementById('disc-selected-chips');
+  el.innerHTML = _discSelectedParticipants.length === 0
+    ? '<span style="font-size:0.78rem;color:var(--muted);">טרם נבחרו משתתפים</span>'
+    : _discSelectedParticipants.map(p => `
+        <span class="sel-chip">${p.name}
+          <button onclick="removeParticipant('${p.id}')">✕</button>
+        </span>`).join('');
+}
+
+function removeParticipant(id) {
+  _discSelectedParticipants = _discSelectedParticipants.filter(p => p.id !== id);
+  const cb = document.querySelector(`#pi-${id} input`);
+  if (cb) cb.checked = false;
+  renderSelectedChips();
+}
+
+function filterPicker(query) {
+  document.querySelectorAll('.picker-item').forEach(el => {
+    const text = el.textContent.toLowerCase();
+    el.style.display = (!query || text.includes(query.toLowerCase())) ? '' : 'none';
+  });
+}
+
+async function submitDiscussion() {
+  const title = document.getElementById('new-disc-title').value.trim();
+  if (!title) { toast('אנא הכנס כותרת', 'error'); return; }
+
+  const type = _discType === 'committee' ? 'committee' : _discSelectedType;
+
+  try {
+    document.getElementById('disc-submit-btn').disabled = true;
+    const r = await fetch('/api/discussions/new', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        title, discussion_type: type,
+        participants: _discSelectedParticipants
+      })
+    }).then(x => x.json());
+
+    if (r.success) {
+      toast(`✅ ${_discType === 'committee' ? 'ועדה' : 'דיון'} נוצר/ה בהצלחה!`, 'success');
+      closeDiscModal();
+      loadDiscussions();
+      // Auto-open the chat
+      if (r.discussion) setTimeout(() => openDiscChat(r.discussion.id), 400);
+    } else { toast('שגיאה', 'error'); }
+  } catch(e) { toast('שגיאה: ' + e.message, 'error'); }
+  finally { document.getElementById('disc-submit-btn').disabled = false; }
 }
 
 // ── Activity Tab ───────────────────────────────────────────────────────────
