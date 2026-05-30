@@ -445,6 +445,99 @@ async def get_cashflow():
     return portal_db.get_financial_summary()
 
 
+@app.post("/api/cashflow/analyze")
+async def cashflow_analyze(user: str = Depends(require_auth)):
+    """CFO produces a financial status report based on real portal data."""
+    from database.portal_client import portal_db
+    from agents.cfo import CFOAgent, _format_portal_data
+
+    summary = portal_db.get_financial_summary()
+    portal_section = _format_portal_data(summary)
+
+    task = db.create_task(
+        title="ניתוח מצב פיננסי נוכחי",
+        description="דוח מצב פיננסי מלא מבוסס נתוני פורטל",
+        assigned_to="cfo",
+        priority="high",
+        language="he"
+    )
+    task_id = task["id"]
+
+    agent = CFOAgent()
+    instruction = (
+        f"{portal_section}\n\n"
+        "הפק דוח מצב פיננסי מלא ומפורט:\n"
+        "1. סיכום מצב נוכחי — יתרות, הכנסות, הוצאות, תזרים נטו\n"
+        "2. ניתוח מגמות — השוואה חודשית, מה עולה/יורד\n"
+        "3. נקודות חוזק ונקודות סיכון פיננסיות\n"
+        "4. הקטגוריות הגדולות ביותר בהוצאות — האם סבירות?\n"
+        "5. המלצות לשיפור המצב הפיננסי\n"
+        "6. ציון בריאות פיננסית מ-1 עד 10 עם נימוק\n\n"
+        "השתמש בטבלאות ובמספרים האמיתיים מהפורטל."
+    )
+
+    result = agent.think(instruction)
+    deliverable = db.save_deliverable(
+        task_id=task_id, department="cfo",
+        agent_role="CFO - ניתוח פיננסי",
+        content=result, content_type="markdown"
+    )
+    db.update_task_status(task_id, "review")
+    db.log_activity(activity_type="deliverable_submitted",
+                    title="ניתוח מצב פיננסי הופק",
+                    description="CFO ניתחה את הנתונים מהפורטל",
+                    department="cfo", employee_name="רונית אברהמי")
+    return {"success": True, "task_id": task_id,
+            "deliverable_id": deliverable["id"], "content": result}
+
+
+@app.post("/api/cashflow/budget")
+async def build_budget(user: str = Depends(require_auth)):
+    """CFO builds a full annual/quarterly budget based on real portal data."""
+    from database.portal_client import portal_db
+    from agents.cfo import CFOAgent, _format_portal_data
+
+    summary = portal_db.get_financial_summary()
+    portal_section = _format_portal_data(summary)
+
+    task = db.create_task(
+        title="בניית תקציב שנתי",
+        description="תקציב שנתי ורבעוני מלא מבוסס נתוני פורטל",
+        assigned_to="cfo",
+        priority="high",
+        language="he"
+    )
+    task_id = task["id"]
+
+    agent = CFOAgent()
+    instruction = (
+        f"{portal_section}\n\n"
+        "בנה תקציב שנתי ורבעוני מלא ומפורט:\n\n"
+        "1. תקציב הוצאות שנתי — טבלה לפי קטגוריות (Q1/Q2/Q3/Q4 + שנתי)\n"
+        "2. תחזית הכנסות — 12 חודשים קדימה לפי מגמת הנתונים הקיימים\n"
+        "3. תחזית תזרים מזומנים — 12 חודשים קדימה (טבלה)\n"
+        "4. יעדי חיסכון — אילו הוצאות ניתן לקצץ ובכמה\n"
+        "5. נקודת איזון — מהי ההכנסה המינימלית להוצאות הנוכחיות\n"
+        "6. המלצות אסטרטגיות לשיפור הרווחיות\n\n"
+        "השתמש אך ורק במספרים האמיתיים מהפורטל. "
+        "כל הנחה שתוסיף — ציין אותה בבירור."
+    )
+
+    result = agent.think(instruction)
+    deliverable = db.save_deliverable(
+        task_id=task_id, department="cfo",
+        agent_role="CFO - תקציב שנתי",
+        content=result, content_type="markdown"
+    )
+    db.update_task_status(task_id, "review")
+    db.log_activity(activity_type="deliverable_submitted",
+                    title="תקציב שנתי הופק",
+                    description="CFO בנתה תקציב שנתי מבוסס נתוני פורטל",
+                    department="cfo", employee_name="רונית אברהמי")
+    return {"success": True, "task_id": task_id,
+            "deliverable_id": deliverable["id"], "content": result}
+
+
 # ─── DASHBOARD HTML ──────────────────────────────────────────────────────────
 
 DASHBOARD_HTML = """<!DOCTYPE html>
@@ -1336,7 +1429,24 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
       <div class="section-title" style="margin-bottom:0;border:none;">💰 תזרים מזומנים — נתוני פורטל לקוחות</div>
-      <button class="filter-btn" onclick="loadCashflow()">↻ רענן</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="filter-btn" onclick="loadCashflow()">↻ רענן</button>
+        <button class="btn btn-sm" onclick="cfAnalyze()" id="cf-analyze-btn">📊 ניתוח מצב פיננסי</button>
+        <button class="btn btn-sm btn-success" onclick="cfBudget()" id="cf-budget-btn">📋 בנה תקציב שנתי</button>
+      </div>
+    </div>
+    <div id="cf-action-result" style="margin-bottom:16px;display:none;">
+      <div class="card" style="border-right:4px solid var(--accent);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="font-weight:700;" id="cf-action-title">תוצר</div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-sm btn-copy" onclick="copyCfResult()">📋 העתק</button>
+            <button class="btn btn-sm btn-download" onclick="downloadCfResult()">⬇️ הורד</button>
+            <button class="filter-btn" onclick="document.getElementById('cf-action-result').style.display='none'">✕</button>
+          </div>
+        </div>
+        <div id="cf-action-content" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:0.85rem;line-height:1.7;white-space:pre-wrap;max-height:400px;overflow-y:auto;direction:rtl;"></div>
+      </div>
     </div>
 
     <!-- KPI row -->
@@ -1781,6 +1891,55 @@ function initials(name) {
 }
 
 // ── Cash Flow Tab ──────────────────────────────────────────────────────────
+let _cfResultContent = '';
+
+async function cfAnalyze() {
+  const btn = document.getElementById('cf-analyze-btn');
+  btn.disabled = true; btn.textContent = '⏳ רונית מנתחת...';
+  try {
+    const r = await fetch('/api/cashflow/analyze', { method: 'POST' }).then(x => x.json());
+    if (r.success) {
+      _cfResultContent = r.content;
+      document.getElementById('cf-action-title').textContent = '📊 ניתוח מצב פיננסי — רונית אברהמי, CFO';
+      document.getElementById('cf-action-content').textContent = r.content;
+      document.getElementById('cf-action-result').style.display = 'block';
+      document.getElementById('cf-action-result').scrollIntoView({ behavior: 'smooth' });
+      toast('✅ ניתוח פיננסי הופק!', 'success');
+    } else { toast('שגיאה', 'error'); }
+  } catch(e) { toast('שגיאה: ' + e.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = '📊 ניתוח מצב פיננסי'; }
+}
+
+async function cfBudget() {
+  const btn = document.getElementById('cf-budget-btn');
+  btn.disabled = true; btn.textContent = '⏳ בונה תקציב...';
+  try {
+    const r = await fetch('/api/cashflow/budget', { method: 'POST' }).then(x => x.json());
+    if (r.success) {
+      _cfResultContent = r.content;
+      document.getElementById('cf-action-title').textContent = '📋 תקציב שנתי — רונית אברהמי, CFO';
+      document.getElementById('cf-action-content').textContent = r.content;
+      document.getElementById('cf-action-result').style.display = 'block';
+      document.getElementById('cf-action-result').scrollIntoView({ behavior: 'smooth' });
+      toast('✅ תקציב שנתי הופק!', 'success');
+    } else { toast('שגיאה', 'error'); }
+  } catch(e) { toast('שגיאה: ' + e.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = '📋 בנה תקציב שנתי'; }
+}
+
+function copyCfResult() {
+  navigator.clipboard.writeText(_cfResultContent).then(() => toast('הועתק ✓', 'success'));
+}
+
+function downloadCfResult() {
+  const title = document.getElementById('cf-action-title').textContent;
+  const blob = new Blob([_cfResultContent], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: title.replace(/[^א-תa-zA-Z0-9 ]/g,'_') + '.txt' });
+  a.click(); URL.revokeObjectURL(url);
+  toast('מוריד ✓', 'success');
+}
+
 function ils(n) {
   return '₪' + Number(n).toLocaleString('he-IL', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
