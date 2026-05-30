@@ -439,6 +439,12 @@ async def execute_goals(user: str = Depends(require_auth)):
     return {"success": True, "task_id": result.get("task_id"), "departments": result.get("departments_involved")}
 
 
+@app.get("/api/cashflow")
+async def get_cashflow():
+    from database.portal_client import portal_db
+    return portal_db.get_financial_summary()
+
+
 # ─── DASHBOARD HTML ──────────────────────────────────────────────────────────
 
 DASHBOARD_HTML = """<!DOCTYPE html>
@@ -1135,6 +1141,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   <div class="tab" onclick="switchTab('departments')" id="tab-departments">🏢 מחלקות</div>
   <div class="tab" onclick="switchTab('meetings')" id="tab-meetings">🎙️ ישיבות</div>
   <div class="tab" onclick="switchTab('discussions')" id="tab-discussions">💬 דיונים</div>
+  <div class="tab" onclick="switchTab('cashflow')" id="tab-cashflow">💰 תזרים</div>
   <div class="tab" onclick="switchTab('activity')" id="tab-activity">📊 פעילות</div>
   <div class="tab" onclick="switchTab('deliverables')" id="tab-deliverables">📋 תוצרים</div>
 </div>
@@ -1322,6 +1329,31 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     <div id="discussions-list">
       <div class="loading"><div class="spinner"></div></div>
     </div>
+  </div>
+
+  <!-- CASHFLOW TAB -->
+  <div class="tab-panel" id="panel-cashflow">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <div class="section-title" style="margin-bottom:0;border:none;">💰 תזרים מזומנים — נתוני פורטל לקוחות</div>
+      <button class="filter-btn" onclick="loadCashflow()">↻ רענן</button>
+    </div>
+
+    <!-- KPI row -->
+    <div class="stats-grid" id="cf-kpis" style="margin-bottom:24px;">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+
+    <!-- Accounts + Bank rows -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;" id="cf-accounts-row">
+    </div>
+
+    <!-- Monthly breakdown table -->
+    <div class="card" id="cf-monthly" style="margin-bottom:24px;"></div>
+
+    <!-- Top expense categories -->
+    <div class="card" id="cf-categories"></div>
+
   </div>
 
   <!-- ACTIVITY TAB -->
@@ -1669,6 +1701,7 @@ function loadTab(name) {
     case 'departments': loadDepartments(); break;
     case 'meetings': loadMeetings(); break;
     case 'discussions': loadDiscussions(); break;
+    case 'cashflow': loadCashflow(); break;
     case 'activity': loadActivity(); break;
     case 'deliverables': loadDeliverables(); break;
   }
@@ -1745,6 +1778,162 @@ function initials(name) {
   const parts = name.split(' ');
   if (parts.length >= 2) return parts[0][0] + parts[1][0];
   return name[0];
+}
+
+// ── Cash Flow Tab ──────────────────────────────────────────────────────────
+function ils(n) {
+  return '₪' + Number(n).toLocaleString('he-IL', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+async function loadCashflow() {
+  document.getElementById('cf-kpis').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  document.getElementById('cf-accounts-row').innerHTML = '';
+  document.getElementById('cf-monthly').innerHTML = '';
+  document.getElementById('cf-categories').innerHTML = '';
+
+  try {
+    const d = await fetch('/api/cashflow').then(r => r.json());
+
+    if (!d || !d.available) {
+      document.getElementById('cf-kpis').innerHTML = `
+        <div style="grid-column:1/-1;" class="empty-state">
+          <div class="icon">💰</div>
+          <p>פורטל הלקוחות אינו מחובר.</p>
+          <p style="font-size:0.8rem;margin-top:8px;">הוסף ל-Railway: <code>PORTAL_SUPABASE_URL</code> ו-<code>PORTAL_SUPABASE_KEY</code></p>
+        </div>`;
+      return;
+    }
+
+    // KPI row
+    const netColor = d.net_cashflow_ils >= 0 ? 'var(--success)' : 'var(--danger)';
+    document.getElementById('cf-kpis').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-number" style="font-size:1.5rem;">${ils(d.total_accounts_balance_ils)}</div>
+        <div class="stat-label">יתרה כוללת</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="font-size:1.5rem;background:linear-gradient(135deg,var(--success),#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${ils(d.total_income_ils)}</div>
+        <div class="stat-label">הכנסות 12 חודש</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="font-size:1.5rem;background:linear-gradient(135deg,var(--danger),#f87171);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${ils(d.total_expenses_ils)}</div>
+        <div class="stat-label">הוצאות 12 חודש</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="font-size:1.5rem;background:linear-gradient(135deg,${netColor},${netColor});-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${ils(d.net_cashflow_ils)}</div>
+        <div class="stat-label">תזרים נטו</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="font-size:1.6rem;">${d.transaction_count}</div>
+        <div class="stat-label">עסקאות</div>
+      </div>`;
+
+    // Accounts + bank statement
+    const accounts = d.accounts || [];
+    document.getElementById('cf-accounts-row').innerHTML = `
+      <div class="card">
+        <div class="section-title" style="margin-bottom:12px;">🏦 חשבונות בנק</div>
+        ${accounts.length === 0 ? '<p style="color:var(--muted);font-size:0.85rem;">אין חשבונות</p>' :
+          accounts.map(a => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+              <div>
+                <div style="font-weight:600;font-size:0.9rem;">${a.name}</div>
+                <div style="font-size:0.75rem;color:var(--muted);">${a.type || ''}</div>
+              </div>
+              <div style="font-size:1rem;font-weight:700;color:${a.balance >= 0 ? 'var(--success)' : 'var(--danger)'};">${ils(a.balance)}</div>
+            </div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="section-title" style="margin-bottom:12px;">🏧 תנועות בנק (ייבוא)</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:var(--muted);font-size:0.85rem;">זיכויים</span>
+            <span style="font-weight:700;color:var(--success);">${ils(d.bank_statement.total_credits)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:var(--muted);font-size:0.85rem;">חיובים</span>
+            <span style="font-weight:700;color:var(--danger);">${ils(d.bank_statement.total_debits)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:10px;">
+            <span style="color:var(--muted);font-size:0.85rem;">מספר שורות</span>
+            <span style="font-weight:700;">${d.bank_statement.rows_count}</span>
+          </div>
+        </div>
+      </div>`;
+
+    // Monthly breakdown
+    const monthly = d.monthly_breakdown || {};
+    const months = Object.keys(monthly).sort();
+    if (months.length > 0) {
+      const maxVal = Math.max(...months.map(m => Math.max(monthly[m].income, monthly[m].expenses)));
+      const bars = months.map(m => {
+        const inc = monthly[m].income;
+        const exp = monthly[m].expenses;
+        const net = inc - exp;
+        const incPct = maxVal > 0 ? (inc / maxVal * 100) : 0;
+        const expPct = maxVal > 0 ? (exp / maxVal * 100) : 0;
+        const label = m.slice(0, 7); // YYYY-MM
+        return `
+          <div style="flex:1;min-width:60px;text-align:center;">
+            <div style="display:flex;flex-direction:column;justify-content:flex-end;height:80px;gap:2px;margin-bottom:4px;">
+              <div title="הכנסות: ${ils(inc)}" style="background:var(--success);opacity:0.8;border-radius:3px 3px 0 0;height:${incPct}%;min-height:3px;"></div>
+            </div>
+            <div title="הוצאות: ${ils(exp)}" style="background:var(--danger);opacity:0.7;border-radius:0 0 3px 3px;height:${expPct}%;min-height:3px;transform:scaleY(-1);margin-top:-4px;position:relative;top:0;"></div>
+            <div style="font-size:0.65rem;color:var(--muted);margin-top:6px;">${label.slice(5)}<br>${label.slice(2,4)}</div>
+            <div style="font-size:0.68rem;font-weight:700;color:${net >= 0 ? 'var(--success)' : 'var(--danger)'};">${net >= 0 ? '+' : ''}${ils(net)}</div>
+          </div>`;
+      }).join('');
+      document.getElementById('cf-monthly').innerHTML = `
+        <div class="section-title" style="margin-bottom:16px;">📅 פירוט חודשי — 12 חודשים</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+            <thead>
+              <tr style="color:var(--muted);border-bottom:1px solid var(--border);">
+                <th style="text-align:right;padding:8px;">חודש</th>
+                <th style="text-align:left;padding:8px;">הכנסות ₪</th>
+                <th style="text-align:left;padding:8px;">הוצאות ₪</th>
+                <th style="text-align:left;padding:8px;">נטו ₪</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${months.map(m => {
+                const inc = monthly[m].income, exp = monthly[m].expenses, net = inc - exp;
+                return `<tr style="border-bottom:1px solid rgba(30,45,69,0.5);">
+                  <td style="padding:8px;color:var(--muted);">${m}</td>
+                  <td style="padding:8px;color:var(--success);">${ils(inc)}</td>
+                  <td style="padding:8px;color:var(--danger);">${ils(exp)}</td>
+                  <td style="padding:8px;font-weight:700;color:${net>=0?'var(--success)':'var(--danger)'};">${net>=0?'+':''}${ils(net)}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    // Top categories
+    const cats = d.top_expense_categories || [];
+    if (cats.length > 0) {
+      const maxCat = cats[0].amount_ils;
+      document.getElementById('cf-categories').innerHTML = `
+        <div class="section-title" style="margin-bottom:14px;">📊 קטגוריות הוצאה מובילות</div>
+        ${cats.map(c => {
+          const pct = maxCat > 0 ? (c.amount_ils / maxCat * 100) : 0;
+          return `
+            <div style="margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                <span style="font-size:0.85rem;">${c.category}</span>
+                <span style="font-size:0.85rem;font-weight:700;color:var(--danger);">${ils(c.amount_ils)}</span>
+              </div>
+              <div style="background:var(--border);border-radius:4px;height:8px;">
+                <div style="background:linear-gradient(90deg,var(--danger),#f87171);height:100%;border-radius:4px;width:${pct}%;transition:width 0.5s;"></div>
+              </div>
+            </div>`;
+        }).join('')}`;
+    }
+
+  } catch(e) {
+    document.getElementById('cf-kpis').innerHTML = `<div style="grid-column:1/-1;color:var(--danger);padding:20px;">שגיאה: ${e.message}</div>`;
+  }
 }
 
 // ── Strategy Tab ───────────────────────────────────────────────────────────
