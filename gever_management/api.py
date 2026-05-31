@@ -1559,6 +1559,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
   </div>
   <div class="header-right">
     <div class="chairman-badge">👑 פארוק ג'בר — יו"ר</div>
+    <span id="js-ok-dot" style="display:none;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.4);color:#10b981;border-radius:20px;padding:4px 10px;font-size:0.72rem;">JS ✓</span>
     <a href="/logout" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;border-radius:8px;padding:6px 12px;font-size:0.78rem;text-decoration:none;transition:background 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.3)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">🚪 יציאה</a>
   </div>
 </div>
@@ -2246,14 +2247,17 @@ window.onerror = function(msg, src, line, col, err) {
   if (!d) {
     d = document.createElement('div');
     d.id = 'js-error-banner';
-    d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;padding:14px 16px;font-size:13px;direction:ltr;font-family:monospace;white-space:pre-wrap;border-bottom:3px solid #991b1b;';
+    d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;padding:14px 16px;font-size:13px;direction:ltr;font-family:monospace;white-space:pre-wrap;border-bottom:3px solid #991b1b;cursor:pointer;';
+    d.onclick = function() { d.style.display = 'none'; };
     document.body.appendChild(d);
   }
-  d.textContent = 'JS ERROR: ' + msg + '\nLine: ' + line + ', Col: ' + col;
+  d.textContent = 'JS ERROR: ' + msg + '\nLine: ' + line + ', Col: ' + col + '\n(click to dismiss)';
   return false;
 };
 window.addEventListener('unhandledrejection', function(e) {
-  window.onerror('Unhandled Promise: ' + (e.reason && e.reason.message || e.reason), '', 0, 0);
+  var reason = e.reason;
+  var msg = reason && reason.message ? reason.message : String(reason);
+  window.onerror('Unhandled Promise: ' + msg, '', 0, 0);
 });
 </script>
 
@@ -2364,26 +2368,44 @@ async function apiFetch(url, opts = {}) {
 
 // ── Tab Switching ──────────────────────────────────────────────────────────
 function switchTab(name) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('panel-' + name).classList.add('active');
-  document.getElementById('tab-' + name).classList.add('active');
-  loadTab(name);
+  console.log('[Jabr] switchTab:', name);
+  // Use Array.from to ensure .forEach works in all browsers
+  Array.from(document.querySelectorAll('.tab-panel')).forEach(function(p) { p.classList.remove('active'); });
+  Array.from(document.querySelectorAll('.tab')).forEach(function(t) { t.classList.remove('active'); });
+  var panel = document.getElementById('panel-' + name);
+  var tab   = document.getElementById('tab-' + name);
+  if (panel) panel.classList.add('active');
+  if (tab)   tab.classList.add('active');
+  try { loadTab(name); } catch(e) {
+    console.error('[Jabr] loadTab error:', e);
+    showJsError('שגיאה בטעינת ' + name + ': ' + e.message);
+  }
 }
 
 function loadTab(name) {
-  switch(name) {
-    case 'home': loadHome(); break;
-    case 'strategy': loadGoals(); break;
-    case 'departments': loadDepartments(); break;
-    case 'meetings': loadMeetings(); break;
-    case 'discussions': loadDiscussions(); break;
-    case 'cashflow': loadCashflow(); break;
-    case 'reports': switchDR('cfo', document.getElementById('drt-cfo')); break;
-    case 'activity': loadActivity(); break;
-    case 'deliverables': loadDeliverables(); break;
-    case 'settings': loadSettings(); break;
+  if (name === 'home')         { loadHome(); }
+  else if (name === 'strategy')     { loadGoals(); }
+  else if (name === 'departments')  { loadDepartments(); }
+  else if (name === 'meetings')     { loadMeetings(); }
+  else if (name === 'discussions')  { loadDiscussions(); }
+  else if (name === 'cashflow')     { loadCashflow(); }
+  else if (name === 'reports')      { switchDR('cfo', document.getElementById('drt-cfo')); }
+  else if (name === 'activity')     { loadActivity(); }
+  else if (name === 'deliverables') { loadDeliverables(); }
+  else if (name === 'settings')     { loadSettings(); }
+}
+
+function showJsError(msg) {
+  var d = document.getElementById('js-error-banner');
+  if (!d) {
+    d = document.createElement('div');
+    d.id = 'js-error-banner';
+    d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;padding:14px 16px;font-size:13px;direction:ltr;font-family:monospace;white-space:pre-wrap;border-bottom:3px solid #991b1b;cursor:pointer;';
+    d.onclick = function() { d.style.display = 'none'; };
+    document.body.appendChild(d);
   }
+  d.style.display = '';
+  d.textContent = msg + '\n(לחץ לסגירה)';
 }
 
 // ── Toast ──────────────────────────────────────────────────────────────────
@@ -2921,70 +2943,80 @@ async function executeGoals() {
 
 // ── Home Tab ───────────────────────────────────────────────────────────────
 async function loadHome() {
-  try {
-    const [pending, inprog, activities, employees] = await Promise.all([
-      fetch('/api/review/pending').then(r => r.json()),
-      fetch('/api/tasks?status=in_progress').then(r => r.json()),
-      fetch('/api/activities?limit=100').then(r => r.json()),
-      fetch('/api/employees').then(r => r.json()),
-    ]);
+  // Fetch each endpoint independently — one failure won't block others
+  var pending = [], inprog = [], activities = [], employees = [], completed = [];
 
-    document.getElementById('stat-pending').textContent = pending.length;
-    document.getElementById('stat-inprogress').textContent = inprog.length;
-    document.getElementById('stat-completed').textContent =
-      (await fetch('/api/tasks?status=review').then(r => r.json())).length;
-    document.getElementById('stat-employees').textContent = employees.length;
+  try { pending = await fetch('/api/review/pending').then(function(r) { return r.json(); }); } catch(e) { console.warn('[Jabr] pending:', e); }
+  try { inprog = await fetch('/api/tasks?status=in_progress').then(function(r) { return r.json(); }); } catch(e) { console.warn('[Jabr] inprog:', e); }
+  try { activities = await fetch('/api/activities?limit=100').then(function(r) { return r.json(); }); } catch(e) { console.warn('[Jabr] activities:', e); }
+  try { employees = await fetch('/api/employees').then(function(r) { return r.json(); }); } catch(e) { console.warn('[Jabr] employees:', e); }
+  try { completed = await fetch('/api/tasks?status=review').then(function(r) { return r.json(); }); } catch(e) { console.warn('[Jabr] completed:', e); }
 
-    const today = new Date().toISOString().slice(0, 10);
-    const todayActs = (activities || []).filter(a => a.created_at && a.created_at.startsWith(today));
-    document.getElementById('stat-activities').textContent = todayActs.length;
+  if (!Array.isArray(pending)) pending = [];
+  if (!Array.isArray(inprog)) inprog = [];
+  if (!Array.isArray(activities)) activities = [];
+  if (!Array.isArray(employees)) employees = [];
+  if (!Array.isArray(completed)) completed = [];
 
-    // Pending
-    const pendingEl = document.getElementById('home-pending');
-    if (!pending || pending.length === 0) {
+  var statPending = document.getElementById('stat-pending');
+  var statInprog  = document.getElementById('stat-inprogress');
+  var statComp    = document.getElementById('stat-completed');
+  var statEmp     = document.getElementById('stat-employees');
+  var statAct     = document.getElementById('stat-activities');
+  if (statPending) statPending.textContent = pending.length;
+  if (statInprog)  statInprog.textContent  = inprog.length;
+  if (statComp)    statComp.textContent    = completed.length;
+  if (statEmp)     statEmp.textContent     = employees.length;
+
+  var today = new Date().toISOString().slice(0, 10);
+  var todayActs = activities.filter(function(a) { return a.created_at && a.created_at.startsWith(today); });
+  if (statAct) statAct.textContent = todayActs.length;
+
+  // Pending deliverables
+  var pendingEl = document.getElementById('home-pending');
+  if (pendingEl) {
+    if (pending.length === 0) {
       pendingEl.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>אין תוצרים ממתינים לאישור</p></div>';
     } else {
-      pendingEl.innerHTML = pending.slice(0, 5).map(p => {
-        const preview = (p.content || '').slice(0, 220);
-        const hasMore = (p.content || '').length > 220;
-        const subtitle = `${deptIcon(p.department)} ${p.department || ''} • ${timeAgo(p.created_at)}`;
-        return `
-        <div class="task-card review">
-          <div class="task-title">${p.agent_role || ''} — ${(p.tasks && p.tasks.title) || ''}</div>
-          <div class="task-meta">
-            <span>${deptIcon(p.department)} ${p.department || ''}</span>
-            ${statusBadge(p.status)}
-            <span>${timeAgo(p.created_at)}</span>
-          </div>
-          <div style="margin-top:10px;font-size:0.83rem;color:var(--muted);background:var(--bg);padding:10px;border-radius:8px;white-space:pre-wrap;max-height:80px;overflow:hidden;">${preview}${hasMore ? '...' : ''}</div>
-          ${hasMore ? `<button class="read-more-btn" onclick="openModal('${(p.agent_role||'').replace(/'/g,"\\'")} — ${((p.tasks&&p.tasks.title)||'').replace(/'/g,"\\'")}','${subtitle.replace(/'/g,"\\'")}',${JSON.stringify(p.content||'')},'${p.id}','${p.status}')">📖 קרא הכל</button>` : ''}
-          <div class="deliverable-actions" style="margin-top:8px;">
-            <button class="btn btn-success btn-sm" onclick="quickApprove('${p.id}')">✅ אשר</button>
-            <button class="btn btn-danger btn-sm" onclick="quickReject('${p.id}')">❌ דחה</button>
-          </div>
-        </div>`;
+      pendingEl.innerHTML = pending.slice(0, 5).map(function(p) {
+        var preview = (p.content || '').slice(0, 220);
+        var hasMore = (p.content || '').length > 220;
+        var subtitle = deptIcon(p.department) + ' ' + (p.department || '') + ' • ' + timeAgo(p.created_at);
+        var taskTitle = (p.tasks && p.tasks.title) || '';
+        var readMoreBtn = hasMore ? '<button class="read-more-btn" onclick="openModal(' +
+          JSON.stringify((p.agent_role||'') + ' — ' + taskTitle) + ',' +
+          JSON.stringify(subtitle) + ',' +
+          JSON.stringify(p.content||'') + ',' +
+          JSON.stringify(p.id) + ',' +
+          JSON.stringify(p.status) + ')">📖 קרא הכל</button>' : '';
+        return '<div class="task-card review">' +
+          '<div class="task-title">' + (p.agent_role||'') + ' — ' + taskTitle + '</div>' +
+          '<div class="task-meta"><span>' + deptIcon(p.department) + ' ' + (p.department||'') + '</span>' +
+          statusBadge(p.status) + '<span>' + timeAgo(p.created_at) + '</span></div>' +
+          '<div style="margin-top:10px;font-size:0.83rem;color:var(--muted);background:var(--bg);padding:10px;border-radius:8px;white-space:pre-wrap;max-height:80px;overflow:hidden;">' + preview + (hasMore ? '...' : '') + '</div>' +
+          readMoreBtn +
+          '<div class="deliverable-actions" style="margin-top:8px;">' +
+          '<button class="btn btn-success btn-sm" onclick="quickApprove(\'' + p.id + '\')">✅ אשר</button> ' +
+          '<button class="btn btn-danger btn-sm" onclick="quickReject(\'' + p.id + '\')">❌ דחה</button>' +
+          '</div></div>';
       }).join('');
     }
+  }
 
-    // In Progress
-    const ipEl = document.getElementById('home-inprogress');
-    if (!inprog || inprog.length === 0) {
+  // In Progress
+  var ipEl = document.getElementById('home-inprogress');
+  if (ipEl) {
+    if (inprog.length === 0) {
       ipEl.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>אין משימות פעילות כרגע</p></div>';
     } else {
-      ipEl.innerHTML = inprog.slice(0, 5).map(t => `
-        <div class="task-card">
-          <div class="task-title">${t.title || ''}</div>
-          <div class="task-meta">
-            <span>${t.assigned_to || ''}</span>
-            ${statusBadge(t.status)}
-            <span>${timeAgo(t.created_at)}</span>
-          </div>
-        </div>
-      `).join('');
+      ipEl.innerHTML = inprog.slice(0, 5).map(function(t) {
+        return '<div class="task-card">' +
+          '<div class="task-title">' + (t.title||'') + '</div>' +
+          '<div class="task-meta"><span>' + (t.assigned_to||'') + '</span>' +
+          statusBadge(t.status) + '<span>' + timeAgo(t.created_at) + '</span></div>' +
+          '</div>';
+      }).join('');
     }
-  } catch(e) {
-    console.error(e);
-    document.getElementById('home-pending').innerHTML = '<div class="empty-state"><p>שגיאה בטעינת נתונים</p></div>';
   }
 }
 
@@ -3114,7 +3146,7 @@ async function fireEmployee() {
 let _allDepartments = [];
 
 function filterDept(code, btn) {
-  document.querySelectorAll('#dept-filter .filter-btn').forEach(b => b.classList.remove('active'));
+  Array.from(document.querySelectorAll('#dept-filter .filter-btn')).forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
   if (code === 'all') {
     renderDepartmentsGrid(_allDepartments);
@@ -3241,7 +3273,7 @@ async function loadMeetings() {
 }
 
 function filterMeetings(type, btn) {
-  document.querySelectorAll('#meetings-filter .filter-btn').forEach(b => b.classList.remove('active'));
+  Array.from(document.querySelectorAll('#meetings-filter .filter-btn')).forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
   const filtered = type === 'all' ? allMeetings : allMeetings.filter(m => m.meeting_type === type);
   renderMeetings(filtered);
@@ -3317,7 +3349,7 @@ function showMeetingModal() {
   document.getElementById('mtg-status').textContent = '';
   document.getElementById('mtg-submit-btn').disabled = false;
   // visual sync checkboxes with label styles
-  document.querySelectorAll('#mtg-dept-grid label').forEach(lbl => {
+  Array.from(document.querySelectorAll('#mtg-dept-grid label')).forEach(function(lbl) {
     const cb = lbl.querySelector('input');
     if (cb.checked) lbl.classList.add('selected'); else lbl.classList.remove('selected');
     cb.onchange = () => {
@@ -3333,7 +3365,7 @@ function closeMeetingModal() {
 
 function selectMtgType(type, btn) {
   _mtgType = type;
-  document.querySelectorAll('.meeting-type-btns .type-btn').forEach(b => b.classList.remove('selected'));
+  Array.from(document.querySelectorAll('.meeting-type-btns .type-btn')).forEach(function(b) { b.classList.remove('selected'); });
   btn.classList.add('selected');
 }
 
@@ -3394,7 +3426,7 @@ async function loadDiscussions() {
 }
 
 function filterDiscs(filter, btn) {
-  document.querySelectorAll('#disc-filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
+  Array.from(document.querySelectorAll('#disc-filter-bar .filter-btn')).forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
   let filtered = _allDiscs;
   if (filter === 'active')     filtered = _allDiscs.filter(d => d.status !== 'closed');
@@ -3615,7 +3647,7 @@ function closeDiscModal() {
 
 function selectDiscType(type, btn) {
   _discSelectedType = type;
-  document.querySelectorAll('#disc-type-row .type-btn').forEach(b => b.classList.remove('selected'));
+  Array.from(document.querySelectorAll('#disc-type-row .type-btn')).forEach(function(b) { b.classList.remove('selected'); });
   btn.classList.add('selected');
 }
 
@@ -3723,7 +3755,7 @@ function removeParticipant(id) {
 }
 
 function filterPicker(query) {
-  document.querySelectorAll('.picker-item').forEach(el => {
+  Array.from(document.querySelectorAll('.picker-item')).forEach(function(el) {
     const text = el.textContent.toLowerCase();
     el.style.display = (!query || text.includes(query.toLowerCase())) ? '' : 'none';
   });
@@ -3768,7 +3800,7 @@ async function loadActivity() {
 }
 
 function filterActivity(type, btn) {
-  document.querySelectorAll('#panel-activity .filter-btn').forEach(b => b.classList.remove('active'));
+  Array.from(document.querySelectorAll('#panel-activity .filter-btn')).forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
   const filtered = type === 'all' ? allActivities : allActivities.filter(a => a.activity_type === type);
   renderActivity(filtered);
@@ -3807,7 +3839,7 @@ async function loadDeliverables() {
 }
 
 function filterDeliverables(status, btn) {
-  document.querySelectorAll('#panel-deliverables .filter-btn').forEach(b => b.classList.remove('active'));
+  Array.from(document.querySelectorAll('#panel-deliverables .filter-btn')).forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
   const filtered = status === 'all' ? allDeliverables : allDeliverables.filter(d => d.status === status);
   renderDeliverables(filtered);
@@ -3984,8 +4016,8 @@ const drPeriodCard = (title, icon, data, prev_label, prev_data, incChg, expChg, 
 };
 
 function switchDR(dept, btn) {
-  document.querySelectorAll('.dr-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.dr-tab').forEach(t => t.classList.remove('active'));
+  Array.from(document.querySelectorAll('.dr-panel')).forEach(function(p) { p.classList.remove('active'); });
+  Array.from(document.querySelectorAll('.dr-tab')).forEach(function(t) { t.classList.remove('active'); });
   const panel = document.getElementById('drp-' + dept);
   if (panel) panel.classList.add('active');
   if (btn) btn.classList.add('active');
@@ -4312,6 +4344,13 @@ async function loadSettings() {
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
+// Show JS-ok indicator so we know the script loaded and ran
+(function() {
+  var dot = document.getElementById('js-ok-dot');
+  if (dot) dot.style.display = 'inline';
+  console.log('[Jabr] JavaScript loaded successfully — build 2026-05-31');
+})();
+
 loadHome();
 </script>
 </body>
