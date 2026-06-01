@@ -570,8 +570,8 @@ async function login() {
       headers: { 'Authorization': 'Basic ' + token }
     });
     if (r.ok) {
-      sessionStorage.setItem('jauth', token);
-      location.replace('/dashboard#' + token);
+      localStorage.setItem('jauth', token);
+      location.replace('/dashboard');
     } else {
       err.textContent = 'שם משתמש או סיסמה שגויים';
       err.style.display = 'block';
@@ -1138,15 +1138,13 @@ select option{background:var(--card)}
 var AUTH = '', DEPTS = [], chatDept = '', chatHist = [];
 
 window.addEventListener('DOMContentLoaded', function() {
-  AUTH = location.hash.slice(1) || sessionStorage.getItem('jauth') || '';
+  AUTH = localStorage.getItem('jauth') || '';
   if (!AUTH) { location.replace('/'); return; }
-  sessionStorage.setItem('jauth', AUTH);
-  history.replaceState(null, '', '/dashboard');
   boot();
 });
 
 function logout() {
-  sessionStorage.removeItem('jauth');
+  localStorage.removeItem('jauth');
   location.replace('/');
 }
 
