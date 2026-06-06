@@ -9,6 +9,8 @@ from datetime import datetime
 
 # ── Config ────────────────────────────────────────────────────
 ANTHROPIC_KEY   = os.getenv("ANTHROPIC_API_KEY", "")
+OPENAI_KEY      = os.getenv("OPENAI_API_KEY", "")
+GEMINI_KEY      = os.getenv("GOOGLE_GEMINI_API_KEY", "")
 SB_URL          = os.getenv("SUPABASE_URL", "")
 SB_KEY          = os.getenv("SUPABASE_ANON_KEY", "")
 USER            = os.getenv("DASHBOARD_USER", "chairman")
@@ -124,7 +126,13 @@ async def verify(u=Depends(verify_auth)):
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "anthropic": bool(ANTHROPIC_KEY), "supabase": bool(SB_URL and SB_KEY)}
+    return {
+        "status": "ok",
+        "anthropic": bool(ANTHROPIC_KEY),
+        "openai": bool(OPENAI_KEY),
+        "gemini": bool(GEMINI_KEY),
+        "supabase": bool(SB_URL and SB_KEY),
+    }
 
 @app.get("/api/stats")
 async def stats(u=Depends(verify_auth)):
