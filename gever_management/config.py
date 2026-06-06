@@ -7,6 +7,12 @@ class Settings(BaseSettings):
     # Anthropic
     anthropic_api_key: str = ""
 
+    # OpenAI
+    openai_api_key: str = ""
+
+    # Google Gemini
+    google_gemini_api_key: str = ""
+
     # Supabase
     supabase_url: str = ""
     supabase_anon_key: str = ""
