@@ -765,7 +765,7 @@ async function doRegister(){
   if(!n||!e||!p){showErr(er,'נא למלא שדות חובה');return;}
   if(p.length<6){showErr(er,'סיסמה — לפחות 6 תווים');return;}
   const btn=$('btn-rg'); btn.disabled=true; btn.textContent='נרשם...';
-  const {data,error}=await sb.auth.signUp({email:e,password:p,options:{data:{full_name:n}}});
+  const {data,error}=await sb.auth.signUp({email:e,password:p,options:{data:{full_name:n},emailRedirectTo:'https://primels.co.il/email-confirmed.html'}});
   btn.disabled=false; btn.textContent='הרשמה ←';
   if(error){showErr(er,xlE(error.message));return;}
   if(data.user){
@@ -777,7 +777,7 @@ async function doRegister(){
 async function doForgot(){
   const e=$('fg-e').value.trim();
   if(!e){showErr($('fg-err'),'נא להכניס אימייל');return;}
-  const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:window.location.href});
+  const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:'https://primels.co.il/reset-password.html'});
   if(error){showErr($('fg-err'),xlE(error.message));return;}
   $('fg-ok').style.display='block'; $('fg-ok').textContent='✓ קישור נשלח לאימייל!';
 }
@@ -1278,7 +1278,7 @@ async function admDoc(uid){const t=prompt('שם המסמך:');if(!t)return;const
 async function adminAddUser(){
   const n=$('au-n').value.trim(),e=$('au-e').value.trim(),pw=$('au-pw').value;
   if(!n||!e||!pw){toast('נא למלא שם, אימייל וסיסמה');return;}
-  const {data,error}=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n}}});
+  const {data,error}=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n},emailRedirectTo:'https://primels.co.il/email-confirmed.html'}});
   if(error){toast('שגיאה: '+error.message);return;}
   if(data.user){await sb.from('profiles').update({full_name:n,phone:$('au-ph').value,company_name:$('au-co').value,role:$('au-ro').value}).eq('id',data.user.id);await sb.from('subscriptions').update({plan:$('au-pl').value}).eq('user_id',data.user.id);}
   closeMo('mo-adduser'); toast('✓ הלקוח נוצר'); loadAdmUsers();

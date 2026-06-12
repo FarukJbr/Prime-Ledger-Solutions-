@@ -853,7 +853,7 @@ async function saveUser() {
     const email = document.getElementById('u-email').value.trim();
     const pass = document.getElementById('u-pass').value;
     if (!email || !pass || !name) { showToast('נא למלא שם, אימייל וסיסמה'); return; }
-    const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { full_name: name } } });
+    const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { full_name: name }, emailRedirectTo: 'https://primels.co.il/email-confirmed.html' } });
     if (error) { showToast('שגיאה: ' + error.message); return; }
     if (data.user) {
       await sb.from('profiles').update({ full_name: name, phone, company_name: company }).eq('id', data.user.id);
